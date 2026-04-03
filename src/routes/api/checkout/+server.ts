@@ -1,11 +1,19 @@
 import { error, json } from "@sveltejs/kit";
 import { PUBLIC_SITE_URL } from "$env/static/public";
+import { rateLimit } from "$lib/server/rate-limit";
 import { createCheckoutSession } from "$lib/server/stripe";
 import { getRetailPrice } from "$lib/shop/pricing";
 import type { CheckoutMetadata, PaperType } from "$lib/shop/types";
 import type { RequestHandler } from "./$types";
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, getClientAddress }) => {
+	// Rate limiting: 10 requests per minute per IP
+	const ip = getClientAddress();
+	const { allowed } = rateLimit(ip, 10, 60_000);
+	if (!allowed) {
+		error(429, "too many requests — please try again later");
+	}
+
 	const body = await request.json();
 
 	const {

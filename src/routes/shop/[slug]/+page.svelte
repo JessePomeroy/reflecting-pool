@@ -46,6 +46,19 @@ async function handleCheckout() {
 
 <svelte:head>
 	<title>{data.product.title} · print · margaret helena</title>
+	{@html `<script type="application/ld+json">${JSON.stringify({
+		"@context": "https://schema.org",
+		"@type": "Product",
+		"name": data.product.title,
+		"image": data.product.imageUrl,
+		"description": "Fine art photography print on archival paper",
+		"offers": {
+			"@type": "Offer",
+			"priceCurrency": "USD",
+			"price": String(getRetailPrice(selectedPaper, data.sizes[0]) ?? 0),
+			"availability": "https://schema.org/InStock"
+		}
+	})}<\/script>`}
 </svelte:head>
 
 <div class="product-page">

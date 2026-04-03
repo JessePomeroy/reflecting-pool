@@ -8,20 +8,28 @@ import ParallaxProvider from "$lib/components/ParallaxProvider.svelte";
 import StrokeTitle from "$lib/components/StrokeTitle.svelte";
 import WaterSurface from "$lib/components/WaterSurface.svelte";
 import type { ClusterImage, GalleryCluster } from "$lib/types/gallery";
-import { randomRange } from "$lib/utils/math";
 
 // ─── Gallery Data ──────────────────────────────────────────────
 // 5 clusters, ~6-7 images each, from flower-01 to flower-35 (no 23)
 
+function seededRandom(seed: number): () => number {
+	let s = seed;
+	return () => {
+		s = (s * 16807 + 0) % 2147483647;
+		return s / 2147483647;
+	};
+}
+
 function makeImage(num: string, title: string): ClusterImage {
+	const rand = seededRandom(parseInt(num, 10));
 	return {
 		src: `/images/flower-${num}.jpg`,
 		alt: `${title} — flower ${num}`,
-		depth: randomRange(0.25, 0.9),
-		offsetX: randomRange(-38, 38),
-		offsetY: randomRange(-28, 28),
-		rotation: randomRange(-4.5, 4.5),
-		scale: randomRange(0.82, 1.0),
+		depth: 0.25 + rand() * 0.65,
+		offsetX: -38 + rand() * 76,
+		offsetY: -28 + rand() * 56,
+		rotation: -4.5 + rand() * 9,
+		scale: 0.82 + rand() * 0.18,
 	};
 }
 
@@ -98,6 +106,7 @@ function handleClusterClick(cluster: GalleryCluster) {
 }
 
 function handleBack() {
+	if (view === "index") return;
 	view = "index";
 	activeCluster = null;
 	dismissing = false;
