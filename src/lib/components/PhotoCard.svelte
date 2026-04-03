@@ -64,7 +64,7 @@ const driftDelay = Math.random() * -30;
 	style:z-index={Math.round(depth * 10)}
 	onclick={onclick}
 >
-	<img {src} {alt} loading="lazy" draggable="false" />
+	<img {src} {alt} loading="lazy" decoding="async" draggable="false" />
 </div>
 
 <style>
@@ -79,11 +79,6 @@ const driftDelay = Math.random() * -30;
 		transition:
 			filter 400ms ease,
 			opacity 400ms ease;
-
-		/* Ambient CSS animations — float and drift */
-		animation:
-			photo-float var(--float-duration, 4s) ease-in-out infinite var(--float-delay, 0s),
-			photo-drift var(--drift-duration, 30s) ease-in-out infinite var(--drift-delay, 0s);
 	}
 
 	.photo-card:hover {
@@ -132,6 +127,14 @@ const driftDelay = Math.random() * -30;
 		100% {
 			margin-left: 0;
 			margin-top: 0;
+		}
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.photo-card {
+			animation:
+				photo-float var(--float-duration, 4s) ease-in-out infinite var(--float-delay, 0s),
+				photo-drift var(--drift-duration, 30s) ease-in-out infinite var(--drift-delay, 0s);
 		}
 	}
 
