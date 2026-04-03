@@ -3,6 +3,7 @@ import ClusterField from "$lib/components/ClusterField.svelte";
 import GalleryView from "$lib/components/GalleryView.svelte";
 import LeafLayer from "$lib/components/LeafLayer.svelte";
 import Lightbox from "$lib/components/Lightbox.svelte";
+import LiquidCursor from "$lib/components/LiquidCursor.svelte";
 import Navigation from "$lib/components/Navigation.svelte";
 import ParallaxProvider from "$lib/components/ParallaxProvider.svelte";
 import StrokeTitle from "$lib/components/StrokeTitle.svelte";
@@ -162,6 +163,9 @@ function closeLightbox() {
 			onclose={closeLightbox}
 		/>
 	{/if}
+
+	<!-- z-9999: Liquid cursor — last child so it renders above everything -->
+	<LiquidCursor />
 </ParallaxProvider>
 
 <style>

@@ -1,7 +1,7 @@
 <script lang="ts">
+import { inject } from "@vercel/analytics";
 import type { Snippet } from "svelte";
 import { dev } from "$app/environment";
-import { inject } from "@vercel/analytics";
 
 interface Props {
 	children: Snippet;
@@ -51,6 +51,21 @@ inject({ mode: dev ? "development" : "production" });
 
 	:global(body) {
 		position: relative;
+		cursor: none; /* replaced by LiquidCursor on desktop */
+	}
+
+	/* Restore default cursor on touch devices (no custom cursor needed) */
+	@media (pointer: coarse) {
+		:global(body) {
+			cursor: auto;
+		}
+	}
+
+	/* Restore default cursor when user prefers reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		:global(body) {
+			cursor: auto;
+		}
 	}
 
 	/* Scrollbar styling */

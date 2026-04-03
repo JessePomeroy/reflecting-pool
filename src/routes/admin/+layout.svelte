@@ -80,6 +80,12 @@ function isActive(href: string, currentPath: string): boolean {
 		background: #111827;
 		color: #e5e7eb;
 		font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+		cursor: auto; /* override the global cursor: none from +layout.svelte */
+	}
+
+	/* Ensure all child elements in admin also show normal cursor */
+	.admin-layout :global(*) {
+		cursor: inherit;
 	}
 
 	/* Sidebar */
