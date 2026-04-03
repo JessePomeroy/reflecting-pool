@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@sanity/client": "^7.20.0",
+    "@vercel/analytics": "^2.0.1",
     "resend": "^6.10.0",
     "stripe": "^22.0.0"
   }

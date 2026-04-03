@@ -11,6 +11,7 @@
 | Portfolio site | SvelteKit app | Vercel (free tier) | $0 |
 | CMS | Sanity Studio | Sanity (free tier) | $0 |
 | Print shop | Stripe checkout + LumaPrints fulfillment | Client's accounts | $0 (fees per transaction) |
+| Analytics | Vercel Analytics | Vercel (free tier) | $0 (up to 2,500 events/mo) |
 | Domain | Client's custom domain | Their registrar | ~$12/year |
 
 **Total ongoing cost to client: ~$0-20/month** (vs Squarespace at $16-49/month)
@@ -288,6 +289,66 @@ Bundle maintenance for all your clients:
 ## First Client Conversation Script
 
 > "Right now you're paying Squarespace $[X]/month for a template that looks like every other photographer's site. What if you had something completely custom — floating images, an underwater aesthetic that matches your work — with a built-in print shop that costs nothing monthly? You'd own it completely, and you can update everything yourself through a simple dashboard. I can build this for $[X] and have it ready in [timeframe]."
+
+---
+
+---
+
+## What's Actually Built (Current State)
+
+### Pages
+- `/` — Floating parallax gallery with 5 photo clusters
+- `/shop` — Collections grid + individual prints grid
+- `/shop/collection/[slug]` — Collection detail with prints
+- `/shop/[slug]` — Individual print purchase (paper + size picker, Stripe checkout)
+- `/shop/success` — Order confirmation
+- `/shop/cancelled` — Checkout cancelled
+- `/about` — Bio, contact form (Resend email), Cal.com booking
+- `/admin` — Dashboard with revenue cards, sparkline chart
+- `/admin/orders` — Full order management (filters, search, CSV export, detail modal)
+- `/admin/inquiries` — Contact form submissions
+- `/admin/galleries` — Collection overview
+
+### Infrastructure
+- 109 automated tests (Vitest)
+- GitHub Actions CI/CD (lint → test → build)
+- Pre-commit hooks (Biome + lint-staged)
+- Rate limiting on API endpoints
+- robots.txt + sitemap.xml
+- JSON-LD Product schema for SEO
+- prefers-reduced-motion accessibility
+- Vercel Analytics
+- Error boundaries on all route groups
+- Admin auth middleware (prepped, needs activation)
+
+### What Needs Human Work Before Launch
+- Connect real Sanity project (replace mock data)
+- Upload client's actual photos
+- Set real Stripe + LumaPrints + Resend credentials
+- Verify Resend `from` domain
+- Replace Cal.com placeholder with real booking link
+- Enable admin auth
+- Test full checkout flow end-to-end
+- Client training session (30 min)
+
+See `TESTING-PIPELINE.md` for the full step-by-step testing guide.
+
+---
+
+## For Maggie (First Client)
+
+**Recommended deal:**
+> "You don't owe me anything upfront. If you sell a print through the site, kick me 15%. If you refer me to another photographer, that pays for everything. No pressure."
+
+**Template rights:**
+Ask if she's OK with you selling the site design as a template to other photographers. Her content/photos stay unique — just the code structure gets reused.
+
+**Ongoing costs for her:**
+- Hosting: $0 (Vercel free)
+- CMS: $0 (Sanity free)
+- Domain: ~$12/year
+- Print sales: Stripe 2.9% + $0.30 per transaction + LumaPrints print cost
+- Total: ~$1/month basically
 
 ---
 

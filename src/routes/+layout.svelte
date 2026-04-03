@@ -1,11 +1,15 @@
 <script lang="ts">
 import type { Snippet } from "svelte";
+import { dev } from "$app/environment";
+import { inject } from "@vercel/analytics";
 
 interface Props {
 	children: Snippet;
 }
 
 let { children }: Props = $props();
+
+inject({ mode: dev ? "development" : "production" });
 </script>
 
 <svelte:head>
