@@ -49,7 +49,13 @@ async function handleCheckout() {
 </svelte:head>
 
 <div class="product-page">
-	<a href="/shop" class="back-link">← back to shop</a>
+	<nav class="breadcrumb">
+		<a href="/shop">shop</a>
+		<span class="sep">›</span>
+		<a href="/shop/collection/{data.product.gallerySlug}">{data.product.galleryTitle.toLowerCase()}</a>
+		<span class="sep">›</span>
+		<span class="current">{data.product.title.toLowerCase()}</span>
+	</nav>
 
 	<div class="product-layout">
 		<div class="product-image-wrapper">
@@ -130,18 +136,37 @@ async function handleCheckout() {
 		margin: 0 auto;
 	}
 
-	.back-link {
-		display: inline-block;
+	.breadcrumb {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 2rem;
+		flex-wrap: wrap;
+	}
+
+	.breadcrumb a {
+		font-family: 'Cormorant', serif;
+		font-size: 0.9rem;
 		color: rgba(26, 31, 46, 0.5);
 		text-decoration: none;
-		font-size: 0.9rem;
 		letter-spacing: 0.05em;
-		margin-bottom: 2rem;
 		transition: color 0.3s ease;
 	}
 
-	.back-link:hover {
+	.breadcrumb a:hover {
 		color: rgba(26, 31, 46, 0.8);
+	}
+
+	.breadcrumb .sep {
+		color: rgba(26, 31, 46, 0.3);
+		font-size: 0.85rem;
+	}
+
+	.breadcrumb .current {
+		font-family: 'Cormorant', serif;
+		font-size: 0.9rem;
+		color: rgba(26, 31, 46, 0.7);
+		letter-spacing: 0.05em;
 	}
 
 	.product-layout {

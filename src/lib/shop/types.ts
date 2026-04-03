@@ -161,6 +161,16 @@ export interface LumaPrintsShipment {
 	carrier: string;
 }
 
+/** A curated collection of prints */
+export interface PrintCollection {
+	id: string;
+	title: string;
+	slug: string;
+	description?: string;
+	coverImage: string;
+	printCount: number;
+}
+
 /** Stripe checkout metadata (attached to session) */
 export interface CheckoutMetadata {
 	imageUrl: string;

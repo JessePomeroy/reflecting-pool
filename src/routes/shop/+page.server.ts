@@ -1,10 +1,11 @@
-import { fetchPrintableProducts } from "$lib/server/sanity";
+import { fetchCollections, fetchPrintableProducts } from "$lib/server/sanity";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async () => {
-	const products = await fetchPrintableProducts();
+	const [collections, products] = await Promise.all([fetchCollections(), fetchPrintableProducts()]);
 
 	return {
+		collections,
 		products,
 	};
 };

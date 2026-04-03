@@ -23,31 +23,64 @@ const startingPrice = getStartingPrice();
 		<p class="starting-price">starting from {formatPrice(startingPrice)}</p>
 	</header>
 
-	{#if data.products.length === 0}
-		<div class="empty-state">
-			<p>No prints available at the moment. Check back soon.</p>
-		</div>
-	{:else}
-		<div class="prints-grid">
-			{#each data.products as product (product.id)}
-				<a href="/shop/{product.slug}" class="print-card">
-					<div class="print-image-wrapper">
-						<img
-							src={product.imageUrl}
-							alt={product.alt}
-							loading="lazy"
-							class="print-image"
-						/>
-					</div>
-					<div class="print-info">
-						<h2 class="print-title">{product.title}</h2>
-						<p class="print-gallery">{product.galleryTitle}</p>
-						<p class="print-price">from {formatPrice(startingPrice)}</p>
-					</div>
-				</a>
-			{/each}
-		</div>
+	<!-- Collections -->
+	{#if data.collections.length > 0}
+		<section class="collections-section">
+			<h2 class="section-title">collections</h2>
+			<div class="collections-grid">
+				{#each data.collections as collection (collection.id)}
+					<a href="/shop/collection/{collection.slug}" class="collection-card">
+						<div class="collection-image-wrapper">
+							<img
+								src={collection.coverImage}
+								alt={collection.title}
+								loading="lazy"
+								class="collection-image"
+							/>
+							<div class="collection-overlay">
+								<h3 class="collection-title">{collection.title}</h3>
+								<span class="collection-count"
+									>{collection.printCount} print{collection.printCount === 1
+										? ""
+										: "s"}</span
+								>
+							</div>
+						</div>
+					</a>
+				{/each}
+			</div>
+		</section>
 	{/if}
+
+	<!-- All Prints -->
+	<section class="prints-section">
+		<h2 class="section-title">all prints</h2>
+		{#if data.products.length === 0}
+			<div class="empty-state">
+				<p>No prints available at the moment. Check back soon.</p>
+			</div>
+		{:else}
+			<div class="prints-grid">
+				{#each data.products as product (product.id)}
+					<a href="/shop/{product.slug}" class="print-card">
+						<div class="print-image-wrapper">
+							<img
+								src={product.imageUrl}
+								alt={product.alt}
+								loading="lazy"
+								class="print-image"
+							/>
+						</div>
+						<div class="print-info">
+							<h3 class="print-title">{product.title}</h3>
+							<p class="print-gallery">{product.galleryTitle}</p>
+							<p class="print-price">from {formatPrice(startingPrice)}</p>
+						</div>
+					</a>
+				{/each}
+			</div>
+		{/if}
+	</section>
 </div>
 
 <style>
@@ -104,17 +137,95 @@ const startingPrice = getStartingPrice();
 		letter-spacing: 0.05em;
 	}
 
-	.empty-state {
-		text-align: center;
-		padding: 4rem 2rem;
+	/* Section titles */
+	.section-title {
+		font-family: 'Cormorant', serif;
+		font-weight: 300;
+		font-size: 1.4rem;
 		color: rgba(26, 31, 46, 0.5);
-		font-style: italic;
+		letter-spacing: 0.12em;
+		text-transform: lowercase;
+		margin-bottom: 1.5rem;
+	}
+
+	/* Collections grid */
+	.collections-section {
+		margin-bottom: 4rem;
+	}
+
+	.collections-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.5rem;
+	}
+
+	.collection-card {
+		text-decoration: none;
+		color: inherit;
+		display: block;
+		transition: transform 0.4s ease;
+	}
+
+	.collection-card:hover {
+		transform: translateY(-4px);
+	}
+
+	.collection-image-wrapper {
+		position: relative;
+		aspect-ratio: 3 / 4;
+		overflow: hidden;
+		background: rgba(26, 31, 46, 0.05);
+		border-radius: 2px;
+	}
+
+	.collection-image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.6s ease;
+	}
+
+	.collection-card:hover .collection-image {
+		transform: scale(1.04);
+	}
+
+	.collection-overlay {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		padding: 2rem 1.25rem 1.25rem;
+		background: linear-gradient(to top, rgba(26, 31, 46, 0.7) 0%, transparent 100%);
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+	}
+
+	.collection-title {
+		font-family: 'Cormorant', serif;
+		font-weight: 400;
+		font-size: 1.3rem;
+		color: #f0f0f0;
+		letter-spacing: 0.05em;
+		margin-bottom: 0.2rem;
+	}
+
+	.collection-count {
+		font-family: 'Cormorant', serif;
+		font-size: 0.8rem;
+		color: rgba(240, 240, 240, 0.65);
+		letter-spacing: 0.06em;
+	}
+
+	/* Prints grid */
+	.prints-section {
+		margin-bottom: 4rem;
 	}
 
 	.prints-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-		gap: 2.5rem;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 2rem;
 	}
 
 	.print-card {
@@ -147,36 +258,55 @@ const startingPrice = getStartingPrice();
 	}
 
 	.print-info {
-		padding: 1rem 0;
+		padding: 0.75rem 0;
 	}
 
 	.print-title {
 		font-family: 'Cormorant', serif;
 		font-weight: 400;
-		font-size: 1.2rem;
+		font-size: 1.1rem;
 		color: #1a1f2e;
-		margin-bottom: 0.25rem;
+		margin-bottom: 0.2rem;
 	}
 
 	.print-gallery {
 		font-family: 'Cormorant', serif;
-		font-size: 0.85rem;
+		font-size: 0.8rem;
 		color: rgba(26, 31, 46, 0.4);
 		letter-spacing: 0.05em;
 		text-transform: lowercase;
-		margin-bottom: 0.25rem;
+		margin-bottom: 0.2rem;
 	}
 
 	.print-price {
 		font-family: 'Cormorant', serif;
-		font-size: 0.95rem;
+		font-size: 0.9rem;
 		color: rgba(26, 31, 46, 0.6);
 	}
 
+	.empty-state {
+		text-align: center;
+		padding: 4rem 2rem;
+		color: rgba(26, 31, 46, 0.5);
+		font-style: italic;
+	}
+
+	/* Responsive */
+	@media (max-width: 900px) {
+		.collections-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
 	@media (max-width: 640px) {
+		.collections-grid {
+			grid-template-columns: 1fr 1fr;
+			gap: 1rem;
+		}
+
 		.prints-grid {
 			grid-template-columns: 1fr;
-			gap: 2rem;
+			gap: 1.5rem;
 		}
 
 		h1 {
@@ -185,6 +315,14 @@ const startingPrice = getStartingPrice();
 
 		.shop-page {
 			padding: 1rem;
+		}
+
+		.collection-title {
+			font-size: 1.1rem;
+		}
+
+		.collection-overlay {
+			padding: 1.5rem 1rem 1rem;
 		}
 	}
 </style>

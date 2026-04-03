@@ -4,7 +4,7 @@
 
 import { createClient } from "@sanity/client";
 import { SANITY_API_TOKEN, SANITY_DATASET, SANITY_PROJECT_ID } from "$env/static/private";
-import type { Order, PrintProduct } from "$lib/shop/types";
+import type { Order, PrintCollection, PrintProduct } from "$lib/shop/types";
 
 export const sanityClient = createClient({
 	projectId: SANITY_PROJECT_ID,
@@ -44,6 +44,33 @@ const _SINGLE_PRINT_QUERY = `
 }[defined(images)][0]
 `;
 
+const _COLLECTIONS_QUERY = `
+*[_type == "gallery" && isVisible == true] | order(sortOrder asc) {
+  _id,
+  title,
+  "slug": slug.current,
+  description,
+  coverImage { asset-> { url } },
+  "printCount": count(images[printAvailable == true])
+}[printCount > 0]
+`;
+
+const _COLLECTION_WITH_PRINTS_QUERY = `
+*[_type == "gallery" && slug.current == $slug && isVisible == true][0] {
+  _id,
+  title,
+  "slug": slug.current,
+  description,
+  coverImage { asset-> { url } },
+  images[printAvailable == true] {
+    "id": _key,
+    image { asset-> { url, metadata { dimensions, lqip } } },
+    caption,
+    alt
+  }
+}
+`;
+
 // ─── Data Fetchers ──────────────────────────────────────────
 
 /**
@@ -57,6 +84,42 @@ export async function fetchPrintableProducts(): Promise<PrintProduct[]> {
 
 	// Mock data matching the schema for development
 	return getMockProducts();
+}
+
+/**
+ * Fetch a single printable image by its slug (gallery-slug--image-key).
+ * TODO: Replace mock data with real Sanity query when project ID is configured.
+ */
+/**
+ * Fetch all print collections.
+ * TODO: Replace mock data with real Sanity query when project ID is configured.
+ */
+export async function fetchCollections(): Promise<PrintCollection[]> {
+	// TODO: Uncomment when Sanity project is set up:
+	// return sanityClient.fetch(COLLECTIONS_QUERY);
+
+	return getMockCollections();
+}
+
+/**
+ * Fetch a single collection with its prints by slug.
+ * TODO: Replace mock data with real Sanity query when project ID is configured.
+ */
+export async function fetchCollectionWithPrints(
+	slug: string,
+): Promise<{ collection: PrintCollection; prints: PrintProduct[] } | null> {
+	// TODO: Uncomment when Sanity project is set up:
+	// const result = await sanityClient.fetch(COLLECTION_WITH_PRINTS_QUERY, { slug });
+	// if (!result) return null;
+	// return { collection: result, prints: result.images.map(...) };
+
+	const collections = getMockCollections();
+	const collection = collections.find((c) => c.slug === slug);
+	if (!collection) return null;
+
+	const allProducts = getMockProducts();
+	const prints = allProducts.filter((p) => p.gallerySlug === slug);
+	return { collection, prints };
 }
 
 /**
@@ -137,59 +200,122 @@ export async function findOrderByLumaprintsNumber(orderNumber: string): Promise<
 
 // ─── Mock Data ──────────────────────────────────────────────
 
-function getMockProducts(): PrintProduct[] {
+function getMockCollections(): PrintCollection[] {
 	return [
 		{
-			id: "img-001",
-			title: "Morning Light on the Lake",
-			slug: "landscapes--img-001",
-			caption: "Golden hour reflections over still water",
-			alt: "Lake at sunrise with golden reflections",
-			imageUrl: "https://cdn.sanity.io/images/example/production/lake-morning.jpg",
-			lqip: undefined,
-			galleryTitle: "Landscapes",
-			gallerySlug: "landscapes",
-			availableSizes: [
-				{ width: 4, height: 6, label: "4×6" },
-				{ width: 8, height: 10, label: "8×10" },
-				{ width: 11, height: 14, label: "11×14" },
-				{ width: 16, height: 20, label: "16×20" },
-			],
+			id: "col-wildflowers",
+			title: "Wildflowers",
+			slug: "wildflowers",
+			description:
+				"Untamed blooms caught in their natural habitat — meadow edges, roadsides, and forgotten fields.",
+			coverImage: "/images/flower-03.jpg",
+			printCount: 7,
 		},
 		{
-			id: "img-002",
-			title: "Wildflower Meadow",
-			slug: "wildflowers--img-002",
-			caption: "A field of wildflowers in late summer",
-			alt: "Purple and yellow wildflowers stretching to the horizon",
-			imageUrl: "https://cdn.sanity.io/images/example/production/wildflower-meadow.jpg",
-			lqip: undefined,
-			galleryTitle: "Wildflowers",
-			gallerySlug: "wildflowers",
-			availableSizes: [
-				{ width: 4, height: 6, label: "4×6" },
-				{ width: 8, height: 10, label: "8×10" },
-				{ width: 11, height: 14, label: "11×14" },
-				{ width: 16, height: 20, label: "16×20" },
-			],
+			id: "col-garden-portraits",
+			title: "Garden Portraits",
+			slug: "garden-portraits",
+			description:
+				"Cultivated beauty — roses, peonies, and heirloom varieties posed in their prime.",
+			coverImage: "/images/flower-10.jpg",
+			printCount: 7,
 		},
 		{
-			id: "img-003",
-			title: "Forest Cathedral",
-			slug: "landscapes--img-003",
-			caption: "Sunlight streaming through ancient trees",
-			alt: "Tall trees with beams of light filtering through the canopy",
-			imageUrl: "https://cdn.sanity.io/images/example/production/forest-cathedral.jpg",
-			lqip: undefined,
-			galleryTitle: "Landscapes",
-			gallerySlug: "landscapes",
-			availableSizes: [
-				{ width: 4, height: 6, label: "4×6" },
-				{ width: 8, height: 10, label: "8×10" },
-				{ width: 11, height: 14, label: "11×14" },
-				{ width: 16, height: 20, label: "16×20" },
-			],
+			id: "col-close-ups",
+			title: "Close-ups",
+			slug: "close-ups",
+			description:
+				"Intimate details — petal textures, pollen grains, and the geometry hidden inside every bloom.",
+			coverImage: "/images/flower-17.jpg",
+			printCount: 7,
 		},
+		{
+			id: "col-moody-blooms",
+			title: "Moody Blooms",
+			slug: "moody-blooms",
+			description: "Dark tones, dramatic light — florals that feel like old paintings.",
+			coverImage: "/images/flower-24.jpg",
+			printCount: 5,
+		},
+		{
+			id: "col-panoramic",
+			title: "Panoramic",
+			slug: "panoramic",
+			description: "Wide views of fields, gardens, and floral landscapes — scale and atmosphere.",
+			coverImage: "/images/flower-30.jpg",
+			printCount: 8,
+		},
+	];
+}
+
+const DEFAULT_SIZES = [
+	{ width: 4, height: 6, label: "4×6" },
+	{ width: 8, height: 10, label: "8×10" },
+	{ width: 11, height: 14, label: "11×14" },
+	{ width: 16, height: 20, label: "16×20" },
+];
+
+function makeMockPrint(
+	num: string,
+	title: string,
+	galleryTitle: string,
+	gallerySlug: string,
+): PrintProduct {
+	return {
+		id: `img-${num}`,
+		title,
+		slug: `${gallerySlug}--img-${num}`,
+		caption: title,
+		alt: `${title} — ${galleryTitle}`,
+		imageUrl: `/images/flower-${num}.jpg`,
+		lqip: undefined,
+		galleryTitle,
+		gallerySlug,
+		availableSizes: DEFAULT_SIZES,
+	};
+}
+
+function getMockProducts(): PrintProduct[] {
+	return [
+		// Wildflowers (01–07)
+		makeMockPrint("01", "Spring Meadow", "Wildflowers", "wildflowers"),
+		makeMockPrint("02", "Roadside Daisies", "Wildflowers", "wildflowers"),
+		makeMockPrint("03", "Prairie Fire", "Wildflowers", "wildflowers"),
+		makeMockPrint("04", "Clover Patch", "Wildflowers", "wildflowers"),
+		makeMockPrint("05", "Violet Hour", "Wildflowers", "wildflowers"),
+		makeMockPrint("06", "Goldenrod", "Wildflowers", "wildflowers"),
+		makeMockPrint("07", "Wild Aster", "Wildflowers", "wildflowers"),
+		// Garden Portraits (08–14)
+		makeMockPrint("08", "Peony Blush", "Garden Portraits", "garden-portraits"),
+		makeMockPrint("09", "Rose Study", "Garden Portraits", "garden-portraits"),
+		makeMockPrint("10", "Dahlia Crown", "Garden Portraits", "garden-portraits"),
+		makeMockPrint("11", "Hydrangea Blue", "Garden Portraits", "garden-portraits"),
+		makeMockPrint("12", "Iris at Dawn", "Garden Portraits", "garden-portraits"),
+		makeMockPrint("13", "Tulip Flame", "Garden Portraits", "garden-portraits"),
+		makeMockPrint("14", "Lily of the Valley", "Garden Portraits", "garden-portraits"),
+		// Close-ups (15–21)
+		makeMockPrint("15", "Petal Grain", "Close-ups", "close-ups"),
+		makeMockPrint("16", "Stamen Detail", "Close-ups", "close-ups"),
+		makeMockPrint("17", "Dew on Silk", "Close-ups", "close-ups"),
+		makeMockPrint("18", "Pollen Dust", "Close-ups", "close-ups"),
+		makeMockPrint("19", "Unfurling", "Close-ups", "close-ups"),
+		makeMockPrint("20", "Translucent Petal", "Close-ups", "close-ups"),
+		makeMockPrint("21", "Inner Light", "Close-ups", "close-ups"),
+		// Moody Blooms (22, 24–27 — no 23)
+		makeMockPrint("22", "Shadow Rose", "Moody Blooms", "moody-blooms"),
+		makeMockPrint("24", "Bruised Petals", "Moody Blooms", "moody-blooms"),
+		makeMockPrint("25", "Fade to Black", "Moody Blooms", "moody-blooms"),
+		makeMockPrint("26", "Wilting Grace", "Moody Blooms", "moody-blooms"),
+		makeMockPrint("27", "Last Light", "Moody Blooms", "moody-blooms"),
+		// Panoramic (28–35)
+		makeMockPrint("28", "Lavender Fields", "Panoramic", "panoramic"),
+		makeMockPrint("29", "Sunflower Row", "Panoramic", "panoramic"),
+		makeMockPrint("30", "Garden Path", "Panoramic", "panoramic"),
+		makeMockPrint("31", "Hillside Bloom", "Panoramic", "panoramic"),
+		makeMockPrint("32", "Morning Mist", "Panoramic", "panoramic"),
+		makeMockPrint("33", "Flower Market", "Panoramic", "panoramic"),
+		makeMockPrint("34", "Golden Hour Field", "Panoramic", "panoramic"),
+		makeMockPrint("35", "Distant Blooms", "Panoramic", "panoramic"),
 	];
 }
 
