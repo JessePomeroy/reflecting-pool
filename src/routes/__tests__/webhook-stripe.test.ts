@@ -105,7 +105,7 @@ describe("POST /api/webhooks/stripe", () => {
 		}));
 
 		const mod = await import("../../routes/api/webhooks/stripe/+server");
-		POST = mod.POST as typeof POST;
+		POST = mod.POST as unknown as typeof POST;
 	});
 
 	it("returns 400 when stripe-signature header is missing", async () => {

@@ -51,7 +51,7 @@ describe("POST /api/webhooks/lumaprints", () => {
 		}));
 
 		const mod = await import("../../routes/api/webhooks/lumaprints/+server");
-		POST = mod.POST as typeof POST;
+		POST = mod.POST as unknown as typeof POST;
 	});
 
 	it("returns 200 on a valid shipment.created event", async () => {

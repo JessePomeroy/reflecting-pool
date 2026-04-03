@@ -44,7 +44,7 @@ describe("POST /api/checkout", () => {
 		vi.clearAllMocks();
 		// Dynamic import after mocks are set up
 		const mod = await import("../../routes/api/checkout/+server");
-		POST = mod.POST as typeof POST;
+		POST = mod.POST as unknown as typeof POST;
 	});
 
 	it("returns 400 when productSlug is missing", async () => {
