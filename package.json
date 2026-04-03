@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@sanity/client": "^7.20.0",
+    "resend": "^6.10.0",
     "stripe": "^22.0.0"
   }
 }
