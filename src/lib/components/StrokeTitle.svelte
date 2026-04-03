@@ -1,65 +1,83 @@
 <script lang="ts">
-	import { getContext, onMount } from 'svelte';
-	import type { ParallaxContext } from '$lib/types/gallery';
+import { getContext, onMount } from "svelte";
+import { browser } from "$app/environment";
+import type { ParallaxContext } from "$lib/types/gallery";
 
-	const parallax = getContext<ParallaxContext>('parallax');
+const parallax = getContext<ParallaxContext>("parallax");
 
-	let titleEl: HTMLElement | undefined = $state();
-	let subtitleEl: HTMLElement | undefined = $state();
-	let letterEls: HTMLElement[] = [];
-	let rippleActive = $state(false);
+let titleEl: HTMLElement | undefined = $state();
+let subtitleEl: HTMLElement | undefined = $state();
+let letterEls: HTMLElement[] = [];
+let rippleActive = $state(false);
 
-	const title = 'margaret helena';
-	const subtitle = 'photography';
+const title = "margaret helena";
+const subtitle = "photography";
 
-	function handleClick(e: MouseEvent) {
-		if (!titleEl || rippleActive) return;
-		rippleActive = true;
+function handleClick(e: MouseEvent) {
+	if (!titleEl || rippleActive) return;
+	rippleActive = true;
 
-		const clickX = e.clientX;
+	// Check for reduced motion preference
+	const prefersReducedMotion =
+		browser && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-		// Batch read all letter positions
-		const rects = letterEls.map((el) => el.getBoundingClientRect());
+	const clickX = e.clientX;
 
-		// Apply wobble based on distance from click
-		for (let i = 0; i < letterEls.length; i++) {
-			const rect = rects[i];
-			const letterCenterX = rect.left + rect.width / 2;
-			const dist = Math.abs(clickX - letterCenterX);
-			const maxDist = window.innerWidth * 0.6;
-			const intensity = Math.max(0, 1 - dist / maxDist);
-			const direction = letterCenterX > clickX ? 1 : -1;
-			const delay = dist * 0.5; // ms, ripple travels outward
+	// Batch read all letter positions
+	const rects = letterEls.map((el) => el.getBoundingClientRect());
 
-			const wobbleX = direction * intensity * 6;
-			const wobbleY = intensity * -4;
-			const wobbleRot = direction * intensity * 2;
+	// Apply wobble based on distance from click
+	for (let i = 0; i < letterEls.length; i++) {
+		const rect = rects[i];
+		const letterCenterX = rect.left + rect.width / 2;
+		const dist = Math.abs(clickX - letterCenterX);
+		const maxDist = window.innerWidth * 0.6;
+		const intensity = Math.max(0, 1 - dist / maxDist);
+		const direction = letterCenterX > clickX ? 1 : -1;
+		const delay = dist * 0.5; // ms, ripple travels outward
 
-			const el = letterEls[i];
+		const wobbleX = direction * intensity * 6;
+		const wobbleY = intensity * -4;
+		const wobbleRot = direction * intensity * 2;
+
+		const el = letterEls[i];
+		// Instant transition when reduced motion is preferred
+		if (prefersReducedMotion) {
+			el.style.transition = "none";
+			el.style.transitionDelay = "0ms";
+		} else {
 			el.style.transition = `transform ${delay + 100}ms ease-out`;
 			el.style.transitionDelay = `${delay}ms`;
-			el.style.transform = `translate(${wobbleX}px, ${wobbleY}px) rotate(${wobbleRot}deg)`;
 		}
+		el.style.transform = `translate(${wobbleX}px, ${wobbleY}px) rotate(${wobbleRot}deg)`;
+	}
 
-		// Ease back
-		setTimeout(
-			() => {
-				for (const el of letterEls) {
-					el.style.transition = 'transform 800ms ease-out';
-					el.style.transitionDelay = '0ms';
-					el.style.transform = 'translate(0, 0) rotate(0)';
+	// Ease back
+	setTimeout(
+		() => {
+			for (const el of letterEls) {
+				if (prefersReducedMotion) {
+					el.style.transition = "none";
+				} else {
+					el.style.transition = "transform 800ms ease-out";
 				}
-				setTimeout(() => {
+				el.style.transitionDelay = "0ms";
+				el.style.transform = "translate(0, 0) rotate(0)";
+			}
+			setTimeout(
+				() => {
 					rippleActive = false;
-				}, 800);
-			},
-			title.length * 15 + 300
-		);
-	}
+				},
+				prefersReducedMotion ? 0 : 800,
+			);
+		},
+		title.length * 15 + 300,
+	);
+}
 
-	function letterRef(node: HTMLElement, _idx: () => number) {
-		letterEls[_idx()] = node;
-	}
+function letterRef(node: HTMLElement, _idx: () => number) {
+	letterEls[_idx()] = node;
+}
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -95,7 +113,12 @@
 		letter-spacing: 0.08em;
 		margin: 0;
 		white-space: nowrap;
-		animation: rain-flicker 8s ease-in-out infinite;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.title {
+			animation: rain-flicker 8s ease-in-out infinite;
+		}
 	}
 
 	.letter {

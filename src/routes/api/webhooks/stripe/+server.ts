@@ -1,10 +1,16 @@
 import { json } from "@sveltejs/kit";
+import { Resend } from "resend";
 import type Stripe from "stripe";
+import { env } from "$env/dynamic/private";
 import { buildLumaPrintsOrder, createOrder } from "$lib/server/lumaprints";
 import { createSanityOrder, updateSanityOrder } from "$lib/server/sanity";
 import { verifyWebhook } from "$lib/server/stripe";
 import type { CheckoutMetadata } from "$lib/shop/types";
 import type { RequestHandler } from "./$types";
+
+const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
+const ADMIN_EMAIL = env.ADMIN_EMAIL || "jesse@reflectingpool.com";
+const FROM_EMAIL = "orders@reflectingpool.com";
 
 export const POST: RequestHandler = async ({ request }) => {
 	const body = await request.text();
@@ -99,6 +105,55 @@ export const POST: RequestHandler = async ({ request }) => {
 				lumaprintsOrderNumber: result.orderNumber,
 				status: "submitted",
 			});
+
+			// 4. Send confirmation emails (wrapped in try/catch — email failure must NEVER crash webhook)
+			if (resend && customerDetails?.email) {
+				try {
+					const orderTotal = (session.amount_total || 0) / 100;
+					const paperDetails = `${metadata.paperName} - ${metadata.paperSizeLabel}`;
+
+					// Send admin notification
+					await resend.emails.send({
+						from: FROM_EMAIL,
+						to: ADMIN_EMAIL,
+						subject: `New order #${result.orderNumber} - ${paperDetails}`,
+						html: `
+							<p><strong>New order received!</strong></p>
+							<p><strong>Order #:</strong> ${result.orderNumber}</p>
+							<p><strong>Customer:</strong> ${customerDetails.name || "Unknown"}</p>
+							<p><strong>Email:</strong> ${customerDetails.email}</p>
+							<p><strong>Item:</strong> ${metadata.imageTitle || "N/A"}</p>
+							<p><strong>Print:</strong> ${paperDetails}</p>
+							<p><strong>Total:</strong> $${orderTotal.toFixed(2)}</p>
+							<p><strong>Shipping address:</strong><br/>
+							${shippingDetails.name}<br/>
+							${shippingDetails.address?.line1}<br/>
+							${shippingDetails.address?.line2 ? shippingDetails.address.line2 + "<br/>" : ""}
+							${shippingDetails.address?.city}, ${shippingDetails.address?.state} ${shippingDetails.address?.postal_code}</p>
+						`,
+					});
+
+					// Send customer confirmation
+					await resend.emails.send({
+						from: FROM_EMAIL,
+						to: customerDetails.email,
+						subject: "Thank you for your order!",
+						html: `
+							<p>Hi ${customerDetails.name?.split(" ")[0] || "there"},</p>
+							<p>Thank you for your order! I've received it and it'll be on its way soon.</p>
+							<p><strong>Order #:</strong> ${result.orderNumber}</p>
+							<p><strong>Your print:</strong> ${metadata.imageTitle}</p>
+							<p><strong>Size & paper:</strong> ${paperDetails}</p>
+							<p><strong>Total:</strong> $${orderTotal.toFixed(2)}</p>
+							<p>You'll receive tracking info once it ships.</p>
+							<p>— Margaret</p>
+						`,
+					});
+				} catch (emailErr) {
+					console.error("Email sending failed:", emailErr);
+					// Email failure must never crash the webhook
+				}
+			}
 		} catch (err) {
 			// Don't crash — mark as error so we can retry manually
 			console.error("LumaPrints submission failed:", err);
@@ -106,7 +161,26 @@ export const POST: RequestHandler = async ({ request }) => {
 				status: "fulfillment_error",
 				fulfillmentError: err instanceof Error ? err.message : "Unknown LumaPrints error",
 			});
-			// TODO: Send alert to admin (email/Slack notification)
+
+			// Send admin alert about failure
+			if (resend) {
+				try {
+					await resend.emails.send({
+						from: FROM_EMAIL,
+						to: ADMIN_EMAIL,
+						subject: `[URGENT] Order ${sanityOrder._id} failed - manual attention needed`,
+						html: `
+							<p><strong style="color: red;">Order fulfillment failed!</strong></p>
+							<p><strong>Order ID:</strong> ${sanityOrder._id}</p>
+							<p><strong>Customer:</strong> ${customerDetails?.name || "Unknown"} (${customerDetails?.email})</p>
+							<p><strong>Error:</strong> ${err instanceof Error ? err.message : "Unknown error"}</p>
+							<p>Please check LumaPrints and process manually.</p>
+						`,
+					});
+				} catch (emailErr) {
+					console.error("Alert email failed:", emailErr);
+				}
+			}
 		}
 	}
 

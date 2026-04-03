@@ -102,11 +102,16 @@ onMount(() => {
 		align-items: center;
 		justify-content: center;
 		opacity: 0;
-		transition: opacity 500ms ease;
 	}
 
 	.lightbox.visible {
 		opacity: 1;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.lightbox {
+			transition: opacity 500ms ease;
+		}
 	}
 
 	.lightbox-overlay {
@@ -196,5 +201,16 @@ onMount(() => {
 
 	.close-btn:hover {
 		color: rgba(240, 244, 248, 1);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.nav-btn {
+			transition:
+				border-color 300ms ease,
+				color 300ms ease;
+		}
+		.close-btn {
+			transition: color 300ms ease;
+		}
 	}
 </style>

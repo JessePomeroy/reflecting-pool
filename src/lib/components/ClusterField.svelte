@@ -30,6 +30,7 @@ let clusterDepths = $state<number[]>([]);
 // Wander state — pre-allocated, mutated in place
 let wanderOffsets = $state.raw<Array<{ x: number; y: number }>>([]);
 let wanderFreqs: Array<{ fx: number; fy: number; px: number; py: number }> = [];
+let prefersReducedMotion = $state(false);
 
 onMount(() => {
 	if (!browser) return;
@@ -51,12 +52,20 @@ onMount(() => {
 		px: randomRange(0, Math.PI * 2),
 		py: randomRange(0, Math.PI * 2),
 	}));
+
+	// Check for reduced motion preference
+	prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 });
 
 // Wander is driven by the parallax tick
 let wanderComputed = $derived.by(() => {
 	const _tick = parallax.tick; // dependency
 	if (!wanderFreqs.length) return wanderOffsets;
+
+	// Skip sine-wave wander when reduced motion is preferred
+	if (prefersReducedMotion) {
+		return clusters.map(() => ({ x: 0, y: 0 }));
+	}
 
 	const now = performance.now();
 	const amplitude = parallax.isMobile ? 5 : 15;

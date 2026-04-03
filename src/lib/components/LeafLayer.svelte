@@ -121,12 +121,6 @@ function getLeafParallaxY(depth: number): number {
 		transition:
 			transform 700ms ease-out,
 			opacity 700ms ease-out;
-
-		/* CSS animations for ambient motion */
-		animation:
-			leaf-spin var(--spin-duration, 30s) linear infinite var(--spin-direction, normal),
-			leaf-drift var(--drift-duration, 10s) ease-in-out infinite var(--drift-delay, 0s),
-			leaf-float var(--float-duration, 5s) ease-in-out infinite var(--float-delay, 0s);
 	}
 
 	.floating-leaf img {
@@ -170,6 +164,7 @@ function getLeafParallaxY(depth: number): number {
 		}
 	}
 
+
 	@keyframes leaf-float {
 		0%,
 		100% {
@@ -177,6 +172,15 @@ function getLeafParallaxY(depth: number): number {
 		}
 		50% {
 			margin-top: -6px;
+		}
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.floating-leaf {
+			animation:
+				leaf-spin var(--spin-duration, 30s) linear infinite var(--spin-direction, normal),
+				leaf-drift var(--drift-duration, 10s) ease-in-out infinite var(--drift-delay, 0s),
+				leaf-float var(--float-duration, 5s) ease-in-out infinite var(--float-delay, 0s);
 		}
 	}
 

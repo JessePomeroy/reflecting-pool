@@ -65,7 +65,6 @@ function handleClick(e: MouseEvent) {
 			radial-gradient(ellipse at 20% 50%, rgba(255, 255, 255, 0.5) 0%, transparent 50%),
 			radial-gradient(ellipse at 80% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
 			radial-gradient(ellipse at 50% 80%, rgba(255, 255, 255, 0.4) 0%, transparent 50%);
-		animation: caustics-drift 15s ease-in-out infinite alternate;
 	}
 
 	/* Ripple ring — CSS-only expanding circle */
@@ -77,11 +76,9 @@ function handleClick(e: MouseEvent) {
 		border: 1px solid rgba(240, 244, 248, 0.2);
 		pointer-events: none;
 		transform: translate(-50%, -50%) scale(0);
-		animation: ripple-expand 1000ms ease-out forwards;
 	}
 
 	.ripple-ring.ring-2 {
-		animation-delay: 150ms;
 		border-color: rgba(240, 244, 248, 0.12);
 	}
 
@@ -105,6 +102,18 @@ function handleClick(e: MouseEvent) {
 		}
 		100% {
 			transform: scale(0.95) rotate(-1deg);
+		}
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.caustics-layer {
+			animation: caustics-drift 15s ease-in-out infinite alternate;
+		}
+		.ripple-ring {
+			animation: ripple-expand 1000ms ease-out forwards;
+		}
+		.ripple-ring.ring-2 {
+			animation-delay: 150ms;
 		}
 	}
 
