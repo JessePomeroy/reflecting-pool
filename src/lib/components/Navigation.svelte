@@ -1,20 +1,20 @@
 <script lang="ts">
-	let menuOpen = $state(false);
+let menuOpen = $state(false);
 
-	const links = [
-		{ label: 'photography', href: '#' },
-		{ label: 'shop', href: '#' },
-		{ label: 'about', href: '#' },
-		{ label: 'book', href: '#' }
-	];
+const links = [
+	{ label: "photography", href: "#" },
+	{ label: "shop", href: "#" },
+	{ label: "about", href: "#" },
+	{ label: "book", href: "#" },
+];
 
-	function toggleMenu() {
-		menuOpen = !menuOpen;
-	}
+function toggleMenu() {
+	menuOpen = !menuOpen;
+}
 
-	function closeMenu() {
-		menuOpen = false;
-	}
+function closeMenu() {
+	menuOpen = false;
+}
 </script>
 
 <nav class="navigation" class:menu-open={menuOpen}>
@@ -177,7 +177,5 @@
 		}
 	}
 
-	.mobile {
-		/* Only visible on mobile via media query */
-	}
+
 </style>

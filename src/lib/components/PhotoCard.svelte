@@ -1,49 +1,49 @@
 <script lang="ts">
-	import { getContext } from 'svelte';
-	import type { ParallaxContext } from '$lib/types/gallery';
+import { getContext } from "svelte";
+import type { ParallaxContext } from "$lib/types/gallery";
 
-	interface Props {
-		src: string;
-		alt?: string;
-		depth?: number;
-		rotation?: number;
-		scale?: number;
-		floatDuration?: number;
-		driftDuration?: number;
-		onclick?: (e: MouseEvent) => void;
-	}
+interface Props {
+	src: string;
+	alt?: string;
+	depth?: number;
+	rotation?: number;
+	scale?: number;
+	floatDuration?: number;
+	driftDuration?: number;
+	onclick?: (e: MouseEvent) => void;
+}
 
-	let {
-		src,
-		alt = '',
-		depth = 0.5,
-		rotation = 0,
-		scale = 1,
-		floatDuration = 4,
-		driftDuration = 30,
-		onclick
-	}: Props = $props();
+let {
+	src,
+	alt = "",
+	depth = 0.5,
+	rotation = 0,
+	scale = 1,
+	floatDuration = 4,
+	driftDuration = 30,
+	onclick,
+}: Props = $props();
 
-	const parallax = getContext<ParallaxContext>('parallax');
+const parallax = getContext<ParallaxContext>("parallax");
 
-	// Max parallax shift in pixels — deeper images move more
-	const MAX_SHIFT = 25;
+// Max parallax shift in pixels — deeper images move more
+const MAX_SHIFT = 25;
 
-	let cardEl: HTMLElement | undefined = $state();
+let cardEl: HTMLElement | undefined = $state();
 
-	// Compute parallax offset via CSS custom properties
-	// JS writes custom properties, CSS reads them in calc() — NEVER touch transform directly from JS
-	let parallaxX = $derived(parallax.smoothX * depth * MAX_SHIFT);
-	let parallaxY = $derived(parallax.smoothY * depth * MAX_SHIFT);
+// Compute parallax offset via CSS custom properties
+// JS writes custom properties, CSS reads them in calc() — NEVER touch transform directly from JS
+let parallaxX = $derived(parallax.smoothX * depth * MAX_SHIFT);
+let parallaxY = $derived(parallax.smoothY * depth * MAX_SHIFT);
 
-	// Depth-based visual effects
-	let depthScale = $derived(0.85 + depth * 0.15);
-	let depthBlur = $derived(depth < 0.3 ? (0.3 - depth) * 4 : 0);
-	let depthOpacity = $derived(0.7 + depth * 0.3);
+// Depth-based visual effects
+let depthScale = $derived(0.85 + depth * 0.15);
+let depthBlur = $derived(depth < 0.3 ? (0.3 - depth) * 4 : 0);
+let depthOpacity = $derived(0.7 + depth * 0.3);
 
-	// Random delays for desynchronized animations
-	const floatDelay = Math.random() * -floatDuration;
-	const driftDelay = Math.random() * -driftDuration;
+// Random delays for desynchronized animations (captured once at mount — intentional)
+const floatDelay = Math.random() * -4;
+const driftDelay = Math.random() * -30;
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->

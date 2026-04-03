@@ -1,57 +1,60 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import type { ClusterImage } from '$lib/types/gallery';
+import { onMount } from "svelte";
+import type { ClusterImage } from "$lib/types/gallery";
 
-	interface Props {
-		src: string;
-		currentIndex: number;
-		images: ClusterImage[];
-		onclose: () => void;
+interface Props {
+	src: string;
+	currentIndex: number;
+	images: ClusterImage[];
+	onclose: () => void;
+}
+
+let { src, currentIndex, images, onclose }: Props = $props();
+
+let index = $state(0);
+$effect(() => {
+	index = currentIndex;
+});
+let visible = $state(false);
+let currentSrc = $derived(images[index]?.src ?? src);
+
+// Touch swipe tracking
+let touchStartX = 0;
+
+function next() {
+	if (index < images.length - 1) index++;
+}
+
+function prev() {
+	if (index > 0) index--;
+}
+
+function handleKeydown(e: KeyboardEvent) {
+	if (e.key === "Escape") onclose();
+	if (e.key === "ArrowRight") next();
+	if (e.key === "ArrowLeft") prev();
+}
+
+function handleTouchStart(e: TouchEvent) {
+	touchStartX = e.touches[0].clientX;
+}
+
+function handleTouchEnd(e: TouchEvent) {
+	const diff = e.changedTouches[0].clientX - touchStartX;
+	if (Math.abs(diff) > 50) {
+		if (diff > 0) prev();
+		else next();
 	}
+}
 
-	let { src, currentIndex, images, onclose }: Props = $props();
-
-	let index = $state(currentIndex);
-	let visible = $state(false);
-	let currentSrc = $derived(images[index]?.src ?? src);
-
-	// Touch swipe tracking
-	let touchStartX = 0;
-
-	function next() {
-		if (index < images.length - 1) index++;
-	}
-
-	function prev() {
-		if (index > 0) index--;
-	}
-
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') onclose();
-		if (e.key === 'ArrowRight') next();
-		if (e.key === 'ArrowLeft') prev();
-	}
-
-	function handleTouchStart(e: TouchEvent) {
-		touchStartX = e.touches[0].clientX;
-	}
-
-	function handleTouchEnd(e: TouchEvent) {
-		const diff = e.changedTouches[0].clientX - touchStartX;
-		if (Math.abs(diff) > 50) {
-			if (diff > 0) prev();
-			else next();
-		}
-	}
-
-	onMount(() => {
-		requestAnimationFrame(() => {
-			visible = true;
-		});
-
-		// Focus for keyboard events
-		return () => {};
+onMount(() => {
+	requestAnimationFrame(() => {
+		visible = true;
 	});
+
+	// Focus for keyboard events
+	return () => {};
+});
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -67,6 +70,7 @@
 	role="dialog"
 	aria-modal="true"
 	aria-label="Image viewer"
+	tabindex="-1"
 >
 	<div class="lightbox-overlay"></div>
 

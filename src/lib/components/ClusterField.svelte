@@ -1,81 +1,81 @@
 <script lang="ts">
-	import { getContext, onMount } from 'svelte';
-	import { browser } from '$app/environment';
-	import PhotoCard from './PhotoCard.svelte';
-	import { generateClusterPositions, randomRange, clamp, distance } from '$lib/utils/math';
-	import type { GalleryCluster, ParallaxContext } from '$lib/types/gallery';
+import { getContext, onMount } from "svelte";
+import { browser } from "$app/environment";
+import type { GalleryCluster, ParallaxContext } from "$lib/types/gallery";
+import { clamp, distance, generateClusterPositions, randomRange } from "$lib/utils/math";
+import PhotoCard from "./PhotoCard.svelte";
 
-	interface Props {
-		clusters: GalleryCluster[];
-		onclusterclick: (cluster: GalleryCluster) => void;
-		dismissing?: boolean;
-		dismissOriginX?: number;
-		dismissOriginY?: number;
-	}
+interface Props {
+	clusters: GalleryCluster[];
+	onclusterclick: (cluster: GalleryCluster) => void;
+	dismissing?: boolean;
+	dismissOriginX?: number;
+	dismissOriginY?: number;
+}
 
-	let {
-		clusters,
-		onclusterclick,
-		dismissing = false,
-		dismissOriginX = 50,
-		dismissOriginY = 50
-	}: Props = $props();
+let {
+	clusters,
+	onclusterclick,
+	dismissing = false,
+	dismissOriginX = 50,
+	dismissOriginY = 50,
+}: Props = $props();
 
-	const parallax = getContext<ParallaxContext>('parallax');
+const parallax = getContext<ParallaxContext>("parallax");
 
-	// Generate cluster positions dynamically
-	let positions = $state<Array<{ x: number; y: number }>>([]);
-	let clusterDepths: number[] = [];
+// Generate cluster positions dynamically
+let positions = $state<Array<{ x: number; y: number }>>([]);
+let clusterDepths = $state<number[]>([]);
 
-	// Wander state — pre-allocated, mutated in place
-	let wanderOffsets = $state.raw<Array<{ x: number; y: number }>>([]);
-	let wanderFreqs: Array<{ fx: number; fy: number; px: number; py: number }> = [];
+// Wander state — pre-allocated, mutated in place
+let wanderOffsets = $state.raw<Array<{ x: number; y: number }>>([]);
+let wanderFreqs: Array<{ fx: number; fy: number; px: number; py: number }> = [];
 
-	onMount(() => {
-		if (!browser) return;
+onMount(() => {
+	if (!browser) return;
 
-		// Generate positions based on cluster count
-		positions = generateClusterPositions(clusters.length);
+	// Generate positions based on cluster count
+	positions = generateClusterPositions(clusters.length);
 
-		// Assign depths — further from center = deeper
-		clusterDepths = positions.map((pos) => {
-			const distFromCenter = distance(pos.x, pos.y, 50, 55);
-			return clamp(0.3 + distFromCenter * 0.012, 0.3, 0.8);
-		});
-
-		// Initialize wander
-		wanderOffsets = clusters.map(() => ({ x: 0, y: 0 }));
-		wanderFreqs = clusters.map(() => ({
-			fx: randomRange(0.0003, 0.0008),
-			fy: randomRange(0.0003, 0.0008),
-			px: randomRange(0, Math.PI * 2),
-			py: randomRange(0, Math.PI * 2)
-		}));
+	// Assign depths — further from center = deeper
+	clusterDepths = positions.map((pos) => {
+		const distFromCenter = distance(pos.x, pos.y, 50, 55);
+		return clamp(0.3 + distFromCenter * 0.012, 0.3, 0.8);
 	});
 
-	// Wander is driven by the parallax tick
-	let wanderComputed = $derived.by(() => {
-		const _tick = parallax.tick; // dependency
-		if (!wanderFreqs.length) return wanderOffsets;
+	// Initialize wander
+	wanderOffsets = clusters.map(() => ({ x: 0, y: 0 }));
+	wanderFreqs = clusters.map(() => ({
+		fx: randomRange(0.0003, 0.0008),
+		fy: randomRange(0.0003, 0.0008),
+		px: randomRange(0, Math.PI * 2),
+		py: randomRange(0, Math.PI * 2),
+	}));
+});
 
-		const now = performance.now();
-		const amplitude = parallax.isMobile ? 5 : 15;
+// Wander is driven by the parallax tick
+let wanderComputed = $derived.by(() => {
+	const _tick = parallax.tick; // dependency
+	if (!wanderFreqs.length) return wanderOffsets;
 
-		const newOffsets = new Array(clusters.length);
-		for (let i = 0; i < clusters.length; i++) {
-			const f = wanderFreqs[i];
-			newOffsets[i] = {
-				x: Math.sin(now * f.fx + f.px) * amplitude,
-				y: Math.sin(now * f.fy + f.py) * amplitude
-			};
-		}
+	const now = performance.now();
+	const amplitude = parallax.isMobile ? 5 : 15;
 
-		return newOffsets;
-	});
-
-	function handleClusterClick(cluster: GalleryCluster) {
-		onclusterclick(cluster);
+	const newOffsets = new Array(clusters.length);
+	for (let i = 0; i < clusters.length; i++) {
+		const f = wanderFreqs[i];
+		newOffsets[i] = {
+			x: Math.sin(now * f.fx + f.px) * amplitude,
+			y: Math.sin(now * f.fy + f.py) * amplitude,
+		};
 	}
+
+	return newOffsets;
+});
+
+function handleClusterClick(cluster: GalleryCluster) {
+	onclusterclick(cluster);
+}
 </script>
 
 <div class="cluster-field" class:dismissing>

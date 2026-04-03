@@ -1,55 +1,59 @@
 <script lang="ts">
-	import { getContext, onMount } from 'svelte';
-	import { browser } from '$app/environment';
-	import PhotoCard from './PhotoCard.svelte';
-	import { generateScatteredPositions, randomRange } from '$lib/utils/math';
-	import type { GalleryCluster, ParallaxContext, ClusterImage } from '$lib/types/gallery';
+import { getContext, onMount } from "svelte";
+import { browser } from "$app/environment";
+import type { ClusterImage, GalleryCluster, ParallaxContext } from "$lib/types/gallery";
+import { generateScatteredPositions, randomRange } from "$lib/utils/math";
+import PhotoCard from "./PhotoCard.svelte";
 
-	interface Props {
-		cluster: GalleryCluster;
-		onback: () => void;
-		onlightbox: (src: string, index: number, images: ClusterImage[]) => void;
-	}
+interface Props {
+	cluster: GalleryCluster;
+	onback: () => void;
+	onlightbox: (src: string, index: number, images: ClusterImage[]) => void;
+}
 
-	let { cluster, onback, onlightbox }: Props = $props();
+let { cluster, onback, onlightbox }: Props = $props();
 
-	const parallax = getContext<ParallaxContext>('parallax');
+const parallax = getContext<ParallaxContext>("parallax");
 
-	// Generate scattered positions for all images in this gallery
-	let imagePositions = $state<Array<{ x: number; y: number }>>([]);
-	let imageDepths: number[] = [];
-	let imageRotations: number[] = [];
-	let revealed = $state(false);
+// Generate scattered positions for all images in this gallery
+let imagePositions = $state<Array<{ x: number; y: number }>>([]);
+let imageDepths = $state<number[]>([]);
+let imageRotations = $state<number[]>([]);
+let revealed = $state(false);
 
-	onMount(() => {
-		if (!browser) return;
+onMount(() => {
+	if (!browser) return;
 
-		const isMobile = window.innerWidth < 768;
-		const count = cluster.images.length;
+	const isMobile = window.innerWidth < 768;
+	const count = cluster.images.length;
 
-		if (isMobile) {
-			// 2-column staggered layout
-			imagePositions = cluster.images.map((_, i) => ({
-				x: i % 2 === 0 ? 10 : 50,
-				y: 35 + Math.floor(i / 2) * 22 + (i % 2 === 0 ? 0 : 8)
-			}));
-		} else {
-			imagePositions = generateScatteredPositions(count, {
+	if (isMobile) {
+		// 2-column staggered layout
+		imagePositions = cluster.images.map((_, i) => ({
+			x: i % 2 === 0 ? 10 : 50,
+			y: 35 + Math.floor(i / 2) * 22 + (i % 2 === 0 ? 0 : 8),
+		}));
+	} else {
+		imagePositions = generateScatteredPositions(
+			count,
+			{
 				minX: 5,
 				maxX: 85,
 				minY: 32,
-				maxY: 82
-			}, 12);
-		}
+				maxY: 82,
+			},
+			12,
+		);
+	}
 
-		imageDepths = cluster.images.map(() => randomRange(0.3, 0.9));
-		imageRotations = cluster.images.map(() => randomRange(-3, 3));
+	imageDepths = cluster.images.map(() => randomRange(0.3, 0.9));
+	imageRotations = cluster.images.map(() => randomRange(-3, 3));
 
-		// Staggered reveal
-		requestAnimationFrame(() => {
-			revealed = true;
-		});
+	// Staggered reveal
+	requestAnimationFrame(() => {
+		revealed = true;
 	});
+});
 </script>
 
 <div class="gallery-view" class:revealed>
