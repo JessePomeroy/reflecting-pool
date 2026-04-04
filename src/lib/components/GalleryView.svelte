@@ -177,7 +177,7 @@ onMount(() => {
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			gap: 4rem;
+			gap: 8rem;
 			padding: 28vh 1rem 6rem;
 		}
 
@@ -195,6 +195,7 @@ onMount(() => {
 			top: auto;
 			bottom: 1.5rem;
 			left: 1.5rem;
+			padding: 0;
 		}
 
 		.gallery-title {
@@ -203,6 +204,7 @@ onMount(() => {
 			left: auto;
 			right: 1.5rem;
 			transform: none;
+			line-height: 1;
 		}
 	}
 </style>
