@@ -222,7 +222,8 @@ onMount(() => {
 		}
 
 		.gallery-photo.focused {
-			transform: scale(1.04) !important;
+			transform: scale(1.06) !important;
+			filter: drop-shadow(0 8px 24px rgba(0,0,0,0.4));
 		}
 
 		/* Back + title on same line at bottom */
