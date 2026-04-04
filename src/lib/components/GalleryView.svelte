@@ -167,30 +167,41 @@ onMount(() => {
 	}
 
 	@media (max-width: 767px) {
+		.gallery-view {
+			overflow-y: auto;
+			overflow-x: hidden;
+		}
+
 		.gallery-images {
 			position: relative;
-			display: block;
-			padding: 0 1rem 6rem;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 1.5rem;
+			padding: 28vh 1rem 6rem;
 		}
 
 		.gallery-photo {
 			position: relative !important;
 			left: auto !important;
 			top: auto !important;
-			width: 45% !important;
-			display: inline-block;
-			margin-bottom: 1rem;
+			width: clamp(200px, 70vw, 300px) !important;
+			flex-shrink: 0;
 		}
 
+		/* Back + title on same line at bottom */
 		.back-button {
 			top: auto;
-			bottom: 1.5rem;
+			bottom: 1.2rem;
 			left: 1.5rem;
 		}
 
 		.gallery-title {
 			top: auto;
-			bottom: 1.8rem;
+			bottom: 1.5rem;
+			left: auto;
+			right: 1.5rem;
+			transform: none;
 		}
 	}
 </style>
