@@ -20,6 +20,7 @@ let imagePositions = $state<Array<{ x: number; y: number }>>([]);
 let imageDepths = $state<number[]>([]);
 let imageRotations = $state<number[]>([]);
 let revealed = $state(false);
+let focusedIndex = $state(0); // which image is closest to viewport center (mobile)
 
 onMount(() => {
 	if (!browser) return;
@@ -53,6 +54,32 @@ onMount(() => {
 	requestAnimationFrame(() => {
 		revealed = true;
 	});
+
+	// Scroll-driven focus — update which image is closest to viewport center
+	if (window.innerWidth < 768) {
+		const galleryEl = document.querySelector('.gallery-images') as HTMLElement;
+		if (galleryEl) {
+			function updateFocus() {
+				const midY = window.innerHeight / 2;
+				const photos = galleryEl.querySelectorAll('.gallery-photo');
+				let closestIdx = 0;
+				let closestDist = Infinity;
+				photos.forEach((el, i) => {
+					const rect = el.getBoundingClientRect();
+					const elMidY = rect.top + rect.height / 2;
+					const dist = Math.abs(elMidY - midY);
+					if (dist < closestDist) {
+						closestDist = dist;
+						closestIdx = i;
+					}
+				});
+				focusedIndex = closestIdx;
+			}
+
+			galleryEl.addEventListener('scroll', updateFocus, { passive: true });
+			return () => galleryEl.removeEventListener('scroll', updateFocus);
+		}
+	}
 });
 </script>
 
@@ -73,10 +100,12 @@ onMount(() => {
 				<div
 					class="gallery-photo"
 					class:revealed
+					class:focused={i === focusedIndex}
 					style:left="{pos.x}%"
 					style:top="{pos.y}%"
 					style:transition-delay="{i * 80}ms"
 					style:width="clamp(120px, 22vw, 260px)"
+					style:z-index={i === focusedIndex ? 50 : Math.round(depth * 10)}
 				>
 					<PhotoCard
 						src={img.src}
@@ -188,6 +217,11 @@ onMount(() => {
 			width: clamp(200px, 70vw, 300px) !important;
 			flex-shrink: 0;
 			transform: none !important;
+			transition: transform 400ms ease, box-shadow 400ms ease;
+		}
+
+		.gallery-photo.focused {
+			transform: scale(1.04) !important;
 		}
 
 		/* Back + title on same line at bottom */
