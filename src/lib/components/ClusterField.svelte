@@ -306,4 +306,11 @@
             width: clamp(120px, 38vw, 180px);
         }
     }
+
+    /* Landscape phones — short viewport, push clusters below title */
+    @media (max-width: 767px) and (orientation: landscape) {
+        .cluster-field {
+            padding-top: 55vh;
+        }
+    }
 </style>
