@@ -57,11 +57,11 @@ onMount(() => {
 
 	// Scroll-driven focus — update which image is closest to viewport center
 	if (window.innerWidth < 768) {
-		const galleryEl = document.querySelector('.gallery-images') as HTMLElement;
-		if (galleryEl) {
+		const scrollEl = document.querySelector('.gallery-view') as HTMLElement;
+		if (scrollEl) {
 			function updateFocus() {
 				const midY = window.innerHeight / 2;
-				const photos = galleryEl.querySelectorAll('.gallery-photo');
+				const photos = scrollEl.querySelectorAll('.gallery-photo');
 				let closestIdx = 0;
 				let closestDist = Infinity;
 				photos.forEach((el, i) => {
@@ -76,8 +76,9 @@ onMount(() => {
 				focusedIndex = closestIdx;
 			}
 
-			galleryEl.addEventListener('scroll', updateFocus, { passive: true });
-			return () => galleryEl.removeEventListener('scroll', updateFocus);
+			scrollEl.addEventListener('scroll', updateFocus, { passive: true });
+			updateFocus(); // initial check
+			return () => scrollEl.removeEventListener('scroll', updateFocus);
 		}
 	}
 });
