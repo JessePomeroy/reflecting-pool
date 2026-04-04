@@ -20,7 +20,7 @@ export interface RippleConfig {
 
 export const CLUSTER_RIPPLE: RippleConfig = {
 	mode: "spring",
-	maxDist: 35,
+	maxDist: 60,
 	strength: 12,
 	damping: 0.95,
 	spring: 0.03,
