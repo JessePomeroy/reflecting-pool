@@ -1,462 +1,306 @@
 <script lang="ts">
-	import { getContext, onMount } from "svelte";
-	import { browser } from "$app/environment";
-	import type { ParallaxContext } from "$lib/types/gallery";
+import { getContext, onMount } from "svelte";
+import { browser } from "$app/environment";
+import type { ParallaxContext } from "$lib/types/gallery";
 
-	const parallax = getContext<ParallaxContext>("parallax");
+// ── Shader sources (inlined to avoid Vite .glsl import headaches) ──────────
 
-	let canvas: HTMLCanvasElement | undefined = $state();
-	let enabled = $state(false);
+const vertexShader = /* glsl */ `
+varying vec2 vUv;
 
-	// Stash refs so $effect can access renderer state
-	const refs: Record<string, any> = {};
+void main() {
+  vUv = uv;
+  gl_Position = vec4(position, 1.0);
+}
+`;
 
-	onMount(() => {
-		if (!browser) return;
+const fragmentShader = /* glsl */ `
+precision highp float;
 
-		// Only skip on actual touch screens and reduced motion
-		const isTrueTouchScreen = window.matchMedia('(pointer: coarse)').matches;
-		if (isTrueTouchScreen) return;
-		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+varying vec2 vUv;
 
-		import("three").then((THREE) => {
-			if (!canvas) return;
+uniform vec2 uResolution;       // canvas logical size in pixels (full screen res)
+uniform vec2 uMouse;            // current mouse position (pixels, Y-flipped for GL)
+uniform vec2 uVelocity;         // mouse velocity (pixels/frame)
+uniform float uTime;            // elapsed time for wobble
+uniform float uSpeed;           // |velocity| for stretch calculation
 
-			const W = window.innerWidth;
-			const H = window.innerHeight;
+// Trail points – ring buffer of recent positions
+#define TRAIL_COUNT 10
+uniform vec2  uTrail[TRAIL_COUNT];     // positions (pixels, Y-flipped)
+uniform float uTrailAge[TRAIL_COUNT];  // 0.0 = fresh, 1.0 = expired
 
-			// — Renderer ————————————————————————————————————————————
-			const renderer = new THREE.WebGLRenderer({
-				canvas,
-				alpha: true,
-				antialias: false,
-				powerPreference: "low-power",
-			});
-			renderer.setPixelRatio(0.5); // half res for performance
-			renderer.setSize(W, H);
-			renderer.autoClear = false;
+// Metaball field function
+float metaball(vec2 p, vec2 c, float r) {
+  float d = length(p - c);
+  if (d > r * 4.0) return 0.0; // early-out for distant fragments
+  return (r * r) / (d * d + 0.001);
+}
 
-			// — Simulation resolution (quarter for speed) ——————————
-			const simScale = 0.25;
-			let simW = Math.round(W * simScale);
-			let simH = Math.round(H * simScale);
-			// Dye at half res for visual quality
-			const dyeScale = 0.5;
-			let dyeW = Math.round(W * dyeScale);
-			let dyeH = Math.round(H * dyeScale);
+void main() {
+  // Work in screen-pixel space (same coordinate system as uMouse / uTrail)
+  // uResolution is the LOGICAL screen size (e.g. 1920x1080)
+  // gl_FragCoord is in actual pixel space (affected by pixelRatio)
+  // vUv goes 0..1, so multiply by uResolution to get screen pixels
+  vec2 fragPos = vUv * uResolution;
 
-			const texelSize = new THREE.Vector2(1.0 / simW, 1.0 / simH);
-			const dyeTexelSize = new THREE.Vector2(1.0 / dyeW, 1.0 / dyeH);
+  // ── Main blob ──────────────────────────────────────────────────────────────
+  // Stretch along velocity direction when moving
+  vec2 dir = normalize(uVelocity + vec2(0.001, 0.0)); // avoid zero-divide
+  float stretch = 1.0 + uSpeed * 0.003;               // max ~2× at ~330 px/frame
 
-			// — FBO helper ——————————————————————————————————————————
-			function createFBO(w: number, h: number, type = THREE.HalfFloatType) {
-				const fbo = new THREE.WebGLRenderTarget(w, h, {
-					minFilter: THREE.LinearFilter,
-					magFilter: THREE.LinearFilter,
-					format: THREE.RGBAFormat,
-					type,
-					depthBuffer: false,
-					stencilBuffer: false,
-				});
-				return fbo;
-			}
+  vec2 toMouse  = fragPos - uMouse;
+  float alongVel = dot(toMouse, dir);
+  float perpVel  = dot(toMouse, vec2(-dir.y, dir.x));
+  vec2 stretched = vec2(alongVel / stretch, perpVel);
 
-			function createDoubleFBO(w: number, h: number) {
-				return {
-					read: createFBO(w, h),
-					write: createFBO(w, h),
-					swap() {
-						const tmp = this.read;
-						this.read = this.write;
-						this.write = tmp;
-					},
-				};
-			}
+  // Damped wobble when stationary
+  float wobble = 1.0 + sin(uTime * 8.0) * 0.05 * exp(-uSpeed * 0.1);
 
-			// — FBOs ————————————————————————————————————————————————
-			let velocity = createDoubleFBO(simW, simH);
-			let pressure = createDoubleFBO(simW, simH);
-			let divergenceFBO = createFBO(simW, simH);
-			let dye = createDoubleFBO(dyeW, dyeH);
+  float field = metaball(vec2(length(stretched), 0.0), vec2(0.0), 20.0 * wobble);
 
-			// — Fullscreen quad ————————————————————————————————————
-			const scene = new THREE.Scene();
-			const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-			const quadGeom = new THREE.PlaneGeometry(2, 2);
+  // ── Trail blobs ────────────────────────────────────────────────────────────
+  for (int i = 0; i < TRAIL_COUNT; i++) {
+    float age = uTrailAge[i];
+    if (age >= 1.0) continue;
 
-			// — Shared vertex shader ————————————————————————————————
-			const vertexShader = `
-				varying vec2 vUv;
-				void main() {
-					vUv = uv;
-					gl_Position = vec4(position, 1.0);
-				}
-			`;
+    float radius = mix(10.0, 3.0, age); // shrink as they age
+    float alpha  = 1.0 - age;
 
-			// — Advection shader ————————————————————————————————————
-			const advectionFrag = `
-				precision highp float;
-				varying vec2 vUv;
-				uniform sampler2D uVelocity;
-				uniform sampler2D uSource;
-				uniform vec2 uTexelSize;
-				uniform float uDt;
-				uniform float uDissipation;
+    field += metaball(fragPos, uTrail[i], radius) * alpha;
+  }
 
-				void main() {
-					vec2 vel = texture2D(uVelocity, vUv).xy;
-					vec2 coord = vUv - vel * uTexelSize * uDt;
-					gl_FragColor = uDissipation * texture2D(uSource, coord);
-				}
-			`;
+  // ── Threshold + smooth edge ────────────────────────────────────────────────
+  float threshold = 1.0;
+  float edge = smoothstep(threshold - 0.3, threshold + 0.1, field);
 
-			// — Splat shader (inject force/dye) ————————————————————
-			const splatFrag = `
-				precision highp float;
-				varying vec2 vUv;
-				uniform sampler2D uTarget;
-				uniform vec2 uPoint;
-				uniform vec3 uColor;
-				uniform float uRadius;
-				uniform float uAspectRatio;
+  // ── Color ──────────────────────────────────────────────────────────────────
+  // Translucent water-like blob — pale blue-white, soft edges
+  vec3 baseColor = vec3(0.85, 0.9, 1.0);
+  float glow = smoothstep(threshold - 0.6, threshold, field) * 0.15;
 
-				void main() {
-					vec2 p = vUv - uPoint;
-					p.x *= uAspectRatio;
-					float splat = exp(-dot(p, p) / uRadius);
-					vec3 base = texture2D(uTarget, vUv).xyz;
-					gl_FragColor = vec4(base + uColor * splat, 1.0);
-				}
-			`;
+  // Brighter core
+  float inner = smoothstep(threshold, threshold + 2.0, field);
+  vec3 color = mix(baseColor, vec3(1.0), inner * 0.6);
 
-			// — Divergence shader ——————————————————————————————————
-			const divergenceFrag = `
-				precision highp float;
-				varying vec2 vUv;
-				uniform sampler2D uVelocity;
-				uniform vec2 uTexelSize;
+  // Edge refraction highlight — thin bright ring
+  float ring = smoothstep(threshold - 0.15, threshold, field)
+             - smoothstep(threshold, threshold + 0.3, field);
+  color += vec3(0.3, 0.35, 0.4) * ring;
 
-				void main() {
-					float L = texture2D(uVelocity, vUv - vec2(uTexelSize.x, 0.0)).x;
-					float R = texture2D(uVelocity, vUv + vec2(uTexelSize.x, 0.0)).x;
-					float B = texture2D(uVelocity, vUv - vec2(0.0, uTexelSize.y)).y;
-					float T = texture2D(uVelocity, vUv + vec2(0.0, uTexelSize.y)).y;
-					float div = 0.5 * (R - L + T - B);
-					gl_FragColor = vec4(div, 0.0, 0.0, 1.0);
-				}
-			`;
+  // Final alpha: solid core, soft glow halo
+  float alpha = edge * 0.55 + glow;
 
-			// — Pressure solver (Jacobi iteration) ————————————————
-			const pressureFrag = `
-				precision highp float;
-				varying vec2 vUv;
-				uniform sampler2D uPressure;
-				uniform sampler2D uDivergence;
-				uniform vec2 uTexelSize;
+  gl_FragColor = vec4(color, alpha);
+}
+`;
 
-				void main() {
-					float L = texture2D(uPressure, vUv - vec2(uTexelSize.x, 0.0)).x;
-					float R = texture2D(uPressure, vUv + vec2(uTexelSize.x, 0.0)).x;
-					float B = texture2D(uPressure, vUv - vec2(0.0, uTexelSize.y)).x;
-					float T = texture2D(uPressure, vUv + vec2(0.0, uTexelSize.y)).x;
-					float div = texture2D(uDivergence, vUv).x;
-					float p = (L + R + B + T - div) * 0.25;
-					gl_FragColor = vec4(p, 0.0, 0.0, 1.0);
-				}
-			`;
+// ── Context + canvas ref ────────────────────────────────────────────────────
 
-			// — Gradient subtraction ——————————————————————————————
-			const gradientSubFrag = `
-				precision highp float;
-				varying vec2 vUv;
-				uniform sampler2D uPressure;
-				uniform sampler2D uVelocity;
-				uniform vec2 uTexelSize;
+const parallax = getContext<ParallaxContext>("parallax");
 
-				void main() {
-					float L = texture2D(uPressure, vUv - vec2(uTexelSize.x, 0.0)).x;
-					float R = texture2D(uPressure, vUv + vec2(uTexelSize.x, 0.0)).x;
-					float B = texture2D(uPressure, vUv - vec2(0.0, uTexelSize.y)).x;
-					float T = texture2D(uPressure, vUv + vec2(0.0, uTexelSize.y)).x;
-					vec2 vel = texture2D(uVelocity, vUv).xy;
-					vel -= 0.5 * vec2(R - L, T - B);
-					gl_FragColor = vec4(vel, 0.0, 1.0);
-				}
-			`;
+let canvas: HTMLCanvasElement;
 
-			// — Display shader (render dye to screen) —————————————
-			const displayFrag = `
-				precision highp float;
-				varying vec2 vUv;
-				uniform sampler2D uDye;
+// ── Three.js objects (set in onMount, checked in $effect) ──────────────────
 
-				void main() {
-					vec3 c = texture2D(uDye, vUv).rgb;
-					// Tone mapping — keep it ethereal
-					float brightness = max(c.r, max(c.g, c.b));
-					float alpha = smoothstep(0.01, 0.15, brightness);
-					// Slight bloom/glow
-					vec3 color = c * 1.2;
-					gl_FragColor = vec4(color, alpha * 0.7);
-				}
-			`;
+// Using a typed ref object so $effect can read them after mount
+const refs = {
+	renderer: null as import("three").WebGLRenderer | null,
+	scene: null as import("three").Scene | null,
+	camera: null as import("three").OrthographicCamera | null,
+	uniforms: null as Record<string, { value: unknown }> | null,
+	// Pre-allocated Three.js objects to avoid per-frame allocation
+	trailVecs: null as import("three").Vector2[] | null,
+	trailAges: null as number[] | null,
+	mouseVec: null as import("three").Vector2 | null,
+	velocityVec: null as import("three").Vector2 | null,
+	resolutionVec: null as import("three").Vector2 | null,
+};
 
-			// — Clear shader ——————————————————————————————————————
-			const clearFrag = `
-				precision highp float;
-				varying vec2 vUv;
-				uniform sampler2D uTexture;
-				uniform float uValue;
+// Trail ring buffer — plain objects, not reactive
+interface TrailPoint {
+	x: number;
+	y: number;
+	time: number;
+}
+const TRAIL_COUNT = 10;
+const MIN_TRAIL_DISTANCE = 8; // px between trail points
+const TRAIL_LIFETIME = 400; // ms
+let trail: TrailPoint[] = [];
 
-				void main() {
-					gl_FragColor = uValue * texture2D(uTexture, vUv);
-				}
-			`;
+let lastX = -1;
+let lastY = -1;
+let enabled = $state(false);
+let initialized = false;
 
-			// — Create materials ——————————————————————————————————
-			function makeMaterial(frag: string, uniforms: Record<string, any>) {
-				return new THREE.ShaderMaterial({
-					vertexShader,
-					fragmentShader: frag,
-					uniforms,
-					transparent: true,
-					depthTest: false,
-				});
-			}
+// ── Mount: initialise Three.js ──────────────────────────────────────────────
 
-			const advectionMat = makeMaterial(advectionFrag, {
-				uVelocity: { value: null },
-				uSource: { value: null },
-				uTexelSize: { value: texelSize },
-				uDt: { value: 0.016 },
-				uDissipation: { value: 0.98 },
-			});
+onMount(() => {
+	if (!browser) return;
 
-			const splatMat = makeMaterial(splatFrag, {
-				uTarget: { value: null },
-				uPoint: { value: new THREE.Vector2() },
-				uColor: { value: new THREE.Vector3() },
-				uRadius: { value: 0.0003 },
-				uAspectRatio: { value: W / H },
-			});
+	// Only skip on actual touch screens and reduced motion
+	// Removed isLowEnd check — even 4-core machines handle this fine at half res
+	const isTrueTouchScreen = window.matchMedia('(pointer: coarse)').matches;
+	if (isTrueTouchScreen) return;
+	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-			const divergenceMat = makeMaterial(divergenceFrag, {
-				uVelocity: { value: null },
-				uTexelSize: { value: texelSize },
-			});
+	// Dynamic import keeps Three.js out of the SSR bundle
+	import("three").then((THREE) => {
 
-			const pressureMat = makeMaterial(pressureFrag, {
-				uPressure: { value: null },
-				uDivergence: { value: null },
-				uTexelSize: { value: texelSize },
-			});
+		const W = window.innerWidth;
+		const H = window.innerHeight;
 
-			const gradientSubMat = makeMaterial(gradientSubFrag, {
-				uPressure: { value: null },
-				uVelocity: { value: null },
-				uTexelSize: { value: texelSize },
-			});
-
-			const displayMat = makeMaterial(displayFrag, {
-				uDye: { value: null },
-			});
-
-			const clearMat = makeMaterial(clearFrag, {
-				uTexture: { value: null },
-				uValue: { value: 0.8 },
-			});
-
-			const quad = new THREE.Mesh(quadGeom, advectionMat);
-			scene.add(quad);
-
-			// — Render pass helper ————————————————————————————————
-			function blit(target: any, material: any) {
-				quad.material = material;
-				renderer.setRenderTarget(target);
-				renderer.render(scene, camera);
-			}
-
-			// — Mouse state ——————————————————————————————————————
-			let lastX = 0;
-			let lastY = 0;
-			let firstFrame = true;
-			let lastTime = performance.now();
-
-			// — Resize handler ————————————————————————————————————
-			function handleResize() {
-				const nW = window.innerWidth;
-				const nH = window.innerHeight;
-				renderer.setSize(nW, nH);
-				splatMat.uniforms.uAspectRatio.value = nW / nH;
-
-				// Rebuild FBOs at new resolution
-				simW = Math.round(nW * simScale);
-				simH = Math.round(nH * simScale);
-				dyeW = Math.round(nW * dyeScale);
-				dyeH = Math.round(nH * dyeScale);
-
-				texelSize.set(1.0 / simW, 1.0 / simH);
-				dyeTexelSize.set(1.0 / dyeW, 1.0 / dyeH);
-
-				velocity.read.setSize(simW, simH);
-				velocity.write.setSize(simW, simH);
-				pressure.read.setSize(simW, simH);
-				pressure.write.setSize(simW, simH);
-				divergenceFBO.setSize(simW, simH);
-				dye.read.setSize(dyeW, dyeH);
-				dye.write.setSize(dyeW, dyeH);
-			}
-			window.addEventListener("resize", handleResize, { passive: true });
-
-			// — Store refs ————————————————————————————————————————
-			refs.renderer = renderer;
-			refs.blit = blit;
-			refs.velocity = velocity;
-			refs.pressure = pressure;
-			refs.divergenceFBO = divergenceFBO;
-			refs.dye = dye;
-			refs.advectionMat = advectionMat;
-			refs.splatMat = splatMat;
-			refs.divergenceMat = divergenceMat;
-			refs.pressureMat = pressureMat;
-			refs.gradientSubMat = gradientSubMat;
-			refs.displayMat = displayMat;
-			refs.clearMat = clearMat;
-			refs.texelSize = texelSize;
-			refs.dyeTexelSize = dyeTexelSize;
-			refs.lastX = lastX;
-			refs.lastY = lastY;
-			refs.firstFrame = firstFrame;
-			refs.lastTime = lastTime;
-			refs.handleResize = handleResize;
-			enabled = true;
-
-			return () => {
-				window.removeEventListener("resize", handleResize);
-				velocity.read.dispose();
-				velocity.write.dispose();
-				pressure.read.dispose();
-				pressure.write.dispose();
-				divergenceFBO.dispose();
-				dye.read.dispose();
-				dye.write.dispose();
-				quadGeom.dispose();
-				advectionMat.dispose();
-				splatMat.dispose();
-				divergenceMat.dispose();
-				pressureMat.dispose();
-				gradientSubMat.dispose();
-				displayMat.dispose();
-				clearMat.dispose();
-				renderer.dispose();
-				enabled = false;
-			};
-		}).catch((err) => {
-			if (import.meta.env.DEV) console.error('[LiquidCursor] Failed to load Three.js:', err);
+		// Half-resolution renderer (renders at 0.5× pixel density)
+		const renderer = new THREE.WebGLRenderer({
+			canvas,
+			alpha: true,
+			antialias: false,
+			powerPreference: "low-power",
 		});
+		renderer.setPixelRatio(0.5); // half resolution
+		renderer.setSize(W, H);
+
+		const scene = new THREE.Scene();
+		const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+		// Pre-allocate uniform vectors (reused every frame — no GC pressure)
+		const trailVecs = Array.from({ length: TRAIL_COUNT }, () => new THREE.Vector2(0, 0));
+		const trailAges: number[] = new Array(TRAIL_COUNT).fill(1.0);
+		const mouseVec = new THREE.Vector2(W / 2, H / 2);
+		const velocityVec = new THREE.Vector2(0, 0);
+		const resolutionVec = new THREE.Vector2(W, H);
+
+		const uniforms: Record<string, { value: unknown }> = {
+			uResolution: { value: resolutionVec },
+			uMouse: { value: mouseVec },
+			uVelocity: { value: velocityVec },
+			uTime: { value: 0 },
+			uSpeed: { value: 0 },
+			uTrail: { value: trailVecs },
+			uTrailAge: { value: trailAges },
+		};
+
+		const material = new THREE.ShaderMaterial({
+			vertexShader,
+			fragmentShader,
+			uniforms,
+			transparent: true,
+			depthTest: false,
+		});
+
+		const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+		scene.add(quad);
+
+		// Resize handler
+		function handleResize() {
+			const nW = window.innerWidth;
+			const nH = window.innerHeight;
+			renderer.setSize(nW, nH);
+			resolutionVec.set(nW, nH);
+		}
+		window.addEventListener("resize", handleResize, { passive: true });
+
+		// Stash refs so $effect can use them
+		refs.renderer = renderer;
+		refs.scene = scene;
+		refs.camera = camera;
+		refs.uniforms = uniforms;
+		refs.trailVecs = trailVecs;
+		refs.trailAges = trailAges;
+		refs.mouseVec = mouseVec;
+		refs.velocityVec = velocityVec;
+		refs.resolutionVec = resolutionVec;
+		enabled = true;
+
+
+
+		// Cleanup on unmount
+		return () => {
+			window.removeEventListener("resize", handleResize);
+			quad.geometry.dispose();
+			material.dispose();
+			renderer.dispose();
+			refs.renderer = null;
+			enabled = false;
+		};
+	}).catch((err) => {
+		if (import.meta.env.DEV) console.error('[LiquidCursor] Failed to load Three.js:', err);
 	});
+});
 
-	// — Render loop tied to parallax tick ————————————————————————
-	$effect(() => {
-		if (!enabled) return;
-		const _tick = parallax.tick;
+// ── Render effect — fires every time ParallaxProvider ticks ────────────────
+// This deliberately avoids a separate rAF loop (single rAF in ParallaxProvider)
+$effect(() => {
+	const _tick = parallax.tick; // reactive dependency — re-runs each frame
 
-		const {
-			blit, velocity, pressure, divergenceFBO, dye,
-			advectionMat, splatMat, divergenceMat, pressureMat,
-			gradientSubMat, displayMat, clearMat, texelSize, dyeTexelSize,
-		} = refs;
+	if (!enabled) return;
+	const { renderer, scene, camera, uniforms, trailVecs, trailAges, mouseVec, velocityVec } = refs;
+	if (
+		!renderer ||
+		!scene ||
+		!camera ||
+		!uniforms ||
+		!trailVecs ||
+		!trailAges ||
+		!mouseVec ||
+		!velocityVec
+	)
+		return;
 
-		const now = performance.now();
-		const dt = Math.min((now - refs.lastTime) * 0.001, 0.033); // cap at ~30fps worth
-		refs.lastTime = now;
+	// Skip when tab is hidden
+	if (typeof document !== "undefined" && document.hidden) return;
 
-		// Mouse position in UV space (0-1)
-		const mx = parallax.smoothPixelX / window.innerWidth;
-		const my = 1.0 - parallax.smoothPixelY / window.innerHeight; // flip Y
+	// Mouse position in GL pixel space (Y-flipped: WebGL origin is bottom-left)
+	const mx = parallax.smoothPixelX;
+	const my = window.innerHeight - parallax.smoothPixelY;
 
-		if (refs.firstFrame) {
-			refs.lastX = mx;
-			refs.lastY = my;
-			refs.firstFrame = false;
-			return;
+	// Velocity
+	const vx = mx - lastX;
+	const vy = my - lastY;
+	const speed = Math.sqrt(vx * vx + vy * vy);
+
+	// Initialize lastX/lastY on first frame (avoid huge speed spike from 0,0)
+	if (!initialized) {
+		lastX = mx;
+		lastY = my;
+		initialized = true;
+		// Render once so the cursor appears immediately
+	}
+
+	// Note: no frame skipping for now — always render so cursor is always visible
+	// Can re-add frame skipping later once we confirm the effect works
+
+	// Update mouse uniforms (reusing pre-allocated Vector2)
+	mouseVec.set(mx, my);
+	velocityVec.set(vx, vy);
+	(uniforms.uSpeed as { value: number }).value = speed;
+	(uniforms.uTime as { value: number }).value = performance.now() * 0.001;
+
+	// Add trail point if mouse moved enough
+	if (speed > MIN_TRAIL_DISTANCE) {
+		trail.push({ x: mx, y: my, time: performance.now() });
+		if (trail.length > TRAIL_COUNT) trail.shift();
+	}
+
+	// Update trail uniforms (reuse pre-allocated Vector2 instances)
+	const now = performance.now();
+	for (let i = 0; i < TRAIL_COUNT; i++) {
+		const point = trail[i];
+		if (point) {
+			trailVecs[i].set(point.x, point.y); // mutate in place — no allocation
+			trailAges[i] = Math.min((now - point.time) / TRAIL_LIFETIME, 1.0);
+		} else {
+			trailAges[i] = 1.0; // expired / unused
 		}
+	}
+	// Force Three.js to re-upload the trail array this frame
+	(uniforms.uTrailAge as { value: number[]; needsUpdate?: boolean }).needsUpdate = true;
 
-		const dx = (mx - refs.lastX) * window.innerWidth;
-		const dy = (my - refs.lastY) * window.innerHeight;
-		const speed = Math.sqrt(dx * dx + dy * dy);
+	lastX = mx;
+	lastY = my;
 
-		// — Splat velocity + dye on mouse movement ——————————————
-		if (speed > 0.5) {
-			// Velocity splat
-			splatMat.uniforms.uTarget.value = velocity.read.texture;
-			splatMat.uniforms.uPoint.value.set(mx, my);
-			splatMat.uniforms.uColor.value.set(dx * 5.0, dy * 5.0, 0.0);
-			splatMat.uniforms.uRadius.value = 0.0004;
-			blit(velocity.write, splatMat);
-			velocity.swap();
-
-			// Dye splat — ethereal blue-white palette
-			const hue = (now * 0.0001) % 1.0;
-			const r = 0.4 + 0.3 * Math.sin(hue * 6.28);
-			const g = 0.5 + 0.2 * Math.sin(hue * 6.28 + 2.0);
-			const b = 0.7 + 0.3 * Math.sin(hue * 6.28 + 4.0);
-
-			splatMat.uniforms.uTarget.value = dye.read.texture;
-			splatMat.uniforms.uColor.value.set(r * speed * 0.15, g * speed * 0.15, b * speed * 0.15);
-			splatMat.uniforms.uRadius.value = 0.0006;
-			blit(dye.write, splatMat);
-			dye.swap();
-		}
-
-		refs.lastX = mx;
-		refs.lastY = my;
-
-		// — Advect velocity ————————————————————————————————————
-		advectionMat.uniforms.uVelocity.value = velocity.read.texture;
-		advectionMat.uniforms.uSource.value = velocity.read.texture;
-		advectionMat.uniforms.uTexelSize.value = texelSize;
-		advectionMat.uniforms.uDt.value = dt * 60.0;
-		advectionMat.uniforms.uDissipation.value = 0.97;
-		blit(velocity.write, advectionMat);
-		velocity.swap();
-
-		// — Compute divergence ————————————————————————————————
-		divergenceMat.uniforms.uVelocity.value = velocity.read.texture;
-		blit(divergenceFBO, divergenceMat);
-
-		// — Clear pressure ————————————————————————————————————
-		clearMat.uniforms.uTexture.value = pressure.read.texture;
-		clearMat.uniforms.uValue.value = 0.8;
-		blit(pressure.write, clearMat);
-		pressure.swap();
-
-		// — Jacobi pressure solve (20 iterations) ————————————
-		pressureMat.uniforms.uDivergence.value = divergenceFBO.texture;
-		for (let i = 0; i < 20; i++) {
-			pressureMat.uniforms.uPressure.value = pressure.read.texture;
-			blit(pressure.write, pressureMat);
-			pressure.swap();
-		}
-
-		// — Subtract pressure gradient ————————————————————————
-		gradientSubMat.uniforms.uPressure.value = pressure.read.texture;
-		gradientSubMat.uniforms.uVelocity.value = velocity.read.texture;
-		blit(velocity.write, gradientSubMat);
-		velocity.swap();
-
-		// — Advect dye ————————————————————————————————————————
-		advectionMat.uniforms.uVelocity.value = velocity.read.texture;
-		advectionMat.uniforms.uSource.value = dye.read.texture;
-		advectionMat.uniforms.uTexelSize.value = dyeTexelSize;
-		advectionMat.uniforms.uDissipation.value = 0.985;
-		blit(dye.write, advectionMat);
-		dye.swap();
-
-		// — Display ———————————————————————————————————————————
-		displayMat.uniforms.uDye.value = dye.read.texture;
-		blit(null, displayMat); // render to screen
-	});
+	renderer.render(scene, camera);
+});
 </script>
 
 <canvas
@@ -473,5 +317,6 @@
 		height: 100vh;
 		z-index: 9999;
 		pointer-events: none;
+		/* Canvas internal buffer is half resolution; CSS displays at full size */
 	}
 </style>
