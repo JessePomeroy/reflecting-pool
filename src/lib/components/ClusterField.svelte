@@ -83,7 +83,7 @@ let wanderComputed = $derived.by(() => {
 });
 
 // ── Ripple push state ─────────────────────────────────────────────
-let ripplePush = $state<Array<{ x: number; y: number }>>([]); // per-cluster push offset
+let ripplePush: Array<{ x: number; y: number }> = []; // mutable positions (not reactive)
 let rippleDecay: Array<{ x: number; y: number }> = []; // velocity for spring-back
 
 onMount(() => {
@@ -120,27 +120,35 @@ onMount(() => {
 	return () => window.removeEventListener('click', handlePageClick);
 });
 
-// Spring-back animation tied to parallax tick
-let rippleComputed = $derived.by(() => {
+// Spring-back animation — read parallax.tick to run each frame, write to separate output
+let rippleOutput = $state.raw<Array<{ x: number; y: number }>>([]);
+
+$effect(() => {
 	const _tick = parallax.tick;
-	if (!rippleDecay.length) return ripplePush;
+	if (!rippleDecay.length) return;
 
 	const damping = 0.9;
 	const spring = 0.08;
+	let anyMoving = false;
 
 	for (let i = 0; i < rippleDecay.length; i++) {
-		// Apply velocity
-		if (ripplePush[i]) {
-			ripplePush[i].x += rippleDecay[i].x;
-			ripplePush[i].y += rippleDecay[i].y;
+		if (!ripplePush[i]) continue;
 
-			// Spring back toward 0
-			rippleDecay[i].x = rippleDecay[i].x * damping - ripplePush[i].x * spring;
-			rippleDecay[i].y = rippleDecay[i].y * damping - ripplePush[i].y * spring;
+		ripplePush[i].x += rippleDecay[i].x;
+		ripplePush[i].y += rippleDecay[i].y;
+
+		rippleDecay[i].x = rippleDecay[i].x * damping - ripplePush[i].x * spring;
+		rippleDecay[i].y = rippleDecay[i].y * damping - ripplePush[i].y * spring;
+
+		if (Math.abs(rippleDecay[i].x) > 0.01 || Math.abs(rippleDecay[i].y) > 0.01) {
+			anyMoving = true;
 		}
 	}
 
-	return [...ripplePush];
+	// Only trigger reactivity when there's actual motion
+	if (anyMoving) {
+		rippleOutput = ripplePush.map(p => ({ x: p.x, y: p.y }));
+	}
 });
 
 function handleClusterClick(cluster: GalleryCluster) {
@@ -153,7 +161,7 @@ function handleClusterClick(cluster: GalleryCluster) {
 		{@const pos = positions[i]}
 		{@const depth = clusterDepths[i] ?? 0.5}
 		{@const wander = wanderComputed[i] ?? { x: 0, y: 0 }}
-		{@const ripple = rippleComputed[i] ?? { x: 0, y: 0 }}
+		{@const ripple = rippleOutput[i] ?? { x: 0, y: 0 }}
 		{@const pxOffset = parallax.smoothX * depth * 20}
 		{@const pyOffset = parallax.smoothY * depth * 20}
 		{#if pos}
