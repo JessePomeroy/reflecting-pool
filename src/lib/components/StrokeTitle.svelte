@@ -106,7 +106,7 @@ function letterRef(node: HTMLElement, _idx: () => number) {
 	.title {
 		font-family: 'Cormorant', serif;
 		font-weight: 300;
-		font-size: clamp(3rem, 9vw, 7rem);
+		font-size: clamp(3.5rem, 12vw, 9rem);
 		color: transparent;
 		-webkit-text-stroke: 1.2px rgba(240, 244, 248, 0.85);
 		letter-spacing: 0.08em;
