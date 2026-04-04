@@ -141,16 +141,17 @@ onMount(() => {
 		// iOS 13+ requires permission for gyroscope access
 		const DOE = DeviceOrientationEvent as any;
 		if (typeof DOE.requestPermission === 'function') {
-			// Request on first user tap
+			// iOS: request on first user interaction (must be click/touch gesture)
 			const requestGyro = () => {
 				DOE.requestPermission().then((state: string) => {
 					if (state === 'granted') {
 						window.addEventListener('deviceorientation', handleOrientation, { passive: true });
 					}
 				}).catch(() => {});
-				window.removeEventListener('touchstart', requestGyro);
 			};
-			window.addEventListener('touchstart', requestGyro, { once: true });
+			// Use both click and touchend for maximum compatibility
+			window.addEventListener('click', requestGyro, { once: true });
+			window.addEventListener('touchend', requestGyro, { once: true });
 		} else {
 			// Android / non-iOS — no permission needed
 			window.addEventListener('deviceorientation', handleOrientation, { passive: true });
