@@ -19,6 +19,7 @@ uniform vec2 uMouse;
 uniform vec2 uVelocity;
 uniform float uTime;
 uniform float uSpeed;
+uniform float uHover;
 
 #define TRAIL_COUNT 10
 uniform vec2  uTrail[TRAIL_COUNT];
@@ -58,8 +59,9 @@ void main() {
   float threshold = 1.0;
   float edge = smoothstep(threshold - 0.3, threshold + 0.1, field);
 
-  // Color — translucent water blob
-  vec3 baseColor = vec3(0.85, 0.9, 1.0);
+  // Color — translucent water blob, shifts on hover
+  vec3 baseColor = mix(vec3(0.85, 0.9, 1.0), vec3(0.95, 0.88, 0.7), uHover);
+  vec3 ringColor = mix(vec3(0.3, 0.35, 0.4), vec3(0.9, 0.75, 0.4), uHover);
   float glow = smoothstep(threshold - 0.6, threshold, field) * 0.15;
   float inner = smoothstep(threshold, threshold + 2.0, field);
   vec3 color = mix(baseColor, vec3(1.0), inner * 0.6);
@@ -67,7 +69,7 @@ void main() {
   // Edge refraction ring
   float ring = smoothstep(threshold - 0.15, threshold, field)
              - smoothstep(threshold, threshold + 0.3, field);
-  color += vec3(0.3, 0.35, 0.4) * ring;
+  color += ringColor * ring;
 
   float alpha = edge * 0.55 + glow;
   gl_FragColor = vec4(color, alpha);

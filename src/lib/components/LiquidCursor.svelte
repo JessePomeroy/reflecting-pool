@@ -42,6 +42,7 @@ let lastX = -1;
 let lastY = -1;
 let enabled = $state(false);
 let initialized = false;
+let isHovering = $state(false);
 
 // ── Mount: initialise Three.js ──────────────────────────────────────────────
 
@@ -86,6 +87,7 @@ onMount(() => {
 			uVelocity: { value: velocityVec },
 			uTime: { value: 0 },
 			uSpeed: { value: 0 },
+			uHover: { value: 0 },
 			uTrail: { value: trailVecs },
 			uTrailAge: { value: trailAges },
 		};
@@ -109,6 +111,21 @@ onMount(() => {
 			resolutionVec.set(nW, nH);
 		}
 		window.addEventListener("resize", handleResize, { passive: true });
+
+		// Hover detection — change cursor color on interactive elements
+		let hoverTimeout: ReturnType<typeof setTimeout> | null = null;
+		function onMouseMove(e: MouseEvent) {
+			const target = e.target as HTMLElement;
+			const clickable = target.closest("a, button, [role=\"button\"]");
+			if (clickable && !isHovering) {
+				isHovering = true;
+				clearTimeout(hoverTimeout!);
+			} else if (!clickable && isHovering) {
+				isHovering = false;
+			}
+		}
+		window.addEventListener("mouseover", onMouseMove);
+		window.addEventListener("mouseout", onMouseMove);
 
 		// Stash refs so $effect can use them
 		refs.renderer = renderer;
@@ -184,6 +201,7 @@ $effect(() => {
 	mouseVec.set(mx, my);
 	velocityVec.set(vx, vy);
 	(uniforms.uSpeed as { value: number }).value = speed;
+	(uniforms.uHover as { value: number }).value = isHovering ? 1 : 0;
 	(uniforms.uTime as { value: number }).value = performance.now() * 0.001;
 
 	// Add trail point if mouse moved enough
