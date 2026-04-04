@@ -24,11 +24,12 @@
 
         const clickX = e.clientX;
 
-        // Batch read all letter positions
-        const rects = letterEls.map((el) => el.getBoundingClientRect());
+        // Batch read all letter positions (filter out undefined — spaces don't have refs)
+        const validEls = letterEls.filter((el) => el != null);
+        const rects = validEls.map((el) => el.getBoundingClientRect());
 
         // Apply wobble based on distance from click
-        for (let i = 0; i < letterEls.length; i++) {
+        for (let i = 0; i < validEls.length; i++) {
             const rect = rects[i];
             const letterCenterX = rect.left + rect.width / 2;
             const dist = Math.abs(clickX - letterCenterX);
@@ -41,7 +42,7 @@
             const wobbleY = intensity * -4;
             const wobbleRot = direction * intensity * 2;
 
-            const el = letterEls[i];
+            const el = validEls[i];
             // Instant transition when reduced motion is preferred
             if (prefersReducedMotion) {
                 el.style.transition = "none";
@@ -56,7 +57,7 @@
         // Ease back
         setTimeout(
             () => {
-                for (const el of letterEls) {
+                for (const el of validEls) {
                     if (prefersReducedMotion) {
                         el.style.transition = "none";
                     } else {
