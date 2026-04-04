@@ -136,20 +136,8 @@ let initialized = false;
 onMount(() => {
 	if (!browser) return;
 
-	const isTrueTouchScreen = window.matchMedia('(pointer: coarse)').matches;
-	console.log('[LiquidCursor] Guards:', {
-		isTrueTouchScreen,
-		isLowEnd: parallax.isLowEnd,
-		isTouch: parallax.isTouch,
-		reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-		hardwareConcurrency: navigator.hardwareConcurrency,
-	});
-
-	if (isTrueTouchScreen) { console.log('[LiquidCursor] Bailing: touch screen'); return; }
-	if (parallax.isLowEnd) { console.log('[LiquidCursor] Bailing: low-end device'); return; }
-	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { console.log('[LiquidCursor] Bailing: reduced motion'); return; }
-
-	console.log('[LiquidCursor] All guards passed, initializing...');
+	// ALL GUARDS DISABLED FOR DEBUGGING — always init
+	console.log('[LiquidCursor] Forcing init (guards disabled for debug)');
 
 	// Dynamic import keeps Three.js out of the SSR bundle
 	import("three").then((THREE) => {
