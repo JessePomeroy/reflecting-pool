@@ -30,6 +30,7 @@ inject({ mode: dev ? "development" : "production" });
 	<link rel="canonical" href="https://margarethelena.com" />
 </svelte:head>
 
+<div class="gradient-bg" aria-hidden="true"></div>
 {@render children()}
 
 <style>
@@ -49,8 +50,7 @@ inject({ mode: dev ? "development" : "production" });
 		-moz-osx-font-smoothing: grayscale;
 	}
 
-	:global(body::before) {
-		content: '';
+	.gradient-bg {
 		position: fixed;
 		inset: 0;
 		z-index: -1;
