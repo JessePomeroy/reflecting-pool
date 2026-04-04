@@ -239,24 +239,17 @@ function handleClusterClick(cluster: GalleryCluster) {
 	}
 
 	@media (max-width: 767px) {
-		.cluster-field {
-			position: relative;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			gap: 3rem;
-			padding: 2rem 1rem 4rem;
-		}
-
 		.cluster {
-			position: relative;
-			left: auto !important;
-			top: auto !important;
-			transform: none;
+			/* Keep absolute positioning — float within the grid */
 		}
 
-		.cluster.dismiss {
-			transform: translateY(30px);
+		.cluster-images {
+			width: clamp(110px, 28vw, 180px);
+			height: clamp(85px, 20vw, 140px);
+		}
+
+		.cluster-thumb {
+			width: clamp(60px, 18vw, 100px);
 		}
 	}
 </style>
