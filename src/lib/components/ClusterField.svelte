@@ -106,7 +106,7 @@ onMount(() => {
 			const maxDist = 35; // % of viewport
 			if (dist > maxDist || dist < 0.5) continue;
 
-			const strength = (1 - dist / maxDist) * 25; // px push
+			const strength = (1 - dist / maxDist) * 12; // px push (gentle)
 			const angle = Math.atan2(dy, dx);
 			rippleDecay[i] = {
 				x: Math.cos(angle) * strength,
@@ -127,8 +127,8 @@ $effect(() => {
 	const _tick = parallax.tick;
 	if (!rippleDecay.length) return;
 
-	const damping = 0.9;
-	const spring = 0.08;
+	const damping = 0.95;  // higher = slower decay
+	const spring = 0.03;   // lower = less bouncy, smoother return
 	let anyMoving = false;
 
 	for (let i = 0; i < rippleDecay.length; i++) {
