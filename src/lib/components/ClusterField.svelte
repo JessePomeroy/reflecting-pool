@@ -82,6 +82,67 @@ let wanderComputed = $derived.by(() => {
 	return newOffsets;
 });
 
+// ── Ripple push state ─────────────────────────────────────────────
+let ripplePush = $state<Array<{ x: number; y: number }>>([]); // per-cluster push offset
+let rippleDecay: Array<{ x: number; y: number }> = []; // velocity for spring-back
+
+onMount(() => {
+	if (!browser) return;
+
+	ripplePush = clusters.map(() => ({ x: 0, y: 0 }));
+	rippleDecay = clusters.map(() => ({ x: 0, y: 0 }));
+
+	// Click anywhere to ripple clusters
+	function handlePageClick(e: MouseEvent) {
+		const clickX = (e.clientX / window.innerWidth) * 100;
+		const clickY = (e.clientY / window.innerHeight) * 100;
+
+		for (let i = 0; i < positions.length; i++) {
+			const pos = positions[i];
+			if (!pos) continue;
+			const dx = pos.x - clickX;
+			const dy = pos.y - clickY;
+			const dist = Math.sqrt(dx * dx + dy * dy);
+			const maxDist = 35; // % of viewport
+			if (dist > maxDist || dist < 0.5) continue;
+
+			const strength = (1 - dist / maxDist) * 25; // px push
+			const angle = Math.atan2(dy, dx);
+			rippleDecay[i] = {
+				x: Math.cos(angle) * strength,
+				y: Math.sin(angle) * strength,
+			};
+		}
+	}
+
+	window.addEventListener('click', handlePageClick);
+
+	return () => window.removeEventListener('click', handlePageClick);
+});
+
+// Spring-back animation tied to parallax tick
+let rippleComputed = $derived.by(() => {
+	const _tick = parallax.tick;
+	if (!rippleDecay.length) return ripplePush;
+
+	const damping = 0.9;
+	const spring = 0.08;
+
+	for (let i = 0; i < rippleDecay.length; i++) {
+		// Apply velocity
+		if (ripplePush[i]) {
+			ripplePush[i].x += rippleDecay[i].x;
+			ripplePush[i].y += rippleDecay[i].y;
+
+			// Spring back toward 0
+			rippleDecay[i].x = rippleDecay[i].x * damping - ripplePush[i].x * spring;
+			rippleDecay[i].y = rippleDecay[i].y * damping - ripplePush[i].y * spring;
+		}
+	}
+
+	return [...ripplePush];
+});
+
 function handleClusterClick(cluster: GalleryCluster) {
 	onclusterclick(cluster);
 }
@@ -92,6 +153,7 @@ function handleClusterClick(cluster: GalleryCluster) {
 		{@const pos = positions[i]}
 		{@const depth = clusterDepths[i] ?? 0.5}
 		{@const wander = wanderComputed[i] ?? { x: 0, y: 0 }}
+		{@const ripple = rippleComputed[i] ?? { x: 0, y: 0 }}
 		{@const pxOffset = parallax.smoothX * depth * 20}
 		{@const pyOffset = parallax.smoothY * depth * 20}
 		{#if pos}
@@ -102,8 +164,8 @@ function handleClusterClick(cluster: GalleryCluster) {
 				class:dismiss={dismissing}
 				style:left="{pos.x}%"
 				style:top="{pos.y}%"
-				style:--cx="{wander.x + pxOffset}px"
-				style:--cy="{wander.y + pyOffset}px"
+				style:--cx="{wander.x + pxOffset + ripple.x}px"
+				style:--cy="{wander.y + pyOffset + ripple.y}px"
 				style:--dismiss-x="{(pos.x - dismissOriginX) * 3}vw"
 				style:--dismiss-y="{(pos.y - dismissOriginY) * 3}vh"
 				style:z-index={Math.round(depth * 10)}
