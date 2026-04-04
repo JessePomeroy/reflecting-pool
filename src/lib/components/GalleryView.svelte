@@ -170,7 +170,7 @@ onMount(() => {
 		.gallery-images {
 			position: relative;
 			display: block;
-			padding: 0 1rem;
+			padding: 0 1rem 6rem;
 		}
 
 		.gallery-photo {
@@ -180,6 +180,17 @@ onMount(() => {
 			width: 45% !important;
 			display: inline-block;
 			margin-bottom: 1rem;
+		}
+
+		.back-button {
+			top: auto;
+			bottom: 1.5rem;
+			left: 1.5rem;
+		}
+
+		.gallery-title {
+			top: auto;
+			bottom: 1.8rem;
 		}
 	}
 </style>
