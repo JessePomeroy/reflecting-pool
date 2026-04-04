@@ -6,12 +6,10 @@
     const parallax = getContext<ParallaxContext>("parallax");
 
     let titleEl: HTMLElement | undefined = $state();
-    let subtitleEl: HTMLElement | undefined = $state();
     let letterEls: HTMLElement[] = [];
     let rippleActive = $state(false);
 
     const title = "margaret helena";
-    const subtitle = "photography";
 
     function handleClick(e: MouseEvent) {
         if (!titleEl || rippleActive) return;

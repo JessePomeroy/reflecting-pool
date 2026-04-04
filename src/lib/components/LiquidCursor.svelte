@@ -146,7 +146,7 @@ onMount(() => {
 
 	// Dynamic import keeps Three.js out of the SSR bundle
 	import("three").then((THREE) => {
-		console.log('[LiquidCursor] Three.js loaded, setting up renderer...');
+
 		const W = window.innerWidth;
 		const H = window.innerHeight;
 
@@ -212,11 +212,7 @@ onMount(() => {
 		refs.resolutionVec = resolutionVec;
 		enabled = true;
 
-		console.log('[LiquidCursor] Ready! Canvas:', canvas.width, 'x', canvas.height);
 
-		// Immediate test render
-		renderer.render(scene, camera);
-		console.log('[LiquidCursor] Test render done');
 
 		// Cleanup on unmount
 		return () => {
@@ -228,7 +224,7 @@ onMount(() => {
 			enabled = false;
 		};
 	}).catch((err) => {
-		console.error('[LiquidCursor] Failed to load Three.js:', err);
+		if (import.meta.env.DEV) console.error('[LiquidCursor] Failed to load Three.js:', err);
 	});
 });
 
