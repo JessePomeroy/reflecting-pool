@@ -234,7 +234,7 @@ onMount(() => {
 
 		.gallery-title {
 			top: auto;
-			bottom: 1.5rem;
+			bottom: 1.65rem;
 			left: auto;
 			right: 1.5rem;
 			transform: none;
