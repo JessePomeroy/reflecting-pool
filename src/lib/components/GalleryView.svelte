@@ -114,14 +114,14 @@ onMount(() => {
 		gap: 0.5rem;
 		font-family: 'Cormorant', serif;
 		font-size: 1.1rem;
-		color: rgba(26, 31, 46, 0.6);
+		color: #1a1f2e;
 		letter-spacing: 0.1em;
 		transition: color 300ms ease;
 		padding: 0.5rem;
 	}
 
 	.back-button:hover {
-		color: rgba(26, 31, 46, 0.9);
+		color: #1a1f2e;
 	}
 
 	.back-arrow {
@@ -137,7 +137,7 @@ onMount(() => {
 		font-family: 'Cormorant', serif;
 		font-weight: 300;
 		font-size: clamp(1.2rem, 2.5vw, 1.8rem);
-		color: rgba(26, 31, 46, 0.5);
+		color: #1a1f2e;
 		letter-spacing: 0.25em;
 		text-transform: lowercase;
 		margin: 0;
