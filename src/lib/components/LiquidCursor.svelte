@@ -136,14 +136,20 @@ let initialized = false;
 onMount(() => {
 	if (!browser) return;
 
-	// Skip on actual touch screens (phones/tablets) — not trackpad-enabled Macs
-	// pointer: coarse = true touch screen. maxTouchPoints alone catches MacBooks falsely.
 	const isTrueTouchScreen = window.matchMedia('(pointer: coarse)').matches;
-	if (isTrueTouchScreen) return;
-	if (parallax.isLowEnd) return;
-	if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+	console.log('[LiquidCursor] Guards:', {
+		isTrueTouchScreen,
+		isLowEnd: parallax.isLowEnd,
+		isTouch: parallax.isTouch,
+		reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+		hardwareConcurrency: navigator.hardwareConcurrency,
+	});
 
-	console.log('[LiquidCursor] Initializing...');
+	if (isTrueTouchScreen) { console.log('[LiquidCursor] Bailing: touch screen'); return; }
+	if (parallax.isLowEnd) { console.log('[LiquidCursor] Bailing: low-end device'); return; }
+	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { console.log('[LiquidCursor] Bailing: reduced motion'); return; }
+
+	console.log('[LiquidCursor] All guards passed, initializing...');
 
 	// Dynamic import keeps Three.js out of the SSR bundle
 	import("three").then((THREE) => {
