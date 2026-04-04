@@ -30,7 +30,6 @@ inject({ mode: dev ? "development" : "production" });
 	<link rel="canonical" href="https://margarethelena.com" />
 </svelte:head>
 
-<div class="gradient-bg" aria-hidden="true"></div>
 {@render children()}
 
 <style>
@@ -42,20 +41,13 @@ inject({ mode: dev ? "development" : "production" });
 
 	:global(html, body) {
 		font-family: 'Cormorant', serif;
-		background: #c8cfd8;
+		background: linear-gradient(to bottom, #1a1f2e 0%, #1a1f2e 20%, #3a4255 45%, #8a9aab 70%, #c8cfd8 100%);
+		background-attachment: fixed;
 		color: rgba(240, 244, 248, 0.85);
 		overflow-x: hidden;
 		min-height: 100vh;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
-	}
-
-	.gradient-bg {
-		position: fixed;
-		inset: 0;
-		z-index: -1;
-		background: linear-gradient(to bottom, #1a1f2e 0%, #1a1f2e 20%, #3a4255 45%, #8a9aab 70%, #c8cfd8 100%);
-		pointer-events: none;
 	}
 
 	:global(body) {
