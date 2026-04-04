@@ -1,274 +1,309 @@
 <script lang="ts">
-import { getContext, onMount } from "svelte";
-import { browser } from "$app/environment";
-import type { GalleryCluster, ParallaxContext } from "$lib/types/gallery";
-import { clamp, distance, generateClusterPositions, randomRange } from "$lib/utils/math";
-import { createRippleSystem, applyClickImpulse, stepRipple, snapshotPush, CLUSTER_RIPPLE } from "$lib/utils/ripple";
-import PhotoCard from "./PhotoCard.svelte";
+    import { getContext, onMount } from "svelte";
+    import { browser } from "$app/environment";
+    import type { GalleryCluster, ParallaxContext } from "$lib/types/gallery";
+    import {
+        clamp,
+        distance,
+        generateClusterPositions,
+        randomRange,
+    } from "$lib/utils/math";
+    import {
+        createRippleSystem,
+        applyClickImpulse,
+        stepRipple,
+        snapshotPush,
+        CLUSTER_RIPPLE,
+    } from "$lib/utils/ripple";
+    import PhotoCard from "./PhotoCard.svelte";
 
-interface Props {
-	clusters: GalleryCluster[];
-	onclusterclick: (cluster: GalleryCluster) => void;
-	dismissing?: boolean;
-	dismissOriginX?: number;
-	dismissOriginY?: number;
-}
+    interface Props {
+        clusters: GalleryCluster[];
+        onclusterclick: (cluster: GalleryCluster) => void;
+        dismissing?: boolean;
+        dismissOriginX?: number;
+        dismissOriginY?: number;
+    }
 
-let {
-	clusters,
-	onclusterclick,
-	dismissing = false,
-	dismissOriginX = 50,
-	dismissOriginY = 50,
-}: Props = $props();
+    let {
+        clusters,
+        onclusterclick,
+        dismissing = false,
+        dismissOriginX = 50,
+        dismissOriginY = 50,
+    }: Props = $props();
 
-const parallax = getContext<ParallaxContext>("parallax");
+    const parallax = getContext<ParallaxContext>("parallax");
 
-// Generate cluster positions dynamically
-let positions = $state<Array<{ x: number; y: number }>>([]);
-let clusterDepths = $state<number[]>([]);
+    // Generate cluster positions dynamically
+    let positions = $state<Array<{ x: number; y: number }>>([]);
+    let clusterDepths = $state<number[]>([]);
 
-// Wander state — pre-allocated, mutated in place
-let wanderOffsets = $state.raw<Array<{ x: number; y: number }>>([]);
-let wanderFreqs: Array<{ fx: number; fy: number; px: number; py: number }> = [];
-let prefersReducedMotion = $state(false);
+    // Wander state — pre-allocated, mutated in place
+    let wanderOffsets = $state.raw<Array<{ x: number; y: number }>>([]);
+    let wanderFreqs: Array<{ fx: number; fy: number; px: number; py: number }> =
+        [];
+    let prefersReducedMotion = $state(false);
 
-onMount(() => {
-	if (!browser) return;
+    onMount(() => {
+        if (!browser) return;
 
-	// Generate positions based on cluster count
-	positions = generateClusterPositions(clusters.length, 15, parallax.isMobile);
+        // Generate positions based on cluster count
+        positions = generateClusterPositions(
+            clusters.length,
+            15,
+            parallax.isMobile,
+        );
 
-	// Assign depths — further from center = deeper
-	clusterDepths = positions.map((pos) => {
-		const distFromCenter = distance(pos.x, pos.y, 50, 55);
-		return clamp(0.3 + distFromCenter * 0.012, 0.3, 0.8);
-	});
+        // Assign depths — further from center = deeper
+        clusterDepths = positions.map((pos) => {
+            const distFromCenter = distance(pos.x, pos.y, 50, 55);
+            return clamp(0.3 + distFromCenter * 0.012, 0.3, 0.8);
+        });
 
-	// Initialize wander
-	wanderOffsets = clusters.map(() => ({ x: 0, y: 0 }));
-	wanderFreqs = clusters.map(() => ({
-		fx: randomRange(0.0003, 0.0008),
-		fy: randomRange(0.0003, 0.0008),
-		px: randomRange(0, Math.PI * 2),
-		py: randomRange(0, Math.PI * 2),
-	}));
+        // Initialize wander
+        wanderOffsets = clusters.map(() => ({ x: 0, y: 0 }));
+        wanderFreqs = clusters.map(() => ({
+            fx: randomRange(0.0003, 0.0008),
+            fy: randomRange(0.0003, 0.0008),
+            px: randomRange(0, Math.PI * 2),
+            py: randomRange(0, Math.PI * 2),
+        }));
 
-	// Check for reduced motion preference
-	prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-});
+        // Check for reduced motion preference
+        prefersReducedMotion = window.matchMedia(
+            "(prefers-reduced-motion: reduce)",
+        ).matches;
+    });
 
-// Wander is driven by the parallax tick
-let wanderComputed = $derived.by(() => {
-	const _tick = parallax.tick; // dependency
-	if (!wanderFreqs.length) return wanderOffsets;
+    // Wander is driven by the parallax tick
+    let wanderComputed = $derived.by(() => {
+        const _tick = parallax.tick; // dependency
+        if (!wanderFreqs.length) return wanderOffsets;
 
-	// Skip sine-wave wander when reduced motion is preferred
-	if (prefersReducedMotion) {
-		return clusters.map(() => ({ x: 0, y: 0 }));
-	}
+        // Skip sine-wave wander when reduced motion is preferred
+        if (prefersReducedMotion) {
+            return clusters.map(() => ({ x: 0, y: 0 }));
+        }
 
-	const now = performance.now();
-	const amplitude = parallax.isMobile ? 5 : 15;
+        const now = performance.now();
+        const amplitude = parallax.isMobile ? 5 : 15;
 
-	const newOffsets = new Array(clusters.length);
-	for (let i = 0; i < clusters.length; i++) {
-		const f = wanderFreqs[i];
-		newOffsets[i] = {
-			x: Math.sin(now * f.fx + f.px) * amplitude,
-			y: Math.sin(now * f.fy + f.py) * amplitude,
-		};
-	}
+        const newOffsets = new Array(clusters.length);
+        for (let i = 0; i < clusters.length; i++) {
+            const f = wanderFreqs[i];
+            newOffsets[i] = {
+                x: Math.sin(now * f.fx + f.px) * amplitude,
+                y: Math.sin(now * f.fy + f.py) * amplitude,
+            };
+        }
 
-	return newOffsets;
-});
+        return newOffsets;
+    });
 
-// ── Ripple push (shared physics) ──────────────────────────────────
-const ripple = createRippleSystem(clusters.length);
-let rippleOutput = $state.raw<Array<{ x: number; y: number }>>(
-	clusters.map(() => ({ x: 0, y: 0 }))
-);
+    // ── Ripple push (shared physics) ──────────────────────────────────
+    const ripple = createRippleSystem(clusters.length);
+    let rippleOutput = $state.raw<Array<{ x: number; y: number }>>(
+        clusters.map(() => ({ x: 0, y: 0 })),
+    );
 
-onMount(() => {
-	if (!browser) return;
+    onMount(() => {
+        if (!browser) return;
 
-	function handlePageClick(e: MouseEvent) {
-		const clickX = (e.clientX / window.innerWidth) * 100;
-		const clickY = (e.clientY / window.innerHeight) * 100;
-		applyClickImpulse(clickX, clickY, positions, ripple.vel, CLUSTER_RIPPLE);
-	}
+        function handlePageClick(e: MouseEvent) {
+            const clickX = (e.clientX / window.innerWidth) * 100;
+            const clickY = (e.clientY / window.innerHeight) * 100;
+            applyClickImpulse(
+                clickX,
+                clickY,
+                positions,
+                ripple.vel,
+                CLUSTER_RIPPLE,
+            );
+        }
 
-	window.addEventListener('click', handlePageClick);
-	return () => window.removeEventListener('click', handlePageClick);
-});
+        window.addEventListener("click", handlePageClick);
+        return () => window.removeEventListener("click", handlePageClick);
+    });
 
-$effect(() => {
-	const _tick = parallax.tick;
-	if (!ripple.vel.length) return;
-	if (stepRipple(ripple.push, ripple.vel, CLUSTER_RIPPLE)) {
-		rippleOutput = snapshotPush(ripple.push);
-	}
-});
+    $effect(() => {
+        const _tick = parallax.tick;
+        if (!ripple.vel.length) return;
+        if (stepRipple(ripple.push, ripple.vel, CLUSTER_RIPPLE)) {
+            rippleOutput = snapshotPush(ripple.push);
+        }
+    });
 
-function handleClusterClick(cluster: GalleryCluster) {
-	onclusterclick(cluster);
-}
+    function handleClusterClick(cluster: GalleryCluster) {
+        onclusterclick(cluster);
+    }
 </script>
 
 <div class="cluster-field" class:dismissing>
-	{#each clusters as cluster, i}
-		{@const pos = positions[i]}
-		{@const depth = clusterDepths[i] ?? 0.5}
-		{@const wander = wanderComputed[i] ?? { x: 0, y: 0 }}
-		{@const ripple = rippleOutput[i] ?? { x: 0, y: 0 }}
-		{@const pxOffset = parallax.smoothX * depth * 20}
-		{@const pyOffset = parallax.smoothY * depth * 20}
-		{#if pos}
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div
-				class="cluster"
-				class:dismiss={dismissing}
-				style:left="{pos.x}%"
-				style:top="{pos.y}%"
-				style:--cx="{wander.x + pxOffset + ripple.x}px"
-				style:--cy="{wander.y + pyOffset + ripple.y}px"
-				style:--dismiss-x="{(pos.x - dismissOriginX) * 3}vw"
-				style:--dismiss-y="{(pos.y - dismissOriginY) * 3}vh"
-				style:z-index={Math.round(depth * 10)}
-				onclick={() => handleClusterClick(cluster)}
-			>
-				<h3 class="cluster-title">{cluster.title}</h3>
-				<div class="cluster-images">
-					{#each cluster.images.slice(0, 4) as img, j}
-						<div
-							class="cluster-thumb"
-							style:--ox="{img.offsetX}px"
-							style:--oy="{img.offsetY}px"
-							style:--rot="{img.rotation}deg"
-							style:--s={img.scale}
-							style:z-index={j}
-						>
-							<img src={img.src} alt={img.alt} loading="lazy" draggable="false" />
-						</div>
-					{/each}
-				</div>
-			</div>
-		{/if}
-	{/each}
+    {#each clusters as cluster, i}
+        {@const pos = positions[i]}
+        {@const depth = clusterDepths[i] ?? 0.5}
+        {@const wander = wanderComputed[i] ?? { x: 0, y: 0 }}
+        {@const ripple = rippleOutput[i] ?? { x: 0, y: 0 }}
+        {@const pxOffset = parallax.smoothX * depth * 20}
+        {@const pyOffset = parallax.smoothY * depth * 20}
+        {#if pos}
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div
+                class="cluster"
+                class:dismiss={dismissing}
+                style:left="{pos.x}%"
+                style:top="{pos.y}%"
+                style:--cx="{wander.x + pxOffset + ripple.x}px"
+                style:--cy="{wander.y + pyOffset + ripple.y}px"
+                style:--dismiss-x="{(pos.x - dismissOriginX) * 3}vw"
+                style:--dismiss-y="{(pos.y - dismissOriginY) * 3}vh"
+                style:z-index={Math.round(depth * 10)}
+                onclick={() => handleClusterClick(cluster)}
+            >
+                <h3 class="cluster-title">{cluster.title}</h3>
+                <div class="cluster-images">
+                    {#each cluster.images.slice(0, 4) as img, j}
+                        <div
+                            class="cluster-thumb"
+                            style:--ox="{img.offsetX}px"
+                            style:--oy="{img.offsetY}px"
+                            style:--rot="{img.rotation}deg"
+                            style:--s={img.scale}
+                            style:z-index={j}
+                        >
+                            <img
+                                src={img.src}
+                                alt={img.alt}
+                                loading="lazy"
+                                draggable="false"
+                            />
+                        </div>
+                    {/each}
+                </div>
+            </div>
+        {/if}
+    {/each}
 </div>
 
 <style>
-	.cluster-field {
-		position: fixed;
-		inset: 0;
-		z-index: 1;
-		pointer-events: none;
-	}
+    .cluster-field {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+    }
 
-	.cluster {
-		position: absolute;
-		transform: translate(calc(-50% + var(--cx, 0px)), calc(-50% + var(--cy, 0px)));
-		cursor: pointer;
-		pointer-events: auto;
-		transition: opacity 600ms ease;
-	}
+    .cluster {
+        position: absolute;
+        transform: translate(
+            calc(-50% + var(--cx, 0px)),
+            calc(-50% + var(--cy, 0px))
+        );
+        cursor: pointer;
+        pointer-events: auto;
+        transition: opacity 600ms ease;
+    }
 
-	.cluster.dismiss {
-		transform: translate(
-			calc(-50% + var(--cx, 0px) + var(--dismiss-x, 0)),
-			calc(-50% + var(--cy, 0px) + var(--dismiss-y, 0))
-		);
-		opacity: 0;
-		transition:
-			transform 800ms ease-in,
-			opacity 800ms ease-in;
-		pointer-events: none;
-	}
+    .cluster.dismiss {
+        transform: translate(
+            calc(-50% + var(--cx, 0px) + var(--dismiss-x, 0)),
+            calc(-50% + var(--cy, 0px) + var(--dismiss-y, 0))
+        );
+        opacity: 0;
+        transition:
+            transform 800ms ease-in,
+            opacity 800ms ease-in;
+        pointer-events: none;
+    }
 
-	.cluster-title {
-		font-family: 'Cormorant', serif;
-		font-weight: 300;
-		font-size: clamp(0.8rem, 1.2vw, 1rem);
-		color: rgba(240, 244, 248, 0.4);
-		letter-spacing: 0.2em;
-		text-align: center;
-		margin: 0 0 0.6rem;
-		text-transform: lowercase;
-		white-space: nowrap;
-	}
+    .cluster-title {
+        font-family: "Cormorant", serif;
+        font-weight: 300;
+        font-size: clamp(0.8rem, 1.2vw, 1rem);
+        color: rgba(240, 244, 248, 0.4);
+        letter-spacing: 0.2em;
+        text-align: center;
+        margin: 0 0 0.6rem;
+        text-transform: lowercase;
+        white-space: nowrap;
+    }
 
-	.cluster-images {
-		position: relative;
-		width: clamp(140px, 20vw, 220px);
-		height: clamp(110px, 15vw, 170px);
-	}
+    .cluster-images {
+        position: relative;
+        width: clamp(140px, 20vw, 220px);
+        height: clamp(110px, 15vw, 170px);
+    }
 
-	.cluster-thumb {
-		position: absolute;
-		left: 50%;
-		top: 50%;
-		width: clamp(80px, 12vw, 130px);
-		transform: translate(calc(-50% + var(--ox, 0px)), calc(-50% + var(--oy, 0px)))
-			rotate(var(--rot, 0deg)) scale(var(--s, 1));
-		border-radius: 2px;
-		overflow: hidden;
-		box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
-		transition: transform 400ms ease;
-	}
+    .cluster-thumb {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: clamp(80px, 12vw, 130px);
+        transform: translate(
+                calc(-50% + var(--ox, 0px)),
+                calc(-50% + var(--oy, 0px))
+            )
+            rotate(var(--rot, 0deg)) scale(var(--s, 1));
+        border-radius: 2px;
+        overflow: hidden;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+        transition: transform 400ms ease;
+    }
 
-	.cluster-thumb img {
-		display: block;
-		width: 100%;
-		height: auto;
-		aspect-ratio: 4/3;
-		object-fit: cover;
-		pointer-events: none;
-	}
+    .cluster-thumb img {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 4/3;
+        object-fit: cover;
+        pointer-events: none;
+    }
 
-	.cluster:hover .cluster-title {
-		color: rgba(240, 244, 248, 0.7);
-	}
+    .cluster:hover .cluster-title {
+        color: rgba(240, 244, 248, 0.7);
+    }
 
-	.cluster:hover .cluster-thumb {
-		box-shadow: 0 5px 20px rgba(0, 0, 0, 0.35);
-	}
+    .cluster:hover .cluster-thumb {
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.35);
+    }
 
-	.dismissing {
-		pointer-events: none;
-	}
+    .dismissing {
+        pointer-events: none;
+    }
 
-	@media (max-width: 767px) {
-		.cluster-field {
-			position: relative;
-			overflow-y: auto;
-			overflow-x: hidden;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			gap: 1rem;
-			padding: 28vh 1rem 4rem;
-		}
+    @media (max-width: 767px) {
+        .cluster-field {
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            padding: 18vh 1rem 4rem;
+        }
 
-		.cluster {
-			position: relative;
-			left: auto !important;
-			top: auto !important;
-			transform: translate(var(--cx, 0px), var(--cy, 0px));
-			flex-shrink: 0;
-		}
+        .cluster {
+            position: relative;
+            left: auto !important;
+            top: auto !important;
+            transform: translate(var(--cx, 0px), var(--cy, 0px));
+            flex-shrink: 0;
+        }
 
-		.cluster.dismiss {
-			transform: translateY(30px);
-		}
+        .cluster.dismiss {
+            transform: translateY(30px);
+        }
 
-		.cluster-images {
-			width: clamp(200px, 65vw, 300px);
-			height: clamp(160px, 48vw, 230px);
-		}
+        .cluster-images {
+            width: clamp(200px, 65vw, 300px);
+            height: clamp(160px, 48vw, 230px);
+        }
 
-		.cluster-thumb {
-			width: clamp(120px, 38vw, 180px);
-		}
-	}
+        .cluster-thumb {
+            width: clamp(120px, 38vw, 180px);
+        }
+    }
 </style>
