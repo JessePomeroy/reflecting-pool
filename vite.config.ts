@@ -5,7 +5,6 @@ import { defineConfig } from 'vite';
 export default defineConfig({
 	plugins: [sveltekit(), basicSsl()],
 	server: {
-		host: true, // expose to network (phone access)
-		https: true,
+		host: true,
 	},
 });
