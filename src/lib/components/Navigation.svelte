@@ -178,5 +178,11 @@ function closeMenu() {
 		}
 	}
 
+	@media (max-width: 767px) and (orientation: landscape) {
+		.hamburger {
+			top: 2.8rem;
+		}
+	}
+
 
 </style>
