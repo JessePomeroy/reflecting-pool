@@ -54,7 +54,7 @@ void main() {
   // Damped wobble when stationary
   float wobble = 1.0 + sin(uTime * 8.0) * 0.05 * exp(-uSpeed * 0.1);
 
-  float field = metaball(vec2(length(stretched), 0.0), vec2(0.0), 15.0 * wobble);
+  float field = metaball(vec2(length(stretched), 0.0), vec2(0.0), 20.0 * wobble);
 
   // ── Trail blobs ────────────────────────────────────────────────────────────
   for (int i = 0; i < TRAIL_COUNT; i++) {
@@ -72,14 +72,14 @@ void main() {
   float edge = smoothstep(threshold - 0.3, threshold + 0.1, field);
 
   // ── Color ──────────────────────────────────────────────────────────────────
-  vec3 color = vec3(0.78, 0.86, 0.94); // soft blue-white
-  float glow  = smoothstep(threshold - 0.5, threshold, field) * 0.15;
+  vec3 color = vec3(0.9, 0.95, 1.0); // bright white with slight blue tint
+  float glow  = smoothstep(threshold - 0.5, threshold, field) * 0.25;
 
   // Inner brightness
   float inner = smoothstep(threshold, threshold + 2.0, field);
-  color = mix(color, vec3(1.0), inner * 0.3);
+  color = mix(color, vec3(1.0), inner * 0.5);
 
-  gl_FragColor = vec4(color, edge * 0.4 + glow);
+  gl_FragColor = vec4(color, edge * 0.7 + glow);
 }
 `;
 
@@ -118,7 +118,7 @@ let trail: TrailPoint[] = [];
 
 let lastX = -1;
 let lastY = -1;
-let enabled = false;
+let enabled = $state(false);
 let initialized = false;
 
 // ── Mount: initialise Three.js ──────────────────────────────────────────────
@@ -249,12 +249,8 @@ $effect(() => {
 		// Render once so the cursor appears immediately
 	}
 
-	// Frame skip: if barely moving AND trail is empty, save GPU time
-	// But always render at least once after init
-	if (initialized && speed < 0.5 && trail.length === 0) {
-		// Still render every few frames so wobble animation shows
-		if (_tick % 4 !== 0) return;
-	}
+	// Note: no frame skipping for now — always render so cursor is always visible
+	// Can re-add frame skipping later once we confirm the effect works
 
 	// Update mouse uniforms (reusing pre-allocated Vector2)
 	mouseVec.set(mx, my);
