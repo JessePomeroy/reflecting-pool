@@ -110,7 +110,7 @@
         font-weight: 300;
         font-size: clamp(3.5rem, 14vw, 11rem);
         color: transparent;
-        -webkit-text-stroke: 1.2px rgba(240, 244, 248, 0.85);
+        -webkit-text-stroke: 1.2px rgba(240, 244, 248, 1);
         letter-spacing: -0.03em;
         margin: 0;
         white-space: normal;
@@ -118,7 +118,11 @@
         max-width: 90vw;
         /* Fade bottom of title into background */
         mask-image: linear-gradient(to bottom, black 40%, transparent 85%);
-        -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 85%);
+        -webkit-mask-image: linear-gradient(
+            to bottom,
+            black 40%,
+            transparent 85%
+        );
     }
 
     @media (prefers-reduced-motion: no-preference) {

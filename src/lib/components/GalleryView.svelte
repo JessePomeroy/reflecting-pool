@@ -115,7 +115,7 @@ onMount(() => {
 		font-family: 'Cormorant', serif;
 		font-size: 1.1rem;
 		color: transparent;
-		-webkit-text-stroke: 1px rgba(240, 244, 248, 0.85);
+		-webkit-text-stroke: 1px rgba(240, 244, 248, 0.6);
 		letter-spacing: 0.1em;
 		transition: all 300ms ease;
 		padding: 0.5rem;
@@ -139,7 +139,7 @@ onMount(() => {
 		font-weight: 300;
 		font-size: clamp(1.2rem, 2.5vw, 1.8rem);
 		color: transparent;
-		-webkit-text-stroke: 1px rgba(240, 244, 248, 0.85);
+		-webkit-text-stroke: 1px rgba(240, 244, 248, 0.6);
 		letter-spacing: 0.25em;
 		text-transform: lowercase;
 		margin: 0;
