@@ -116,9 +116,10 @@ const MIN_TRAIL_DISTANCE = 8; // px between trail points
 const TRAIL_LIFETIME = 400; // ms
 let trail: TrailPoint[] = [];
 
-let lastX = 0;
-let lastY = 0;
+let lastX = -1;
+let lastY = -1;
 let enabled = false;
+let initialized = false;
 
 // ── Mount: initialise Three.js ──────────────────────────────────────────────
 
@@ -240,10 +241,19 @@ $effect(() => {
 	const vy = my - lastY;
 	const speed = Math.sqrt(vx * vx + vy * vy);
 
-	// Frame skip: if barely moving, save GPU time
-	if (speed < 0.5 && trail.length === 0) {
-		// Still need to age the trail even when idle — only hard-skip if trail is empty
-		return;
+	// Initialize lastX/lastY on first frame (avoid huge speed spike from 0,0)
+	if (!initialized) {
+		lastX = mx;
+		lastY = my;
+		initialized = true;
+		// Render once so the cursor appears immediately
+	}
+
+	// Frame skip: if barely moving AND trail is empty, save GPU time
+	// But always render at least once after init
+	if (initialized && speed < 0.5 && trail.length === 0) {
+		// Still render every few frames so wobble animation shows
+		if (_tick % 4 !== 0) return;
 	}
 
 	// Update mouse uniforms (reusing pre-allocated Vector2)
