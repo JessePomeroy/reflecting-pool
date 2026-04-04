@@ -97,7 +97,7 @@ function letterRef(node: HTMLElement, _idx: () => number) {
 
 <style>
 	.stroke-title {
-		text-align: center;
+		text-align: left;
 		cursor: default;
 		user-select: none;
 		z-index: 16;

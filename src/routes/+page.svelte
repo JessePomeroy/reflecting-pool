@@ -145,13 +145,14 @@ function closeLightbox() {
 	<!-- z-3 to z-12: Floating leaves (behind and in front of gallery) -->
 	<LeafLayer hidden={lightboxOpen} />
 
-	<!-- z-15 to z-16: Fixed header with gradient, title, and nav -->
+	<!-- z-15 to z-16: Header — title left, nav right, no solid background -->
 	<header class="site-header">
-		<div class="header-content">
+		<div class="header-left">
 			<StrokeTitle />
+		</div>
+		<div class="header-right">
 			<Navigation />
 		</div>
-		<div class="header-blur"></div>
 	</header>
 
 	<!-- z-100: Lightbox -->
@@ -170,65 +171,32 @@ function closeLightbox() {
 
 <style>
 	/* ─── Header Zone ─────────────────────────────────────────── */
+	/* No solid background — title/nav float over the gradient body */
 	.site-header {
 		position: fixed;
 		top: 0;
 		left: 0;
 		right: 0;
-		height: 33vh;
-		background: #1a1f2e;
 		z-index: 15;
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		padding: 1.5rem 2.5rem;
 		pointer-events: none;
 	}
 
-	.header-content {
-		position: relative;
-		z-index: 16;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		height: 67%;
+	.header-left {
 		pointer-events: auto;
 	}
 
-	/* Bottom blur dissolve into gallery */
-	.header-blur {
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		height: 40%;
-		mask-image: linear-gradient(to bottom, black, transparent);
-		-webkit-mask-image: linear-gradient(to bottom, black, transparent);
-		backdrop-filter: blur(10px);
-		pointer-events: none;
-		animation: blur-breathe 6s ease-in-out infinite;
-	}
-
-	@keyframes blur-breathe {
-		0%,
-		100% {
-			backdrop-filter: blur(10px);
-		}
-		50% {
-			backdrop-filter: blur(14px);
-		}
+	.header-right {
+		pointer-events: auto;
+		padding-top: 0.5rem;
 	}
 
 	@media (max-width: 767px) {
 		.site-header {
-			height: 40vh;
-		}
-
-		.header-content {
-			height: 65%;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.header-blur {
-			animation: none;
+			padding: 1rem 1.2rem;
 		}
 	}
 </style>

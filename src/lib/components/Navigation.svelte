@@ -62,8 +62,8 @@ function closeMenu() {
 		gap: 1.5rem;
 		list-style: none;
 		margin: 0;
-		padding: 0.8rem 0 0;
-		justify-content: center;
+		padding: 0;
+		justify-content: flex-end;
 	}
 
 	.desktop li a {
