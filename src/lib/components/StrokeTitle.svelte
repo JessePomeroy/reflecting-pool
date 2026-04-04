@@ -126,6 +126,7 @@ function letterRef(node: HTMLElement, _idx: () => number) {
 	.letter {
 		display: inline-block;
 		will-change: auto;
+		margin-right: -0.02em; /* tighten letter spacing — adjust this value */
 	}
 
 	.letter.space {
