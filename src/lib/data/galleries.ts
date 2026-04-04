@@ -30,7 +30,7 @@ export const clusters: GalleryCluster[] = [
 		"01", "02", "03", "04", "05", "06", "07",
 	]),
 	makeCluster("garden-portraits", "Garden Portraits", "garden-portraits", [
-		"08", "09", "10", "11", "12", "13",
+		"08", "09", "10", "11", "13",
 	]),
 	makeCluster("close-ups", "Close-ups", "close-ups", [
 		"14", "15", "16", "17", "18", "19", "20",
