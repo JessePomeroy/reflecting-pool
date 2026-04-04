@@ -109,7 +109,7 @@ function letterRef(node: HTMLElement, _idx: () => number) {
 		font-size: clamp(3.5rem, 12vw, 9rem);
 		color: transparent;
 		-webkit-text-stroke: 1.2px rgba(240, 244, 248, 0.85);
-		letter-spacing: 0.08em;
+		letter-spacing: -0.03em;
 		margin: 0;
 		white-space: nowrap;
 		/* Bottom half of text dissolves into blur */
@@ -126,7 +126,7 @@ function letterRef(node: HTMLElement, _idx: () => number) {
 	.letter {
 		display: inline-block;
 		will-change: auto;
-		margin-right: -0.02em; /* tighten letter spacing — adjust this value */
+		margin-right: -0.04em;
 	}
 
 	.letter.space {
@@ -151,7 +151,7 @@ function letterRef(node: HTMLElement, _idx: () => number) {
 
 	@media (max-width: 767px) {
 		.title {
-			letter-spacing: 0.03em;
+			letter-spacing: -0.03em;
 			-webkit-text-stroke: 1px rgba(240, 244, 248, 0.85);
 		}
 	}
