@@ -177,7 +177,7 @@ onMount(() => {
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			gap: 1.5rem;
+			gap: 4rem;
 			padding: 28vh 1rem 6rem;
 		}
 
@@ -187,12 +187,13 @@ onMount(() => {
 			top: auto !important;
 			width: clamp(200px, 70vw, 300px) !important;
 			flex-shrink: 0;
+			transform: none !important;
 		}
 
 		/* Back + title on same line at bottom */
 		.back-button {
 			top: auto;
-			bottom: 1.2rem;
+			bottom: 1.5rem;
 			left: 1.5rem;
 		}
 
