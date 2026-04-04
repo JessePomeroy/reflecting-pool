@@ -3,6 +3,7 @@ import { getContext, onMount } from "svelte";
 import { browser } from "$app/environment";
 import type { FloatingLeaf, ParallaxContext } from "$lib/types/gallery";
 import { clamp, randomRange } from "$lib/utils/math";
+import { createRippleSystem, applyClickImpulse, stepRipple, snapshotPush, LEAF_RIPPLE } from "$lib/utils/ripple";
 
 interface Props {
 	hidden?: boolean;
@@ -44,9 +45,8 @@ onMount(() => {
 	}));
 });
 
-// ── Click-ripple push for leaves (float away, no spring-back) ─────
-let leafPush: Array<{ x: number; y: number }> = [];
-let leafVel: Array<{ x: number; y: number }> = [];
+// ── Click-ripple push (shared physics — drift mode, no spring-back) ─────
+let ripple = { push: [] as Array<{x:number;y:number}>, vel: [] as Array<{x:number;y:number}> };
 let leafPushOutput = $state.raw<Array<{ x: number; y: number }>>([]);
 
 onMount(() => {
@@ -55,60 +55,28 @@ onMount(() => {
 	function handlePageClick(e: MouseEvent) {
 		const clickX = (e.clientX / window.innerWidth) * 100;
 		const clickY = (e.clientY / window.innerHeight) * 100;
-
-		for (let i = 0; i < leaves.length; i++) {
-			const leaf = leaves[i];
-			if (!leaf) continue;
-			const dx = leaf.x - clickX;
-			const dy = leaf.y - clickY;
-			const dist = Math.sqrt(dx * dx + dy * dy);
-			const maxDist = 30;
-			if (dist > maxDist || dist < 0.5) continue;
-
-			const strength = (1 - dist / maxDist) * 3; // gentle push
-			const angle = Math.atan2(dy, dx);
-			if (leafVel[i]) {
-				leafVel[i].x += Math.cos(angle) * strength;
-				leafVel[i].y += Math.sin(angle) * strength;
-			}
-		}
+		const positions = leaves.map(l => ({ x: l.x, y: l.y }));
+		applyClickImpulse(clickX, clickY, positions, ripple.vel, LEAF_RIPPLE);
 	}
 
 	window.addEventListener('click', handlePageClick);
 	return () => window.removeEventListener('click', handlePageClick);
 });
 
-// Initialize push arrays when leaves are ready
+// Initialize ripple arrays when leaves are ready
 $effect(() => {
-	if (leaves.length && !leafPush.length) {
-		leafPush = leaves.map(() => ({ x: 0, y: 0 }));
-		leafVel = leaves.map(() => ({ x: 0, y: 0 }));
+	if (leaves.length && !ripple.push.length) {
+		ripple = createRippleSystem(leaves.length);
 		leafPushOutput = leaves.map(() => ({ x: 0, y: 0 }));
 	}
 });
 
-// Animate push — friction slows them down, no spring-back
+// Animate push each frame
 $effect(() => {
 	const _tick = parallax.tick;
-	if (!leafVel.length) return;
-
-	const friction = 0.985; // very slow deceleration — they drift
-	let anyMoving = false;
-
-	for (let i = 0; i < leafVel.length; i++) {
-		if (!leafPush[i]) continue;
-		leafPush[i].x += leafVel[i].x;
-		leafPush[i].y += leafVel[i].y;
-		leafVel[i].x *= friction;
-		leafVel[i].y *= friction;
-
-		if (Math.abs(leafVel[i].x) > 0.005 || Math.abs(leafVel[i].y) > 0.005) {
-			anyMoving = true;
-		}
-	}
-
-	if (anyMoving) {
-		leafPushOutput = leafPush.map(p => ({ x: p.x, y: p.y }));
+	if (!ripple.vel.length) return;
+	if (stepRipple(ripple.push, ripple.vel, LEAF_RIPPLE)) {
+		leafPushOutput = snapshotPush(ripple.push);
 	}
 });
 

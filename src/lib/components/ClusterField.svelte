@@ -3,6 +3,7 @@ import { getContext, onMount } from "svelte";
 import { browser } from "$app/environment";
 import type { GalleryCluster, ParallaxContext } from "$lib/types/gallery";
 import { clamp, distance, generateClusterPositions, randomRange } from "$lib/utils/math";
+import { createRippleSystem, applyClickImpulse, stepRipple, snapshotPush, CLUSTER_RIPPLE } from "$lib/utils/ripple";
 import PhotoCard from "./PhotoCard.svelte";
 
 interface Props {
@@ -82,72 +83,30 @@ let wanderComputed = $derived.by(() => {
 	return newOffsets;
 });
 
-// ── Ripple push state ─────────────────────────────────────────────
-let ripplePush: Array<{ x: number; y: number }> = []; // mutable positions (not reactive)
-let rippleDecay: Array<{ x: number; y: number }> = []; // velocity for spring-back
+// ── Ripple push (shared physics) ──────────────────────────────────
+const ripple = createRippleSystem(clusters.length);
+let rippleOutput = $state.raw<Array<{ x: number; y: number }>>(
+	clusters.map(() => ({ x: 0, y: 0 }))
+);
 
 onMount(() => {
 	if (!browser) return;
 
-	ripplePush = clusters.map(() => ({ x: 0, y: 0 }));
-	rippleDecay = clusters.map(() => ({ x: 0, y: 0 }));
-
-	// Click anywhere to ripple clusters
 	function handlePageClick(e: MouseEvent) {
 		const clickX = (e.clientX / window.innerWidth) * 100;
 		const clickY = (e.clientY / window.innerHeight) * 100;
-
-		for (let i = 0; i < positions.length; i++) {
-			const pos = positions[i];
-			if (!pos) continue;
-			const dx = pos.x - clickX;
-			const dy = pos.y - clickY;
-			const dist = Math.sqrt(dx * dx + dy * dy);
-			const maxDist = 35; // % of viewport
-			if (dist > maxDist || dist < 0.5) continue;
-
-			const strength = (1 - dist / maxDist) * 12; // px push (gentle)
-			const angle = Math.atan2(dy, dx);
-			rippleDecay[i] = {
-				x: Math.cos(angle) * strength,
-				y: Math.sin(angle) * strength,
-			};
-		}
+		applyClickImpulse(clickX, clickY, positions, ripple.vel, CLUSTER_RIPPLE);
 	}
 
 	window.addEventListener('click', handlePageClick);
-
 	return () => window.removeEventListener('click', handlePageClick);
 });
 
-// Spring-back animation — read parallax.tick to run each frame, write to separate output
-let rippleOutput = $state.raw<Array<{ x: number; y: number }>>([]);
-
 $effect(() => {
 	const _tick = parallax.tick;
-	if (!rippleDecay.length) return;
-
-	const damping = 0.95;  // higher = slower decay
-	const spring = 0.03;   // lower = less bouncy, smoother return
-	let anyMoving = false;
-
-	for (let i = 0; i < rippleDecay.length; i++) {
-		if (!ripplePush[i]) continue;
-
-		ripplePush[i].x += rippleDecay[i].x;
-		ripplePush[i].y += rippleDecay[i].y;
-
-		rippleDecay[i].x = rippleDecay[i].x * damping - ripplePush[i].x * spring;
-		rippleDecay[i].y = rippleDecay[i].y * damping - ripplePush[i].y * spring;
-
-		if (Math.abs(rippleDecay[i].x) > 0.01 || Math.abs(rippleDecay[i].y) > 0.01) {
-			anyMoving = true;
-		}
-	}
-
-	// Only trigger reactivity when there's actual motion
-	if (anyMoving) {
-		rippleOutput = ripplePush.map(p => ({ x: p.x, y: p.y }));
+	if (!ripple.vel.length) return;
+	if (stepRipple(ripple.push, ripple.vel, CLUSTER_RIPPLE)) {
+		rippleOutput = snapshotPush(ripple.push);
 	}
 });
 
