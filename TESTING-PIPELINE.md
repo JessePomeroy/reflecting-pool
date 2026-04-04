@@ -17,30 +17,66 @@ pnpm dev
 ### Checklist — Portfolio
 
 ```
-□ Open http://localhost:5173
+□ Open https://localhost:5173 (HTTPS — accept self-signed cert)
 □ See 5 floating clusters (Wildflowers, Garden Portraits, etc.)
 □ Hover over clusters — titles brighten, photos get shadows
 □ Click a cluster — other clusters dismiss to edges, gallery opens
 □ Gallery shows scattered photos (desktop) or 2-column (mobile)
 □ Click a photo — lightbox opens
 □ In lightbox: arrow keys work, escape closes, image counter shows
-□ Click "back" — returns to cluster index view
-□ Click the title "margaret helena" — letters ripple
+□ Click "back" (stroke-outlined, below title area) — returns to cluster index
+□ Gallery title shows centered below title area (stroke-outlined)
+□ Click the title "margaret helena" — letters ripple/wobble
 □ Leaves float around, click one — it blows away and comes back
+□ Click near clusters — clusters bounce away and spring back (gentle)
+□ Click near leaves — leaves drift away and keep floating (no spring-back)
 □ Click anywhere on background — ripple rings appear
-□ Header blur dissolves into gallery area
+□ Title is top-left with stroke text, fades at bottom (gradient mask)
+□ Navigation links are top-right
+□ Background is smooth gradient (dark navy → grey), no solid header block
+```
+
+### Checklist — Liquid Cursor (Desktop Only)
+
+```
+□ Exit Chrome DevTools responsive/device mode (Cmd+Shift+M)
+□ Default browser cursor is hidden
+□ Translucent blue-white blob follows mouse smoothly
+□ Move fast — blob stretches in movement direction
+□ Stop moving — blob wobbles/settles
+□ Trail of smaller blobs appears behind fast movements
+□ Trail blobs merge with main blob when close (liquid feel)
+□ Cursor renders above all content (z-9999)
+□ Cursor does NOT block clicks (pointer-events: none)
+□ No WebGL errors in browser console
+□ Chrome DevTools Performance: cursor < 2ms per frame
 ```
 
 ### Checklist — Mobile
 
 ```
-□ Open dev tools → toggle device toolbar (iPhone 14 / Pixel 7)
+□ Open on phone via https://[your-ip]:5173 (accept cert warning)
 □ Clusters stack vertically (not floating)
+□ Clusters start below the title area (~55% from top)
 □ Navigation shows hamburger menu
 □ Hamburger opens overlay with nav links
 □ Gallery is 2-column layout
 □ Lightbox: swipe left/right works
+□ Default browser cursor visible (no liquid cursor on mobile)
 □ Everything readable, nothing overflows
+```
+
+### Checklist — Gyroscope Parallax (iOS/Android Phone)
+
+```
+□ Open site on phone over HTTPS (required for gyroscope)
+□ Tap anywhere on the page
+□ iOS: should see "Allow motion & orientation" permission prompt
+□ Grant permission
+□ Tilt phone left/right — clusters and leaves shift horizontally
+□ Tilt phone forward/back — clusters and leaves shift vertically
+□ Movement is smooth (lerp-smoothed, not jittery)
+□ Android: gyroscope should work immediately without permission prompt
 ```
 
 ### Checklist — Reduced Motion
@@ -51,6 +87,8 @@ pnpm dev
 □ Photos should be visible but NOT floating/drifting
 □ Leaves visible but NOT spinning/drifting
 □ No ripple rings on click
+□ Liquid cursor is disabled (normal browser cursor shown)
+□ Click-ripple on clusters/leaves is disabled
 □ Title displays but no letter ripple animation
 □ Everything still looks good, just peaceful
 □ Turn Reduce Motion back OFF when done
@@ -112,12 +150,26 @@ pnpm dev
 
 ```
 □ Open browser console — no errors (warnings are OK)
+□ No debug console.log statements from LiquidCursor
 □ Network tab — images load lazily (scroll to trigger)
+□ Network tab — three.js loads via dynamic import (not in main bundle)
 □ View source on /shop/[slug] — JSON-LD Product schema present
 □ Visit /robots.txt — shows disallow /admin and /api
 □ Visit /sitemap.xml — shows XML with pages
-□ Run: pnpm test → 109 tests pass
+□ Run: pnpm test → tests pass
 □ Run: npx svelte-check → 0 errors
+```
+
+### Checklist — Code Architecture
+
+```
+□ src/lib/utils/ripple.ts exists (shared physics)
+□ src/lib/data/galleries.ts exists (extracted gallery data)
+□ src/lib/shaders/cursor.ts exists (extracted GLSL)
+□ ClusterField imports from ripple.ts (not inline physics)
+□ LeafLayer imports from ripple.ts (not inline physics)
+□ LiquidCursor imports from cursor.ts (not inline GLSL)
+□ +page.svelte imports from galleries.ts (not inline data)
 ```
 
 ---
@@ -326,4 +378,4 @@ See `CLIENT-HANDOFF.md` for the full guide. Short version:
 
 ---
 
-*Last updated: 2026-04-03*
+*Last updated: 2026-04-04*
