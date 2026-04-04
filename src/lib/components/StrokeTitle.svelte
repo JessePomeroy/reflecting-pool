@@ -92,7 +92,6 @@ function letterRef(node: HTMLElement, _idx: () => number) {
 			{/if}
 		{/each}
 	</h1>
-	<p class="subtitle" bind:this={subtitleEl}>{subtitle}</p>
 </div>
 
 <style>
@@ -107,12 +106,15 @@ function letterRef(node: HTMLElement, _idx: () => number) {
 	.title {
 		font-family: 'Cormorant', serif;
 		font-weight: 300;
-		font-size: clamp(2.2rem, 7vw, 5.5rem);
+		font-size: clamp(3rem, 9vw, 7rem);
 		color: transparent;
 		-webkit-text-stroke: 1.2px rgba(240, 244, 248, 0.85);
 		letter-spacing: 0.08em;
 		margin: 0;
 		white-space: nowrap;
+		/* Bottom half of text dissolves into blur */
+		mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+		-webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
@@ -128,16 +130,6 @@ function letterRef(node: HTMLElement, _idx: () => number) {
 
 	.letter.space {
 		width: 0.3em;
-	}
-
-	.subtitle {
-		font-family: 'Cormorant', serif;
-		font-weight: 300;
-		font-size: clamp(0.9rem, 2vw, 1.3rem);
-		color: rgba(240, 244, 248, 0.5);
-		letter-spacing: 0.35em;
-		text-transform: lowercase;
-		margin: 0.3em 0 0;
 	}
 
 	@keyframes rain-flicker {
@@ -160,10 +152,6 @@ function letterRef(node: HTMLElement, _idx: () => number) {
 		.title {
 			letter-spacing: 0.03em;
 			-webkit-text-stroke: 1px rgba(240, 244, 248, 0.85);
-		}
-
-		.subtitle {
-			letter-spacing: 0.2em;
 		}
 	}
 </style>

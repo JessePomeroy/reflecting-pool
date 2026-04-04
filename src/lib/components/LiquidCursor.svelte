@@ -39,6 +39,9 @@ float metaball(vec2 p, vec2 c, float r) {
 
 void main() {
   // Work in screen-pixel space (same coordinate system as uMouse / uTrail)
+  // uResolution is the LOGICAL screen size (e.g. 1920x1080)
+  // gl_FragCoord is in actual pixel space (affected by pixelRatio)
+  // vUv goes 0..1, so multiply by uResolution to get screen pixels
   vec2 fragPos = vUv * uResolution;
 
   // ── Main blob ──────────────────────────────────────────────────────────────
@@ -79,7 +82,14 @@ void main() {
   float inner = smoothstep(threshold, threshold + 2.0, field);
   color = mix(color, vec3(1.0), inner * 0.5);
 
-  gl_FragColor = vec4(color, edge * 0.7 + glow);
+  // Debug: draw a bright dot at mouse position to verify rendering
+  float debugDot = smoothstep(30.0, 25.0, length(fragPos - uMouse));
+  
+  // Combine cursor effect + debug
+  float finalAlpha = edge * 0.7 + glow + debugDot * 0.8;
+  vec3 finalColor = mix(color, vec3(1.0, 0.3, 0.3), debugDot); // red debug dot
+  
+  gl_FragColor = vec4(finalColor, finalAlpha);
 }
 `;
 
