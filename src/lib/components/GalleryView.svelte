@@ -105,7 +105,7 @@ onMount(() => {
 		position: fixed;
 		top: 1.2rem;
 		left: 1.5rem;
-		z-index: 50;
+		z-index: 20; /* above header z-15/16 */
 		background: none;
 		border: none;
 		cursor: pointer;
