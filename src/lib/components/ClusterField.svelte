@@ -36,7 +36,7 @@ onMount(() => {
 	if (!browser) return;
 
 	// Generate positions based on cluster count
-	positions = generateClusterPositions(clusters.length);
+	positions = generateClusterPositions(clusters.length, 15, parallax.isMobile);
 
 	// Assign depths — further from center = deeper
 	clusterDepths = positions.map((pos) => {
@@ -82,6 +82,75 @@ let wanderComputed = $derived.by(() => {
 	return newOffsets;
 });
 
+// ── Ripple push state ─────────────────────────────────────────────
+let ripplePush: Array<{ x: number; y: number }> = []; // mutable positions (not reactive)
+let rippleDecay: Array<{ x: number; y: number }> = []; // velocity for spring-back
+
+onMount(() => {
+	if (!browser) return;
+
+	ripplePush = clusters.map(() => ({ x: 0, y: 0 }));
+	rippleDecay = clusters.map(() => ({ x: 0, y: 0 }));
+
+	// Click anywhere to ripple clusters
+	function handlePageClick(e: MouseEvent) {
+		const clickX = (e.clientX / window.innerWidth) * 100;
+		const clickY = (e.clientY / window.innerHeight) * 100;
+
+		for (let i = 0; i < positions.length; i++) {
+			const pos = positions[i];
+			if (!pos) continue;
+			const dx = pos.x - clickX;
+			const dy = pos.y - clickY;
+			const dist = Math.sqrt(dx * dx + dy * dy);
+			const maxDist = 35; // % of viewport
+			if (dist > maxDist || dist < 0.5) continue;
+
+			const strength = (1 - dist / maxDist) * 12; // px push (gentle)
+			const angle = Math.atan2(dy, dx);
+			rippleDecay[i] = {
+				x: Math.cos(angle) * strength,
+				y: Math.sin(angle) * strength,
+			};
+		}
+	}
+
+	window.addEventListener('click', handlePageClick);
+
+	return () => window.removeEventListener('click', handlePageClick);
+});
+
+// Spring-back animation — read parallax.tick to run each frame, write to separate output
+let rippleOutput = $state.raw<Array<{ x: number; y: number }>>([]);
+
+$effect(() => {
+	const _tick = parallax.tick;
+	if (!rippleDecay.length) return;
+
+	const damping = 0.95;  // higher = slower decay
+	const spring = 0.03;   // lower = less bouncy, smoother return
+	let anyMoving = false;
+
+	for (let i = 0; i < rippleDecay.length; i++) {
+		if (!ripplePush[i]) continue;
+
+		ripplePush[i].x += rippleDecay[i].x;
+		ripplePush[i].y += rippleDecay[i].y;
+
+		rippleDecay[i].x = rippleDecay[i].x * damping - ripplePush[i].x * spring;
+		rippleDecay[i].y = rippleDecay[i].y * damping - ripplePush[i].y * spring;
+
+		if (Math.abs(rippleDecay[i].x) > 0.01 || Math.abs(rippleDecay[i].y) > 0.01) {
+			anyMoving = true;
+		}
+	}
+
+	// Only trigger reactivity when there's actual motion
+	if (anyMoving) {
+		rippleOutput = ripplePush.map(p => ({ x: p.x, y: p.y }));
+	}
+});
+
 function handleClusterClick(cluster: GalleryCluster) {
 	onclusterclick(cluster);
 }
@@ -92,6 +161,7 @@ function handleClusterClick(cluster: GalleryCluster) {
 		{@const pos = positions[i]}
 		{@const depth = clusterDepths[i] ?? 0.5}
 		{@const wander = wanderComputed[i] ?? { x: 0, y: 0 }}
+		{@const ripple = rippleOutput[i] ?? { x: 0, y: 0 }}
 		{@const pxOffset = parallax.smoothX * depth * 20}
 		{@const pyOffset = parallax.smoothY * depth * 20}
 		{#if pos}
@@ -102,8 +172,8 @@ function handleClusterClick(cluster: GalleryCluster) {
 				class:dismiss={dismissing}
 				style:left="{pos.x}%"
 				style:top="{pos.y}%"
-				style:--cx="{wander.x + pxOffset}px"
-				style:--cy="{wander.y + pyOffset}px"
+				style:--cx="{wander.x + pxOffset + ripple.x}px"
+				style:--cy="{wander.y + pyOffset + ripple.y}px"
 				style:--dismiss-x="{(pos.x - dismissOriginX) * 3}vw"
 				style:--dismiss-y="{(pos.y - dismissOriginY) * 3}vh"
 				style:z-index={Math.round(depth * 10)}

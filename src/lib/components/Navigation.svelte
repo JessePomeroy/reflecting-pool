@@ -59,11 +59,12 @@ function closeMenu() {
 	/* Desktop */
 	.desktop {
 		display: flex;
-		gap: 1.5rem;
+		gap: clamp(0.8rem, 2vw, 1.5rem);
 		list-style: none;
 		margin: 0;
-		padding: 0.8rem 0 0;
-		justify-content: center;
+		padding: 0;
+		justify-content: flex-end;
+		flex-wrap: wrap;
 	}
 
 	.desktop li a {

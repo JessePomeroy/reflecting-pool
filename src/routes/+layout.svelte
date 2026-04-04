@@ -1,7 +1,7 @@
 <script lang="ts">
+import { inject } from "@vercel/analytics";
 import type { Snippet } from "svelte";
 import { dev } from "$app/environment";
-import { inject } from "@vercel/analytics";
 
 interface Props {
 	children: Snippet;
@@ -41,7 +41,8 @@ inject({ mode: dev ? "development" : "production" });
 
 	:global(html, body) {
 		font-family: 'Cormorant', serif;
-		background: #c8cfd8;
+		background: linear-gradient(to bottom, #1a1f2e 0%, #1a1f2e 20%, #3a4255 45%, #8a9aab 70%, #c8cfd8 100%);
+		background-attachment: fixed;
 		color: rgba(240, 244, 248, 0.85);
 		overflow-x: hidden;
 		min-height: 100vh;
@@ -51,6 +52,21 @@ inject({ mode: dev ? "development" : "production" });
 
 	:global(body) {
 		position: relative;
+		cursor: none; /* replaced by LiquidCursor on desktop */
+	}
+
+	/* Restore default cursor on touch devices (no custom cursor needed) */
+	@media (pointer: coarse) {
+		:global(body) {
+			cursor: auto;
+		}
+	}
+
+	/* Restore default cursor when user prefers reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		:global(body) {
+			cursor: auto;
+		}
 	}
 
 	/* Scrollbar styling */

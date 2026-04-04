@@ -103,9 +103,9 @@ onMount(() => {
 
 	.back-button {
 		position: fixed;
-		top: 1.2rem;
-		left: 1.5rem;
-		z-index: 50;
+		top: 35%;
+		left: 2rem;
+		z-index: 20;
 		background: none;
 		border: none;
 		cursor: pointer;
@@ -113,15 +113,16 @@ onMount(() => {
 		align-items: center;
 		gap: 0.5rem;
 		font-family: 'Cormorant', serif;
-		font-size: 1rem;
-		color: rgba(240, 244, 248, 0.5);
+		font-size: 1.1rem;
+		color: transparent;
+		-webkit-text-stroke: 1px rgba(240, 244, 248, 0.6);
 		letter-spacing: 0.1em;
-		transition: color 300ms ease;
+		transition: all 300ms ease;
 		padding: 0.5rem;
 	}
 
 	.back-button:hover {
-		color: rgba(240, 244, 248, 0.9);
+		-webkit-text-stroke: 1px rgba(240, 244, 248, 1);
 	}
 
 	.back-arrow {
@@ -130,14 +131,15 @@ onMount(() => {
 
 	.gallery-title {
 		position: fixed;
-		top: 1rem;
+		top: 33%;
 		left: 50%;
 		transform: translateX(-50%);
 		z-index: 50;
 		font-family: 'Cormorant', serif;
 		font-weight: 300;
-		font-size: clamp(1rem, 2vw, 1.5rem);
-		color: rgba(240, 244, 248, 0.45);
+		font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+		color: transparent;
+		-webkit-text-stroke: 1px rgba(240, 244, 248, 0.6);
 		letter-spacing: 0.25em;
 		text-transform: lowercase;
 		margin: 0;

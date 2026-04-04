@@ -138,7 +138,24 @@ onMount(() => {
 	}
 
 	if (isTouch && window.DeviceOrientationEvent) {
-		window.addEventListener("deviceorientation", handleOrientation, { passive: true });
+		// iOS 13+ requires permission for gyroscope access
+		const DOE = DeviceOrientationEvent as any;
+		if (typeof DOE.requestPermission === 'function') {
+			// iOS: request on first user interaction (must be click/touch gesture)
+			const requestGyro = () => {
+				DOE.requestPermission().then((state: string) => {
+					if (state === 'granted') {
+						window.addEventListener('deviceorientation', handleOrientation, { passive: true });
+					}
+				}).catch(() => {});
+			};
+			// Use both click and touchend for maximum compatibility
+			window.addEventListener('click', requestGyro, { once: true });
+			window.addEventListener('touchend', requestGyro, { once: true });
+		} else {
+			// Android / non-iOS — no permission needed
+			window.addEventListener('deviceorientation', handleOrientation, { passive: true });
+		}
 	}
 
 	window.addEventListener("resize", handleResize, { passive: true });

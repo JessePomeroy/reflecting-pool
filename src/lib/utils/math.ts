@@ -103,14 +103,18 @@ export function generateScatteredPositions(
  */
 export function generateClusterPositions(
 	count: number,
-	jitter: number = 15
+	jitter: number = 15, isMobile: boolean = false
 ): Array<{ x: number; y: number }> {
 	// Determine grid dimensions
 	const cols = Math.ceil(Math.sqrt(count * 1.5));
 	const rows = Math.ceil(count / cols);
 
 	const cellW = 80 / cols; // 80% of viewport (10% margin each side)
-	const cellH = 60 / rows; // 60% (header takes top, margin at bottom)
+	// On mobile, push clusters lower to avoid title overlap
+	
+	const topOffset = isMobile ? 55 : 35;
+	const minY = isMobile ? 50 : 32;
+	const cellH = (isMobile ? 40 : 60) / rows;
 
 	const positions: Array<{ x: number; y: number }> = [];
 	let idx = 0;
@@ -118,10 +122,10 @@ export function generateClusterPositions(
 	for (let r = 0; r < rows && idx < count; r++) {
 		for (let c = 0; c < cols && idx < count; c++) {
 			const cx = 10 + cellW * (c + 0.5) + randomRange(-jitter, jitter);
-			const cy = 35 + cellH * (r + 0.5) + randomRange(-jitter, jitter);
+			const cy = topOffset + cellH * (r + 0.5) + randomRange(-jitter, jitter);
 			positions.push({
 				x: clamp(cx, 8, 92),
-				y: clamp(cy, 32, 88)
+				y: clamp(cy, minY, 88)
 			});
 			idx++;
 		}
