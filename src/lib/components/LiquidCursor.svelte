@@ -75,21 +75,23 @@ void main() {
   float edge = smoothstep(threshold - 0.3, threshold + 0.1, field);
 
   // ── Color ──────────────────────────────────────────────────────────────────
-  vec3 color = vec3(0.9, 0.95, 1.0); // bright white with slight blue tint
-  float glow  = smoothstep(threshold - 0.5, threshold, field) * 0.25;
+  // Translucent water-like blob — pale blue-white, soft edges
+  vec3 baseColor = vec3(0.85, 0.9, 1.0);
+  float glow = smoothstep(threshold - 0.6, threshold, field) * 0.15;
 
-  // Inner brightness
+  // Brighter core
   float inner = smoothstep(threshold, threshold + 2.0, field);
-  color = mix(color, vec3(1.0), inner * 0.5);
+  vec3 color = mix(baseColor, vec3(1.0), inner * 0.6);
 
-  // Debug: draw a bright dot at mouse position to verify rendering
-  float debugDot = smoothstep(30.0, 25.0, length(fragPos - uMouse));
-  
-  // Combine cursor effect + debug
-  float finalAlpha = edge * 0.7 + glow + debugDot * 0.8;
-  vec3 finalColor = mix(color, vec3(1.0, 0.3, 0.3), debugDot); // red debug dot
-  
-  gl_FragColor = vec4(finalColor, finalAlpha);
+  // Edge refraction highlight — thin bright ring
+  float ring = smoothstep(threshold - 0.15, threshold, field)
+             - smoothstep(threshold, threshold + 0.3, field);
+  color += vec3(0.3, 0.35, 0.4) * ring;
+
+  // Final alpha: solid core, soft glow halo
+  float alpha = edge * 0.55 + glow;
+
+  gl_FragColor = vec4(color, alpha);
 }
 `;
 
