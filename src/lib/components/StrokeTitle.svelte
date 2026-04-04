@@ -117,12 +117,8 @@
         line-height: 0.95;
         max-width: 90vw;
         /* Bottom half of text dissolves into blur */
-        mask-image: linear-gradient(to bottom, black 20%, transparent 100%);
-        -webkit-mask-image: linear-gradient(
-            to bottom,
-            black 20%,
-            transparent 100%
-        );
+        mask-image: linear-gradient(to bottom, black 15%, transparent 65%);
+        -webkit-mask-image: linear-gradient(to bottom, black 15%, transparent 65%);
     }
 
     @media (prefers-reduced-motion: no-preference) {
