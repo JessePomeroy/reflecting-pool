@@ -107,14 +107,16 @@
     .title {
         font-family: "Cormorant", serif;
         font-weight: 300;
-        font-size: clamp(3.5rem, 12vw, 9rem);
+        font-size: clamp(3.5rem, 14vw, 11rem);
         color: transparent;
         -webkit-text-stroke: 1.2px rgba(240, 244, 248, 0.85);
         letter-spacing: -0.03em;
         margin: 0;
-        white-space: nowrap;
+        white-space: normal;
+        line-height: 0.95;
+        max-width: 90vw;
         /* Bottom half of text dissolves into blur */
-        mask-image: linear-gradient(to bottom, black 20%, transparent 100%);
+        mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
         -webkit-mask-image: linear-gradient(
             to bottom,
             black 40%,

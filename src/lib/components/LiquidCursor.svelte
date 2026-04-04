@@ -136,8 +136,11 @@ let initialized = false;
 onMount(() => {
 	if (!browser) return;
 
-	// ALL GUARDS DISABLED FOR DEBUGGING — always init
-	console.log('[LiquidCursor] Forcing init (guards disabled for debug)');
+	// Only skip on actual touch screens and reduced motion
+	// Removed isLowEnd check — even 4-core machines handle this fine at half res
+	const isTrueTouchScreen = window.matchMedia('(pointer: coarse)').matches;
+	if (isTrueTouchScreen) return;
+	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
 	// Dynamic import keeps Three.js out of the SSR bundle
 	import("three").then((THREE) => {
