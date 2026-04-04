@@ -97,7 +97,7 @@ function closeMenu() {
 		cursor: pointer;
 		padding: 10px;
 		position: fixed;
-		top: 2.5rem;
+		top: 1.8rem;
 		right: 1.2rem;
 		z-index: 201;
 	}
