@@ -191,7 +191,7 @@ function closeLightbox() {
 
 	.header-right {
 		pointer-events: auto;
-		padding-top: 0.5rem;
+		padding-top: 3.5rem;
 	}
 
 	@media (max-width: 767px) {

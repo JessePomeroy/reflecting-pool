@@ -103,7 +103,7 @@ onMount(() => {
 
 	.back-button {
 		position: fixed;
-		bottom: 2rem;
+		top: 35%;
 		left: 2rem;
 		z-index: 20;
 		background: none;
@@ -130,7 +130,7 @@ onMount(() => {
 
 	.gallery-title {
 		position: fixed;
-		bottom: 2rem;
+		top: 33%;
 		left: 50%;
 		transform: translateX(-50%);
 		z-index: 50;
