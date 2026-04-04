@@ -136,8 +136,10 @@ let initialized = false;
 onMount(() => {
 	if (!browser) return;
 
-	// Bail on touch, low-end, or reduced-motion — no cursor to replace
-	if (parallax.isTouch) return;
+	// Skip on actual touch screens (phones/tablets) — not trackpad-enabled Macs
+	// pointer: coarse = true touch screen. maxTouchPoints alone catches MacBooks falsely.
+	const isTrueTouchScreen = window.matchMedia('(pointer: coarse)').matches;
+	if (isTrueTouchScreen) return;
 	if (parallax.isLowEnd) return;
 	if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
