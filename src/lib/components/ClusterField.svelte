@@ -36,7 +36,7 @@ onMount(() => {
 	if (!browser) return;
 
 	// Generate positions based on cluster count
-	positions = generateClusterPositions(clusters.length);
+	positions = generateClusterPositions(clusters.length, 15, parallax.isMobile);
 
 	// Assign depths — further from center = deeper
 	clusterDepths = positions.map((pos) => {

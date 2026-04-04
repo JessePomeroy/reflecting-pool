@@ -103,7 +103,7 @@ export function generateScatteredPositions(
  */
 export function generateClusterPositions(
 	count: number,
-	jitter: number = 15
+	jitter: number = 15, isMobile: boolean = false
 ): Array<{ x: number; y: number }> {
 	// Determine grid dimensions
 	const cols = Math.ceil(Math.sqrt(count * 1.5));
@@ -111,7 +111,7 @@ export function generateClusterPositions(
 
 	const cellW = 80 / cols; // 80% of viewport (10% margin each side)
 	// On mobile, push clusters lower to avoid title overlap
-	const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+	
 	const topOffset = isMobile ? 55 : 35;
 	const minY = isMobile ? 50 : 32;
 	const cellH = (isMobile ? 40 : 60) / rows;
