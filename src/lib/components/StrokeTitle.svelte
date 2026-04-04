@@ -116,10 +116,9 @@
         white-space: normal;
         line-height: 0.95;
         max-width: 90vw;
-        padding-bottom: 1.5em;
         /* Fade bottom of title into background */
-        mask-image: linear-gradient(to bottom, black 30%, transparent 90%);
-        -webkit-mask-image: linear-gradient(to bottom, black 30%, transparent 90%);
+        mask-image: linear-gradient(to bottom, black 40%, transparent 85%);
+        -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 85%);
     }
 
     @media (prefers-reduced-motion: no-preference) {
