@@ -44,15 +44,81 @@ onMount(() => {
 	}));
 });
 
+// ── Click-ripple push for leaves (float away, no spring-back) ─────
+let leafPush: Array<{ x: number; y: number }> = [];
+let leafVel: Array<{ x: number; y: number }> = [];
+let leafPushOutput = $state.raw<Array<{ x: number; y: number }>>([]);
+
+onMount(() => {
+	if (!browser) return;
+
+	function handlePageClick(e: MouseEvent) {
+		const clickX = (e.clientX / window.innerWidth) * 100;
+		const clickY = (e.clientY / window.innerHeight) * 100;
+
+		for (let i = 0; i < leaves.length; i++) {
+			const leaf = leaves[i];
+			if (!leaf) continue;
+			const dx = leaf.x - clickX;
+			const dy = leaf.y - clickY;
+			const dist = Math.sqrt(dx * dx + dy * dy);
+			const maxDist = 30;
+			if (dist > maxDist || dist < 0.5) continue;
+
+			const strength = (1 - dist / maxDist) * 3; // gentle push
+			const angle = Math.atan2(dy, dx);
+			if (leafVel[i]) {
+				leafVel[i].x += Math.cos(angle) * strength;
+				leafVel[i].y += Math.sin(angle) * strength;
+			}
+		}
+	}
+
+	window.addEventListener('click', handlePageClick);
+	return () => window.removeEventListener('click', handlePageClick);
+});
+
+// Initialize push arrays when leaves are ready
+$effect(() => {
+	if (leaves.length && !leafPush.length) {
+		leafPush = leaves.map(() => ({ x: 0, y: 0 }));
+		leafVel = leaves.map(() => ({ x: 0, y: 0 }));
+		leafPushOutput = leaves.map(() => ({ x: 0, y: 0 }));
+	}
+});
+
+// Animate push — friction slows them down, no spring-back
+$effect(() => {
+	const _tick = parallax.tick;
+	if (!leafVel.length) return;
+
+	const friction = 0.985; // very slow deceleration — they drift
+	let anyMoving = false;
+
+	for (let i = 0; i < leafVel.length; i++) {
+		if (!leafPush[i]) continue;
+		leafPush[i].x += leafVel[i].x;
+		leafPush[i].y += leafVel[i].y;
+		leafVel[i].x *= friction;
+		leafVel[i].y *= friction;
+
+		if (Math.abs(leafVel[i].x) > 0.005 || Math.abs(leafVel[i].y) > 0.005) {
+			anyMoving = true;
+		}
+	}
+
+	if (anyMoving) {
+		leafPushOutput = leafPush.map(p => ({ x: p.x, y: p.y }));
+	}
+});
+
 function handleLeafClick(e: MouseEvent, leafId: number) {
 	e.stopPropagation();
-	// Blow away
 	const idx = leaves.findIndex((l) => l.id === leafId);
 	if (idx === -1 || leaves[idx].blownAway) return;
 
 	leaves[idx] = { ...leaves[idx], blownAway: true };
 
-	// Drift back after 2.5s
 	setTimeout(() => {
 		const i = leaves.findIndex((l) => l.id === leafId);
 		if (i !== -1) {
@@ -72,7 +138,7 @@ function getLeafParallaxY(depth: number): number {
 </script>
 
 <div class="leaf-layer" class:hidden>
-	{#each leaves as leaf (leaf.id)}
+	{#each leaves as leaf, i (leaf.id)}
 		{@const zIndex = leaf.depth > 0.5 ? Math.round(8 + leaf.depth * 4) : Math.round(3 + leaf.depth * 4)}
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -82,8 +148,8 @@ function getLeafParallaxY(depth: number): number {
 			style:left="{leaf.x}%"
 			style:top="{leaf.y}%"
 			style:z-index={zIndex}
-			style:--parallax-x="{getLeafParallaxX(leaf.depth)}px"
-			style:--parallax-y="{getLeafParallaxY(leaf.depth)}px"
+			style:--parallax-x="{getLeafParallaxX(leaf.depth) + (leafPushOutput[i]?.x ?? 0)}px"
+			style:--parallax-y="{getLeafParallaxY(leaf.depth) + (leafPushOutput[i]?.y ?? 0)}px"
 			style:--spin-duration="{leaf.spinDuration}s"
 			style:--spin-direction={leaf.spinReverse ? 'reverse' : 'normal'}
 			style:--drift-duration="{leaf.driftDuration}s"
