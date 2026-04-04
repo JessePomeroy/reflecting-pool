@@ -239,17 +239,36 @@ function handleClusterClick(cluster: GalleryCluster) {
 	}
 
 	@media (max-width: 767px) {
+		.cluster-field {
+			position: relative;
+			overflow-y: auto;
+			overflow-x: hidden;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 1rem;
+			padding: 35vh 1rem 4rem;
+		}
+
 		.cluster {
-			/* Keep absolute positioning — float within the grid */
+			position: relative;
+			left: auto !important;
+			top: auto !important;
+			transform: translate(var(--cx, 0px), var(--cy, 0px));
+			flex-shrink: 0;
+		}
+
+		.cluster.dismiss {
+			transform: translateY(30px);
 		}
 
 		.cluster-images {
-			width: clamp(110px, 28vw, 180px);
-			height: clamp(85px, 20vw, 140px);
+			width: clamp(180px, 55vw, 260px);
+			height: clamp(140px, 40vw, 200px);
 		}
 
 		.cluster-thumb {
-			width: clamp(60px, 18vw, 100px);
+			width: clamp(100px, 32vw, 160px);
 		}
 	}
 </style>

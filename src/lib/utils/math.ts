@@ -112,8 +112,9 @@ export function generateClusterPositions(
 	const cellW = 80 / cols; // 80% of viewport (10% margin each side)
 	// On mobile, push clusters lower to avoid title overlap
 	
-	const topOffset = isMobile ? 60 : 35;
-	const minY = isMobile ? 55 : 32;
+	const topOffset = isMobile ? 50 : 35;
+	const minY = isMobile ? 45 : 32;
+	// Mobile: single column, spaced so ~2 visible + 1 peeking (each ~35% of viewport)
 	const cellH = (isMobile ? 35 : 60) / rows;
 
 	const positions: Array<{ x: number; y: number }> = [];
