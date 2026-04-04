@@ -33,7 +33,7 @@ onMount(() => {
 		x: randomRange(5, 95),
 		y: randomRange(10, 90),
 		depth: randomRange(0.2, 0.9),
-		scale: randomRange(0.3, 0.8),
+		scale: randomRange(0.6, 1.4),
 		spinDuration: randomRange(20, 50),
 		spinReverse: Math.random() > 0.5,
 		driftDuration: randomRange(8, 16),
@@ -124,7 +124,7 @@ function getLeafParallaxY(depth: number): number {
 	}
 
 	.floating-leaf img {
-		width: clamp(30px, 5vw, 60px);
+		width: clamp(50px, 8vw, 100px);
 		height: auto;
 		pointer-events: none;
 		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
