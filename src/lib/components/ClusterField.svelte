@@ -247,7 +247,7 @@ function handleClusterClick(cluster: GalleryCluster) {
 			flex-direction: column;
 			align-items: center;
 			gap: 1rem;
-			padding: 35vh 1rem 4rem;
+			padding: 28vh 1rem 4rem;
 		}
 
 		.cluster {
@@ -263,12 +263,12 @@ function handleClusterClick(cluster: GalleryCluster) {
 		}
 
 		.cluster-images {
-			width: clamp(180px, 55vw, 260px);
-			height: clamp(140px, 40vw, 200px);
+			width: clamp(200px, 65vw, 300px);
+			height: clamp(160px, 48vw, 230px);
 		}
 
 		.cluster-thumb {
-			width: clamp(100px, 32vw, 160px);
+			width: clamp(120px, 38vw, 180px);
 		}
 	}
 </style>
