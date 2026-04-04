@@ -116,7 +116,12 @@ onMount(() => {
 		let hoverTimeout: ReturnType<typeof setTimeout> | null = null;
 		function onMouseMove(e: MouseEvent) {
 			const target = e.target as HTMLElement;
-			const clickable = target.closest("a, button, [role=\"button\"]");
+			// Check for standard clickable elements OR cursor: pointer
+			const clickable =
+				target.closest("a, button, [role=\"button\"]") ||
+				target.closest(".cluster") ||
+				target.closest(".gallery-photo") ||
+				getComputedStyle(target).cursor === "pointer";
 			if (clickable && !isHovering) {
 				isHovering = true;
 				clearTimeout(hoverTimeout!);
