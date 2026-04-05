@@ -37,6 +37,8 @@ inject({ mode: dev ? "development" : "production" });
 	muted
 	playsinline
 	src="/videos/caustics.mp4"
+	oncanplaythrough={() => console.log('Video loaded!')}
+	onerror={(e) => console.log('Video error:', e)}
 ></video>
 <div class="caustics-overlay"></div>
 {@render children()}
@@ -50,8 +52,7 @@ inject({ mode: dev ? "development" : "production" });
 
 	:global(html, body) {
 		font-family: 'Cormorant', serif;
-		background: linear-gradient(to bottom, #1a1f2e 0%, #1a1f2e 20%, #3a4255 45%, #8a9aab 70%, #c8cfd8 100%);
-		background-attachment: fixed;
+		background: transparent;
 		color: rgba(240, 244, 248, 0.85);
 		overflow-x: hidden;
 		min-height: 100vh;
@@ -81,9 +82,11 @@ inject({ mode: dev ? "development" : "production" });
 		z-index: -1;
 		background: linear-gradient(
 			to bottom,
-			rgba(26, 31, 46, 0.6) 0%,
-			rgba(26, 31, 46, 0.4) 50%,
-			rgba(200, 207, 216, 0.1) 100%
+			#1a1f2e 0%,
+			#1a1f2e 20%,
+			#3a4255 45%,
+			#8a9aab 70%,
+			#c8cfd8 100%
 		);
 		pointer-events: none;
 	}
