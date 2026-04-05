@@ -30,6 +30,15 @@ inject({ mode: dev ? "development" : "production" });
 	<link rel="canonical" href="https://margarethelena.com" />
 </svelte:head>
 
+<video
+	class="caustics-bg"
+	autoplay
+	loop
+	muted
+	playsinline
+	src="/videos/caustics.mp4"
+/>
+<div class="caustics-overlay"></div>
 {@render children()}
 
 <style>
@@ -52,7 +61,31 @@ inject({ mode: dev ? "development" : "production" });
 
 	:global(body) {
 		position: relative;
-		cursor: none; /* replaced by LiquidCursor on desktop */
+		cursor: none;
+	}
+
+	/* Caustics video background */
+	.caustics-bg {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		z-index: -2;
+		opacity: 0.6;
+	}
+
+	.caustics-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: -1;
+		background: linear-gradient(
+			to bottom,
+			rgba(26, 31, 46, 0.6) 0%,
+			rgba(26, 31, 46, 0.4) 50%,
+			rgba(200, 207, 216, 0.1) 100%
+		);
+		pointer-events: none;
 	}
 
 	/* Restore default cursor on touch devices (no custom cursor needed) */
