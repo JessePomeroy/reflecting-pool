@@ -37,7 +37,7 @@ inject({ mode: dev ? "development" : "production" });
 	muted
 	playsinline
 	src="/videos/caustics.mp4"
-/>
+></video>
 <div class="caustics-overlay"></div>
 {@render children()}
 
