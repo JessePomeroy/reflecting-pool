@@ -1,8 +1,9 @@
+import { requireAdmin } from "$lib/server/auth";
 import type { LayoutServerLoad } from "./$types";
-// import { requireAdmin } from '$lib/server/auth';
 
 export const load: LayoutServerLoad = async (event) => {
-	// TODO: Uncomment when ready to enforce auth
-	// requireAdmin(event);
+	// Admin login route is public so the user can authenticate.
+	if (event.url.pathname === "/admin/login") return {};
+	requireAdmin(event);
 	return {};
 };

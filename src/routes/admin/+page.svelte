@@ -1,30 +1,11 @@
 <script lang="ts">
 import type { PageData } from "./$types";
-import { formatCurrency, formatDate } from "./utils";
+import { formatCurrency, formatDate, formatStatus } from "./utils";
 
 let { data }: { data: PageData } = $props();
 
 // Calculate max for sparkline scaling
 const maxRevenue = $derived(Math.max(...data.dailyRevenue.map((d) => d.amount), 1));
-
-// Status badge colors
-function getStatusColor(status: string): string {
-	const colors: Record<string, string> = {
-		processing: "bg-blue-500",
-		submitted: "bg-yellow-500",
-		printing: "bg-purple-500",
-		shipped: "bg-orange-500",
-		delivered: "bg-green-500",
-		refunded: "bg-red-500",
-		fulfillment_error: "bg-red-600",
-		cancelled: "bg-gray-500",
-	};
-	return colors[status] || "bg-gray-500";
-}
-
-function formatStatus(status: string): string {
-	return status.replace(/_/g, " ");
-}
 </script>
 
 <svelte:head>
@@ -34,7 +15,7 @@ function formatStatus(status: string): string {
 <div class="dashboard">
 	<header class="page-header">
 		<h1>Dashboard</h1>
-		<p class="subtitle">Welcome back. Here's what's happening with your shop.</p>
+		<p class="subtitle">An overview of recent activity.</p>
 	</header>
 
 	<!-- Stats Cards -->
@@ -45,25 +26,25 @@ function formatStatus(status: string): string {
 			<span class="stat-detail">{data.stats.today > 0 ? "revenue" : "no orders yet"}</span>
 		</div>
 		<div class="stat-card">
-			<span class="stat-label">This Week</span>
+			<span class="stat-label">This week</span>
 			<span class="stat-value">{formatCurrency(data.stats.thisWeek)}</span>
 			<span class="stat-detail">revenue</span>
 		</div>
 		<div class="stat-card">
-			<span class="stat-label">This Month</span>
+			<span class="stat-label">This month</span>
 			<span class="stat-value">{formatCurrency(data.stats.thisMonth)}</span>
 			<span class="stat-detail">revenue</span>
 		</div>
 		<div class="stat-card highlight">
-			<span class="stat-label">All-Time Revenue</span>
+			<span class="stat-label">All-time</span>
 			<span class="stat-value">{formatCurrency(data.stats.allTime)}</span>
-			<span class="stat-detail">average {formatCurrency(data.stats.averageOrder)}/order</span>
+			<span class="stat-detail">avg {formatCurrency(data.stats.averageOrder)} / order</span>
 		</div>
 	</section>
 
 	<!-- Revenue Sparkline -->
-	<section class="sparkline-section">
-		<h2>Revenue (Last 30 Days)</h2>
+	<section class="panel">
+		<h2>Revenue — last 30 days</h2>
 		<div class="sparkline">
 			{#each data.dailyRevenue as day (day.date)}
 				<div class="sparkline-bar-wrapper" title="{day.date}: {formatCurrency(day.amount)}">
@@ -76,17 +57,15 @@ function formatStatus(status: string): string {
 		</div>
 		<div class="sparkline-labels">
 			<span>{data.dailyRevenue[0]?.date.slice(5)}</span>
-			<span>{data.dailyRevenue[Math.floor(data.dailyRevenue.length / 2)]?.date.slice(
-				5,
-			)}</span>
+			<span>{data.dailyRevenue[Math.floor(data.dailyRevenue.length / 2)]?.date.slice(5)}</span>
 			<span>{data.dailyRevenue[data.dailyRevenue.length - 1]?.date.slice(5)}</span>
 		</div>
 	</section>
 
 	<!-- Recent Orders -->
-	<section class="recent-orders">
+	<section class="panel">
 		<div class="section-header">
-			<h2>Recent Orders</h2>
+			<h2>Recent orders</h2>
 			<a href="/admin/orders" class="view-all">View all →</a>
 		</div>
 
@@ -95,8 +74,8 @@ function formatStatus(status: string): string {
 				<p>No orders yet.</p>
 			</div>
 		{:else}
-			<div class="orders-table-wrapper">
-				<table class="orders-table">
+			<div class="table-wrapper">
+				<table class="data-table">
 					<thead>
 						<tr>
 							<th>Order</th>
@@ -110,11 +89,11 @@ function formatStatus(status: string): string {
 						{#each data.recentOrders as order (order._id)}
 							<tr>
 								<td class="order-number">{order.orderNumber}</td>
-								<td class="order-date">{formatDate(order.date)}</td>
-								<td class="order-customer">{order.customerName}</td>
-								<td class="order-total">{formatCurrency(order.total)}</td>
+								<td class="muted">{formatDate(order.date)}</td>
+								<td>{order.customerName}</td>
+								<td class="numeric">{formatCurrency(order.total)}</td>
 								<td>
-									<span class="status-badge {getStatusColor(order.status)}">
+									<span class="status-badge" data-status={order.status}>
 										{formatStatus(order.status)}
 									</span>
 								</td>
@@ -137,14 +116,16 @@ function formatStatus(status: string): string {
 	}
 
 	.page-header h1 {
-		font-size: 1.875rem;
-		font-weight: 600;
-		color: #f9fafb;
-		margin-bottom: 0.25rem;
+		font-family: var(--font-serif);
+		font-size: 2rem;
+		font-weight: 400;
+		letter-spacing: 0.01em;
+		color: var(--admin-heading);
+		margin: 0 0 0.25rem;
 	}
 
 	.subtitle {
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		font-size: 0.9375rem;
 	}
 
@@ -153,67 +134,93 @@ function formatStatus(status: string): string {
 		display: grid;
 		grid-template-columns: repeat(4, 1fr);
 		gap: 1rem;
-		margin-bottom: 2rem;
+		margin-bottom: 1.5rem;
 	}
 
 	.stat-card {
-		background: #1f2937;
-		border-radius: 0.5rem;
+		background: var(--admin-surface);
+		border-radius: 3px;
 		padding: 1.25rem;
-		border: 1px solid #374151;
+		border: 1px solid var(--admin-border);
 	}
 
 	.stat-card.highlight {
-		background: linear-gradient(135deg, #065f46 0%, #047857 100%);
-		border-color: #10b981;
+		background: var(--admin-surface-raised);
+		border-color: var(--admin-border-strong);
 	}
 
 	.stat-label {
 		display: block;
-		font-size: 0.875rem;
-		color: #9ca3af;
-		margin-bottom: 0.25rem;
+		font-size: 0.75rem;
+		color: var(--admin-text-muted);
+		margin-bottom: 0.375rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
 	}
 
 	.stat-value {
 		display: block;
-		font-size: 1.5rem;
-		font-weight: 600;
-		color: #f9fafb;
+		font-family: var(--font-serif);
+		font-size: 1.75rem;
+		font-weight: 400;
+		color: var(--admin-heading);
+		letter-spacing: 0.01em;
 	}
 
 	.stat-detail {
 		display: block;
-		font-size: 0.8125rem;
-		color: #6b7280;
+		font-size: 0.75rem;
+		color: var(--admin-text-subtle);
 		margin-top: 0.25rem;
+		letter-spacing: 0.02em;
 	}
 
-	.stat-card.highlight .stat-detail {
-		color: #d1fae5;
+	/* Panel */
+	.panel {
+		background: var(--admin-surface);
+		border-radius: 3px;
+		padding: 1.25rem 1.5rem;
+		border: 1px solid var(--admin-border);
+		margin-bottom: 1.5rem;
 	}
 
-	/* Sparkline */
-	.sparkline-section {
-		background: #1f2937;
-		border-radius: 0.5rem;
-		padding: 1.25rem;
-		border: 1px solid #374151;
-		margin-bottom: 2rem;
+	.panel h2 {
+		font-family: var(--font-serif);
+		font-size: 1.125rem;
+		font-weight: 400;
+		color: var(--admin-heading);
+		margin: 0 0 1rem;
+		letter-spacing: 0.01em;
 	}
 
-	.sparkline-section h2 {
-		font-size: 1rem;
-		font-weight: 500;
-		color: #e5e7eb;
+	.section-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
 		margin-bottom: 1rem;
 	}
 
+	.section-header h2 {
+		margin: 0;
+	}
+
+	.view-all {
+		color: var(--admin-accent);
+		text-decoration: none;
+		font-size: 0.8125rem;
+		letter-spacing: 0.03em;
+	}
+
+	.view-all:hover {
+		color: var(--admin-accent-hover);
+	}
+
+	/* Sparkline */
 	.sparkline {
 		display: flex;
 		align-items: flex-end;
 		gap: 2px;
-		height: 80px;
+		height: 72px;
 	}
 
 	.sparkline-bar-wrapper {
@@ -225,112 +232,97 @@ function formatStatus(status: string): string {
 
 	.sparkline-bar {
 		width: 100%;
-		background: #10b981;
-		border-radius: 2px 2px 0 0;
+		background: var(--admin-accent);
+		border-radius: 1px 1px 0 0;
 		min-height: 2px;
-		transition: height 0.2s ease;
+		opacity: 0.55;
+		transition: opacity 0.2s ease;
 	}
 
 	.sparkline-bar-wrapper:hover .sparkline-bar {
-		background: #34d399;
+		opacity: 1;
 	}
 
 	.sparkline-labels {
 		display: flex;
 		justify-content: space-between;
 		margin-top: 0.5rem;
-		font-size: 0.75rem;
-		color: #6b7280;
+		font-size: 0.7rem;
+		color: var(--admin-text-subtle);
+		letter-spacing: 0.04em;
 	}
 
-	/* Recent Orders */
-	.recent-orders {
-		background: #1f2937;
-		border-radius: 0.5rem;
-		padding: 1.25rem;
-		border: 1px solid #374151;
-	}
-
-	.section-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 1rem;
-	}
-
-	.section-header h2 {
-		font-size: 1rem;
-		font-weight: 500;
-		color: #e5e7eb;
-	}
-
-	.view-all {
-		color: #10b981;
-		text-decoration: none;
-		font-size: 0.875rem;
-	}
-
-	.view-all:hover {
-		text-decoration: underline;
-	}
-
-	.orders-table-wrapper {
+	/* Data Table */
+	.table-wrapper {
 		overflow-x: auto;
 	}
 
-	.orders-table {
+	.data-table {
 		width: 100%;
 		border-collapse: collapse;
 		font-size: 0.875rem;
 	}
 
-	.orders-table th {
+	.data-table th {
 		text-align: left;
-		padding: 0.75rem 0.5rem;
-		color: #6b7280;
+		padding: 0.625rem 0.75rem;
+		color: var(--admin-text-subtle);
 		font-weight: 500;
-		border-bottom: 1px solid #374151;
+		font-size: 0.7rem;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		border-bottom: 1px solid var(--admin-border);
 	}
 
-	.orders-table td {
-		padding: 0.75rem 0.5rem;
-		color: #e5e7eb;
-		border-bottom: 1px solid #374151;
+	.data-table td {
+		padding: 0.75rem;
+		color: var(--admin-text);
+		border-bottom: 1px solid var(--admin-border);
 	}
 
-	.orders-table tr:last-child td {
+	.data-table tr:last-child td {
 		border-bottom: none;
 	}
 
+	.data-table td.muted {
+		color: var(--admin-text-muted);
+	}
+
+	.data-table td.numeric {
+		font-variant-numeric: tabular-nums;
+	}
+
 	.order-number {
-		font-weight: 500;
-		color: #10b981;
-	}
-
-	.order-date {
-		color: #9ca3af;
-	}
-
-	.order-total {
-		font-weight: 500;
+		font-variant-numeric: tabular-nums;
+		color: var(--admin-heading);
 	}
 
 	/* Status Badge */
 	.status-badge {
 		display: inline-block;
-		padding: 0.25rem 0.625rem;
-		border-radius: 9999px;
-		font-size: 0.75rem;
+		padding: 0.2rem 0.625rem;
+		border-radius: 2px;
+		font-size: 0.7rem;
 		font-weight: 500;
-		text-transform: capitalize;
-		color: white;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		border: 1px solid currentColor;
 	}
+
+	.status-badge[data-status="processing"] { color: var(--status-slate); }
+	.status-badge[data-status="submitted"] { color: var(--status-amber); }
+	.status-badge[data-status="printing"] { color: var(--status-lavender); }
+	.status-badge[data-status="shipped"] { color: var(--status-peach); }
+	.status-badge[data-status="delivered"] { color: var(--status-sage); }
+	.status-badge[data-status="refunded"] { color: var(--status-rose); }
+	.status-badge[data-status="fulfillment_error"] { color: var(--status-dusty-red); }
+	.status-badge[data-status="cancelled"] { color: var(--status-gray); }
 
 	/* Empty State */
 	.empty-state {
 		padding: 2rem;
 		text-align: center;
-		color: #6b7280;
+		color: var(--admin-text-subtle);
 	}
 
 	/* Responsive */

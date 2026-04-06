@@ -73,13 +73,13 @@ function handleClick(e: MouseEvent) {
 		width: 10px;
 		height: 10px;
 		border-radius: 50%;
-		border: 1px solid rgba(240, 244, 248, 0.2);
+		border: 1px solid rgba(var(--paper-rgb), 0.2);
 		pointer-events: none;
 		transform: translate(-50%, -50%) scale(0);
 	}
 
 	.ripple-ring.ring-2 {
-		border-color: rgba(240, 244, 248, 0.12);
+		border-color: rgba(var(--paper-rgb), 0.12);
 	}
 
 	@keyframes ripple-expand {

@@ -231,7 +231,9 @@ function handleKeydown(e: KeyboardEvent) {
 					<h2>{selectedOrder.orderNumber}</h2>
 					<p class="modal-date">{formatDateTime(selectedOrder.createdAt)}</p>
 				</div>
-				<button class="modal-close" onclick={closeModal} aria-label="Close">✕</button>
+				<button class="modal-close" onclick={closeModal} aria-label="Close">
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+				</button>
 			</div>
 
 			<div class="modal-body">
@@ -334,7 +336,10 @@ function handleKeydown(e: KeyboardEvent) {
 					></textarea>
 					<div class="notes-actions">
 						{#if notesSaved}
-							<span class="notes-saved">✓ Saved</span>
+							<span class="notes-saved">
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+								Saved
+							</span>
 						{/if}
 						<button
 							class="btn-save"
@@ -363,14 +368,16 @@ function handleKeydown(e: KeyboardEvent) {
 	}
 
 	.page-header h1 {
-		font-size: 1.875rem;
-		font-weight: 600;
-		color: #f9fafb;
-		margin-bottom: 0.25rem;
+		font-family: var(--font-serif);
+		font-size: 2rem;
+		font-weight: 400;
+		letter-spacing: 0.01em;
+		color: var(--admin-heading);
+		margin: 0 0 0.25rem;
 	}
 
 	.subtitle {
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		font-size: 0.9375rem;
 	}
 
@@ -383,21 +390,21 @@ function handleKeydown(e: KeyboardEvent) {
 	}
 
 	.rev-card {
-		background: #1f2937;
-		border: 1px solid #374151;
+		background: var(--admin-surface);
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.5rem;
 		padding: 1rem 1.25rem;
 	}
 
 	.rev-card.highlight {
-		background: linear-gradient(135deg, #065f46 0%, #047857 100%);
-		border-color: #10b981;
+		background: linear-gradient(135deg, var(--admin-surface-raised) 0%, var(--admin-surface-raised) 100%);
+		border-color: var(--admin-accent);
 	}
 
 	.rev-label {
 		display: block;
 		font-size: 0.8125rem;
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		margin-bottom: 0.25rem;
 	}
 
@@ -405,7 +412,7 @@ function handleKeydown(e: KeyboardEvent) {
 		display: block;
 		font-size: 1.375rem;
 		font-weight: 600;
-		color: #f9fafb;
+		color: var(--admin-heading);
 	}
 
 	.rev-value.fee {
@@ -424,30 +431,30 @@ function handleKeydown(e: KeyboardEvent) {
 		flex: 1;
 		min-width: 200px;
 		padding: 0.5rem 0.75rem;
-		background: #1f2937;
-		border: 1px solid #374151;
+		background: var(--admin-surface);
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.375rem;
-		color: #f9fafb;
+		color: var(--admin-heading);
 		font-size: 0.875rem;
 	}
 
 	.filter-input::placeholder {
-		color: #6b7280;
+		color: var(--admin-text-subtle);
 	}
 
 	.filter-select {
 		padding: 0.5rem 0.75rem;
-		background: #1f2937;
-		border: 1px solid #374151;
+		background: var(--admin-surface);
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.375rem;
-		color: #f9fafb;
+		color: var(--admin-heading);
 		font-size: 0.875rem;
 		cursor: pointer;
 	}
 
 	.btn-filter {
 		padding: 0.5rem 1.25rem;
-		background: #10b981;
+		background: var(--admin-accent);
 		color: white;
 		border: none;
 		border-radius: 0.375rem;
@@ -463,8 +470,8 @@ function handleKeydown(e: KeyboardEvent) {
 	.btn-reset {
 		padding: 0.5rem 1rem;
 		background: transparent;
-		color: #9ca3af;
-		border: 1px solid #374151;
+		color: var(--admin-text-muted);
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.375rem;
 		font-size: 0.875rem;
 		cursor: pointer;
@@ -472,15 +479,15 @@ function handleKeydown(e: KeyboardEvent) {
 	}
 
 	.btn-reset:hover {
-		background: #374151;
-		color: #f9fafb;
+		background: var(--admin-border-strong);
+		color: var(--admin-heading);
 	}
 
 	.btn-export {
 		padding: 0.5rem 1.25rem;
-		background: #1f2937;
-		color: #e5e7eb;
-		border: 1px solid #374151;
+		background: var(--admin-surface);
+		color: var(--admin-text);
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.375rem;
 		font-size: 0.875rem;
 		font-weight: 500;
@@ -488,13 +495,13 @@ function handleKeydown(e: KeyboardEvent) {
 	}
 
 	.btn-export:hover {
-		background: #374151;
+		background: var(--admin-border-strong);
 	}
 
 	/* Table */
 	.table-wrapper {
-		background: #1f2937;
-		border: 1px solid #374151;
+		background: var(--admin-surface);
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.5rem;
 		overflow: auto;
 	}
@@ -509,18 +516,18 @@ function handleKeydown(e: KeyboardEvent) {
 	.orders-table th {
 		text-align: left;
 		padding: 0.75rem 1rem;
-		color: #6b7280;
+		color: var(--admin-text-subtle);
 		font-weight: 500;
-		border-bottom: 1px solid #374151;
-		background: #111827;
+		border-bottom: 1px solid var(--admin-border-strong);
+		background: var(--admin-bg);
 		position: sticky;
 		top: 0;
 	}
 
 	.orders-table td {
 		padding: 0.75rem 1rem;
-		color: #e5e7eb;
-		border-bottom: 1px solid #1f2937;
+		color: var(--admin-text);
+		border-bottom: 1px solid var(--admin-surface);
 	}
 
 	.order-row {
@@ -529,7 +536,7 @@ function handleKeydown(e: KeyboardEvent) {
 	}
 
 	.order-row:hover td {
-		background: #374151;
+		background: var(--admin-border-strong);
 	}
 
 	.order-row:last-child td {
@@ -538,12 +545,12 @@ function handleKeydown(e: KeyboardEvent) {
 
 	.col-order-number {
 		font-weight: 500;
-		color: #10b981;
+		color: var(--admin-accent);
 	}
 
 	.col-date,
 	.col-email {
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		font-size: 0.8125rem;
 	}
 
@@ -554,46 +561,47 @@ function handleKeydown(e: KeyboardEvent) {
 	.btn-view {
 		padding: 0.25rem 0.625rem;
 		background: transparent;
-		border: 1px solid #374151;
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.25rem;
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		font-size: 0.75rem;
 		cursor: pointer;
 	}
 
 	.btn-view:hover {
-		background: #374151;
-		color: #f9fafb;
+		background: var(--admin-border-strong);
+		color: var(--admin-heading);
 	}
 
-	/* Status Badges */
+	/* Status Badges — muted outline style */
 	.status-badge {
 		display: inline-block;
-		padding: 0.2rem 0.6rem;
-		border-radius: 9999px;
-		font-size: 0.75rem;
+		padding: 0.2rem 0.625rem;
+		border-radius: 2px;
+		font-size: 0.7rem;
 		font-weight: 500;
-		text-transform: capitalize;
-		color: white;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		border: 1px solid currentColor;
 	}
 
-	.status-badge[data-status="processing"] { background: #3b82f6; }
-	.status-badge[data-status="submitted"] { background: #eab308; color: #111; }
-	.status-badge[data-status="printing"] { background: #8b5cf6; }
-	.status-badge[data-status="shipped"] { background: #f97316; }
-	.status-badge[data-status="delivered"] { background: #10b981; }
-	.status-badge[data-status="refunded"] { background: #ef4444; }
-	.status-badge[data-status="fulfillment_error"] { background: #dc2626; }
-	.status-badge[data-status="cancelled"] { background: #6b7280; }
-	.status-badge[data-status="new"] { background: #ef4444; }
-	.status-badge[data-status="read"] { background: #eab308; color: #111; }
-	.status-badge[data-status="replied"] { background: #10b981; }
+	.status-badge[data-status="processing"] { color: var(--status-slate); }
+	.status-badge[data-status="submitted"] { color: var(--status-amber); }
+	.status-badge[data-status="printing"] { color: var(--status-lavender); }
+	.status-badge[data-status="shipped"] { color: var(--status-peach); }
+	.status-badge[data-status="delivered"] { color: var(--status-sage); }
+	.status-badge[data-status="refunded"] { color: var(--status-rose); }
+	.status-badge[data-status="fulfillment_error"] { color: var(--status-dusty-red); }
+	.status-badge[data-status="cancelled"] { color: var(--status-gray); }
+	.status-badge[data-status="new"] { color: var(--status-rose); }
+	.status-badge[data-status="read"] { color: var(--status-amber); }
+	.status-badge[data-status="replied"] { color: var(--status-sage); }
 
 	/* Empty State */
 	.empty-state {
 		padding: 3rem;
 		text-align: center;
-		color: #6b7280;
+		color: var(--admin-text-subtle);
 	}
 
 	/* Modal */
@@ -610,8 +618,8 @@ function handleKeydown(e: KeyboardEvent) {
 	}
 
 	.modal {
-		background: #1f2937;
-		border: 1px solid #374151;
+		background: var(--admin-surface);
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.75rem;
 		width: 100%;
 		max-width: 640px;
@@ -623,17 +631,20 @@ function handleKeydown(e: KeyboardEvent) {
 		justify-content: space-between;
 		align-items: flex-start;
 		padding: 1.5rem;
-		border-bottom: 1px solid #374151;
+		border-bottom: 1px solid var(--admin-border-strong);
 	}
 
 	.modal-header h2 {
-		font-size: 1.25rem;
-		font-weight: 600;
-		color: #10b981;
+		font-family: var(--font-serif);
+		font-size: 1.5rem;
+		font-weight: 400;
+		letter-spacing: 0.01em;
+		color: var(--admin-heading);
+		margin: 0;
 	}
 
 	.modal-date {
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		font-size: 0.8125rem;
 		margin-top: 0.25rem;
 	}
@@ -641,15 +652,19 @@ function handleKeydown(e: KeyboardEvent) {
 	.modal-close {
 		background: transparent;
 		border: none;
-		color: #9ca3af;
-		font-size: 1.25rem;
+		color: var(--admin-text-muted);
 		cursor: pointer;
-		padding: 0.25rem;
-		line-height: 1;
+		padding: 0.375rem;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 2px;
+		transition: color 0.15s ease, background 0.15s ease;
 	}
 
 	.modal-close:hover {
-		color: #f9fafb;
+		color: var(--admin-heading);
+		background: var(--admin-border);
 	}
 
 	.modal-body {
@@ -658,7 +673,7 @@ function handleKeydown(e: KeyboardEvent) {
 
 	.modal-section {
 		padding: 1.25rem 0;
-		border-bottom: 1px solid #374151;
+		border-bottom: 1px solid var(--admin-border-strong);
 	}
 
 	.modal-section:last-child {
@@ -670,7 +685,7 @@ function handleKeydown(e: KeyboardEvent) {
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
-		color: #6b7280;
+		color: var(--admin-text-subtle);
 		margin-bottom: 0.75rem;
 	}
 
@@ -682,11 +697,11 @@ function handleKeydown(e: KeyboardEvent) {
 	}
 
 	.info-label {
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 	}
 
 	.info-link {
-		color: #10b981;
+		color: var(--admin-accent);
 		text-decoration: none;
 	}
 
@@ -697,7 +712,7 @@ function handleKeydown(e: KeyboardEvent) {
 	.address {
 		font-style: normal;
 		font-size: 0.875rem;
-		color: #e5e7eb;
+		color: var(--admin-text);
 		line-height: 1.6;
 	}
 
@@ -722,17 +737,17 @@ function handleKeydown(e: KeyboardEvent) {
 	}
 
 	.item-title {
-		color: #f9fafb;
+		color: var(--admin-heading);
 		font-weight: 500;
 	}
 
 	.item-meta {
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		font-size: 0.8125rem;
 	}
 
 	.item-price {
-		color: #f9fafb;
+		color: var(--admin-heading);
 		font-weight: 500;
 	}
 
@@ -740,9 +755,9 @@ function handleKeydown(e: KeyboardEvent) {
 		display: flex;
 		justify-content: space-between;
 		padding: 0.75rem 0 0;
-		border-top: 1px solid #374151;
+		border-top: 1px solid var(--admin-border-strong);
 		font-weight: 600;
-		color: #f9fafb;
+		color: var(--admin-heading);
 		font-size: 0.9375rem;
 	}
 
@@ -754,10 +769,10 @@ function handleKeydown(e: KeyboardEvent) {
 
 	.notes-textarea {
 		width: 100%;
-		background: #111827;
-		border: 1px solid #374151;
+		background: var(--admin-bg);
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.375rem;
-		color: #e5e7eb;
+		color: var(--admin-text);
 		font-size: 0.875rem;
 		padding: 0.75rem;
 		resize: vertical;
@@ -767,7 +782,7 @@ function handleKeydown(e: KeyboardEvent) {
 
 	.notes-textarea:focus {
 		outline: none;
-		border-color: #10b981;
+		border-color: var(--admin-accent);
 	}
 
 	.notes-actions {
@@ -779,13 +794,16 @@ function handleKeydown(e: KeyboardEvent) {
 	}
 
 	.notes-saved {
-		color: #10b981;
-		font-size: 0.875rem;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		color: var(--status-sage);
+		font-size: 0.8125rem;
 	}
 
 	.btn-save {
 		padding: 0.5rem 1.25rem;
-		background: #10b981;
+		background: var(--admin-accent);
 		color: white;
 		border: none;
 		border-radius: 0.375rem;

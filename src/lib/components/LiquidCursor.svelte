@@ -1,9 +1,11 @@
 <script lang="ts">
 import { getContext, onMount } from "svelte";
 import { browser } from "$app/environment";
+import {
+	cursorFragmentShader as fragmentShader,
+	cursorVertexShader as vertexShader,
+} from "$lib/shaders/cursor";
 import type { ParallaxContext } from "$lib/types/gallery";
-
-import { cursorVertexShader as vertexShader, cursorFragmentShader as fragmentShader } from "$lib/shaders/cursor";
 
 // ── Context + canvas ref ────────────────────────────────────────────────────
 
@@ -27,7 +29,7 @@ const refs = {
 	resolutionVec: null as import("three").Vector2 | null,
 };
 
-// Trail ring buffer — plain objects, not reactive
+// Trail ring buffer — fixed-size circular array, no allocation in hot path
 interface TrailPoint {
 	x: number;
 	y: number;
@@ -36,7 +38,13 @@ interface TrailPoint {
 const TRAIL_COUNT = 10;
 const MIN_TRAIL_DISTANCE = 8; // px between trail points
 const TRAIL_LIFETIME = 400; // ms
-let trail: TrailPoint[] = [];
+const trail: TrailPoint[] = Array.from({ length: TRAIL_COUNT }, () => ({
+	x: 0,
+	y: 0,
+	time: 0,
+}));
+let trailWrite = 0; // next slot to write to
+let trailLen = 0; // how many slots currently hold live points (≤ TRAIL_COUNT)
 
 let lastX = -1;
 let lastY = -1;
@@ -51,113 +59,112 @@ onMount(() => {
 
 	// Only skip on actual touch screens and reduced motion
 	// Removed isLowEnd check — even 4-core machines handle this fine at half res
-	const isTrueTouchScreen = window.matchMedia('(pointer: coarse)').matches;
+	const isTrueTouchScreen = window.matchMedia("(pointer: coarse)").matches;
 	if (isTrueTouchScreen) return;
-	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+	if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
 	// Dynamic import keeps Three.js out of the SSR bundle
-	import("three").then((THREE) => {
+	import("three")
+		.then((THREE) => {
+			const W = window.innerWidth;
+			const H = window.innerHeight;
 
-		const W = window.innerWidth;
-		const H = window.innerHeight;
+			// Half-resolution renderer (renders at 0.5× pixel density)
+			const renderer = new THREE.WebGLRenderer({
+				canvas,
+				alpha: true,
+				antialias: false,
+				powerPreference: "low-power",
+			});
+			renderer.setPixelRatio(0.5); // half resolution
+			renderer.setSize(W, H);
 
-		// Half-resolution renderer (renders at 0.5× pixel density)
-		const renderer = new THREE.WebGLRenderer({
-			canvas,
-			alpha: true,
-			antialias: false,
-			powerPreference: "low-power",
-		});
-		renderer.setPixelRatio(0.5); // half resolution
-		renderer.setSize(W, H);
+			const scene = new THREE.Scene();
+			const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-		const scene = new THREE.Scene();
-		const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+			// Pre-allocate uniform vectors (reused every frame — no GC pressure)
+			const trailVecs = Array.from({ length: TRAIL_COUNT }, () => new THREE.Vector2(0, 0));
+			const trailAges: number[] = new Array(TRAIL_COUNT).fill(1.0);
+			const mouseVec = new THREE.Vector2(W / 2, H / 2);
+			const velocityVec = new THREE.Vector2(0, 0);
+			const resolutionVec = new THREE.Vector2(W, H);
 
-		// Pre-allocate uniform vectors (reused every frame — no GC pressure)
-		const trailVecs = Array.from({ length: TRAIL_COUNT }, () => new THREE.Vector2(0, 0));
-		const trailAges: number[] = new Array(TRAIL_COUNT).fill(1.0);
-		const mouseVec = new THREE.Vector2(W / 2, H / 2);
-		const velocityVec = new THREE.Vector2(0, 0);
-		const resolutionVec = new THREE.Vector2(W, H);
+			const uniforms: Record<string, { value: unknown }> = {
+				uResolution: { value: resolutionVec },
+				uMouse: { value: mouseVec },
+				uVelocity: { value: velocityVec },
+				uTime: { value: 0 },
+				uSpeed: { value: 0 },
+				uHover: { value: 0 },
+				uTrail: { value: trailVecs },
+				uTrailAge: { value: trailAges },
+			};
 
-		const uniforms: Record<string, { value: unknown }> = {
-			uResolution: { value: resolutionVec },
-			uMouse: { value: mouseVec },
-			uVelocity: { value: velocityVec },
-			uTime: { value: 0 },
-			uSpeed: { value: 0 },
-			uHover: { value: 0 },
-			uTrail: { value: trailVecs },
-			uTrailAge: { value: trailAges },
-		};
+			const material = new THREE.ShaderMaterial({
+				vertexShader,
+				fragmentShader,
+				uniforms,
+				transparent: true,
+				depthTest: false,
+			});
 
-		const material = new THREE.ShaderMaterial({
-			vertexShader,
-			fragmentShader,
-			uniforms,
-			transparent: true,
-			depthTest: false,
-		});
+			const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+			scene.add(quad);
 
-		const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
-		scene.add(quad);
-
-		// Resize handler
-		function handleResize() {
-			const nW = window.innerWidth;
-			const nH = window.innerHeight;
-			renderer.setSize(nW, nH);
-			resolutionVec.set(nW, nH);
-		}
-		window.addEventListener("resize", handleResize, { passive: true });
-
-		// Hover detection — change cursor color on interactive elements
-		let hoverTimeout: ReturnType<typeof setTimeout> | null = null;
-		function onMouseMove(e: MouseEvent) {
-			const target = e.target as HTMLElement;
-			// Check for standard clickable elements OR cursor: pointer
-			const clickable =
-				target.closest("a, button, [role=\"button\"]") ||
-				target.closest(".cluster") ||
-				target.closest(".gallery-photo") ||
-				getComputedStyle(target).cursor === "pointer";
-			if (clickable && !isHovering) {
-				isHovering = true;
-				clearTimeout(hoverTimeout!);
-			} else if (!clickable && isHovering) {
-				isHovering = false;
+			// Resize handler
+			function handleResize() {
+				const nW = window.innerWidth;
+				const nH = window.innerHeight;
+				renderer.setSize(nW, nH);
+				resolutionVec.set(nW, nH);
 			}
-		}
-		window.addEventListener("mouseover", onMouseMove);
-		window.addEventListener("mouseout", onMouseMove);
+			window.addEventListener("resize", handleResize, { passive: true });
 
-		// Stash refs so $effect can use them
-		refs.renderer = renderer;
-		refs.scene = scene;
-		refs.camera = camera;
-		refs.uniforms = uniforms;
-		refs.trailVecs = trailVecs;
-		refs.trailAges = trailAges;
-		refs.mouseVec = mouseVec;
-		refs.velocityVec = velocityVec;
-		refs.resolutionVec = resolutionVec;
-		enabled = true;
+			// Hover detection — change cursor color on interactive elements
+			let hoverTimeout: ReturnType<typeof setTimeout> | null = null;
+			function onMouseMove(e: MouseEvent) {
+				const target = e.target as HTMLElement;
+				// Check for standard clickable elements OR cursor: pointer
+				const clickable =
+					target.closest('a, button, [role="button"]') ||
+					target.closest(".cluster") ||
+					target.closest(".gallery-photo") ||
+					getComputedStyle(target).cursor === "pointer";
+				if (clickable && !isHovering) {
+					isHovering = true;
+					clearTimeout(hoverTimeout!);
+				} else if (!clickable && isHovering) {
+					isHovering = false;
+				}
+			}
+			window.addEventListener("mouseover", onMouseMove);
+			window.addEventListener("mouseout", onMouseMove);
 
+			// Stash refs so $effect can use them
+			refs.renderer = renderer;
+			refs.scene = scene;
+			refs.camera = camera;
+			refs.uniforms = uniforms;
+			refs.trailVecs = trailVecs;
+			refs.trailAges = trailAges;
+			refs.mouseVec = mouseVec;
+			refs.velocityVec = velocityVec;
+			refs.resolutionVec = resolutionVec;
+			enabled = true;
 
-
-		// Cleanup on unmount
-		return () => {
-			window.removeEventListener("resize", handleResize);
-			quad.geometry.dispose();
-			material.dispose();
-			renderer.dispose();
-			refs.renderer = null;
-			enabled = false;
-		};
-	}).catch((err) => {
-		if (import.meta.env.DEV) console.error('[LiquidCursor] Failed to load Three.js:', err);
-	});
+			// Cleanup on unmount
+			return () => {
+				window.removeEventListener("resize", handleResize);
+				quad.geometry.dispose();
+				material.dispose();
+				renderer.dispose();
+				refs.renderer = null;
+				enabled = false;
+			};
+		})
+		.catch((err) => {
+			if (import.meta.env.DEV) console.error("[LiquidCursor] Failed to load Three.js:", err);
+		});
 });
 
 // ── Render effect — fires every time ParallaxProvider ticks ────────────────
@@ -199,8 +206,10 @@ $effect(() => {
 		// Render once so the cursor appears immediately
 	}
 
-	// Note: no frame skipping for now — always render so cursor is always visible
-	// Can re-add frame skipping later once we confirm the effect works
+	// Frame skipping on low-end devices — render every other tick. Cursor
+	// still tracks smoothly because parallax uses a separate smoothed
+	// position that updates each tick regardless of render cadence.
+	if (parallax.isLowEnd && (_tick & 1) !== 0) return;
 
 	// Update mouse uniforms (reusing pre-allocated Vector2)
 	mouseVec.set(mx, my);
@@ -209,21 +218,27 @@ $effect(() => {
 	(uniforms.uHover as { value: number }).value = isHovering ? 1 : 0;
 	(uniforms.uTime as { value: number }).value = performance.now() * 0.001;
 
-	// Add trail point if mouse moved enough
+	// Add trail point if mouse moved enough — ring buffer, no allocation
+	const now = performance.now();
 	if (speed > MIN_TRAIL_DISTANCE) {
-		trail.push({ x: mx, y: my, time: performance.now() });
-		if (trail.length > TRAIL_COUNT) trail.shift();
+		const slot = trail[trailWrite];
+		slot.x = mx;
+		slot.y = my;
+		slot.time = now;
+		trailWrite = (trailWrite + 1) % TRAIL_COUNT;
+		if (trailLen < TRAIL_COUNT) trailLen++;
 	}
 
-	// Update trail uniforms (reuse pre-allocated Vector2 instances)
-	const now = performance.now();
-	for (let i = 0; i < TRAIL_COUNT; i++) {
-		const point = trail[i];
-		if (point) {
-			trailVecs[i].set(point.x, point.y); // mutate in place — no allocation
-			trailAges[i] = Math.min((now - point.time) / TRAIL_LIFETIME, 1.0);
+	// Update trail uniforms (oldest → newest) via ring-buffer traversal
+	for (let j = 0; j < TRAIL_COUNT; j++) {
+		if (j < trailLen) {
+			// oldest live point is at (trailWrite - trailLen + j) mod TRAIL_COUNT
+			const idx = (trailWrite - trailLen + j + TRAIL_COUNT) % TRAIL_COUNT;
+			const point = trail[idx];
+			trailVecs[j].set(point.x, point.y);
+			trailAges[j] = Math.min((now - point.time) / TRAIL_LIFETIME, 1.0);
 		} else {
-			trailAges[i] = 1.0; // expired / unused
+			trailAges[j] = 1.0; // slot not yet filled
 		}
 	}
 	// Force Three.js to re-upload the trail array this frame

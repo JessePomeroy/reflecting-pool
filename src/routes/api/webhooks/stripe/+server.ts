@@ -2,6 +2,7 @@ import { json } from "@sveltejs/kit";
 import { Resend } from "resend";
 import type Stripe from "stripe";
 import { env } from "$env/dynamic/private";
+import { escapeHtml } from "$lib/server/html";
 import { buildLumaPrintsOrder, createOrder } from "$lib/server/lumaprints";
 import { createSanityOrder, updateSanityOrder } from "$lib/server/sanity";
 import { verifyWebhook } from "$lib/server/stripe";
@@ -10,7 +11,63 @@ import type { RequestHandler } from "./$types";
 
 const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 const ADMIN_EMAIL = env.ADMIN_EMAIL || "jesse@reflectingpool.com";
-const FROM_EMAIL = "orders@reflectingpool.com";
+const FROM_EMAIL = env.FROM_EMAIL || "orders@reflectingpool.com";
+
+interface ShippingDetails {
+	name: string;
+	address: {
+		line1: string;
+		line2?: string;
+		city: string;
+		state: string;
+		postal_code: string;
+		country: string;
+	};
+}
+
+/** Narrow Stripe's loosely-typed metadata into our CheckoutMetadata shape. */
+function validateCheckoutMetadata(data: Stripe.Metadata | null): CheckoutMetadata | null {
+	if (!data) return null;
+	const required = [
+		"imageUrl",
+		"imageTitle",
+		"paperSubcategoryId",
+		"paperWidth",
+		"paperHeight",
+		"paperName",
+		"paperSizeLabel",
+		"productSlug",
+	] as const;
+	for (const key of required) {
+		if (typeof data[key] !== "string" || data[key].length === 0) return null;
+	}
+	return data as unknown as CheckoutMetadata;
+}
+
+/** Extract shipping details from a Stripe checkout session with type safety. */
+function extractShippingDetails(session: Stripe.Checkout.Session): ShippingDetails | null {
+	// `shipping_details` is exposed on the session when shipping_address_collection is set,
+	// but Stripe's types surface it through the expanded shipping_cost → shipping_rate path.
+	// Accept it via a narrow index access instead of a blanket `as any`.
+	const raw = (session as unknown as { shipping_details?: unknown }).shipping_details;
+	if (!raw || typeof raw !== "object") return null;
+	const r = raw as Record<string, unknown>;
+	const addr = r.address as Record<string, unknown> | undefined;
+	if (!addr || typeof addr !== "object") return null;
+	const line1 = typeof addr.line1 === "string" ? addr.line1 : "";
+	if (!line1) return null;
+	return {
+		name: typeof r.name === "string" ? r.name : "",
+		address: {
+			line1,
+			line2: typeof addr.line2 === "string" ? addr.line2 : undefined,
+			city: typeof addr.city === "string" ? addr.city : "",
+			state: typeof addr.state === "string" ? addr.state : "",
+			postal_code: typeof addr.postal_code === "string" ? addr.postal_code : "",
+			country: typeof addr.country === "string" ? addr.country : "US",
+		},
+	};
+}
 
 export const POST: RequestHandler = async ({ request }) => {
 	const body = await request.text();
@@ -30,23 +87,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	if (event.type === "checkout.session.completed") {
 		const session = event.data.object as Stripe.Checkout.Session;
-		const metadata = session.metadata as unknown as CheckoutMetadata;
+		const metadata = validateCheckoutMetadata(session.metadata);
+		const shippingDetails = extractShippingDetails(session);
 		const customerDetails = session.customer_details;
-		// shipping_details exists on Checkout.Session when shipping_address_collection is set
-		const shippingDetails = (session as unknown as Record<string, unknown>).shipping_details as {
-			name?: string;
-			address?: {
-				line1?: string;
-				line2?: string;
-				city?: string;
-				state?: string;
-				postal_code?: string;
-				country?: string;
-			};
-		} | null;
 
-		if (!metadata?.imageUrl || !shippingDetails?.address) {
-			console.error("Missing metadata or shipping details in Stripe session");
+		if (!metadata || !shippingDetails) {
+			console.error("Missing or invalid metadata/shipping details in Stripe session");
 			return json({ error: "Missing session data" }, { status: 400 });
 		}
 
@@ -70,7 +116,7 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		// 2. Submit to LumaPrints
 		try {
-			const nameParts = (shippingDetails.name || "").split(" ");
+			const nameParts = shippingDetails.name.split(" ");
 			const firstName = nameParts[0] || "";
 			const lastName = nameParts.slice(1).join(" ") || "";
 			const addr = shippingDetails.address;
@@ -80,12 +126,12 @@ export const POST: RequestHandler = async ({ request }) => {
 				{
 					firstName,
 					lastName,
-					address1: addr.line1 || "",
-					address2: addr.line2 || undefined,
-					city: addr.city || "",
-					state: addr.state || "",
-					zip: addr.postal_code || "",
-					country: addr.country || "US",
+					address1: addr.line1,
+					address2: addr.line2,
+					city: addr.city,
+					state: addr.state,
+					zip: addr.postal_code,
+					country: addr.country,
 				},
 				[
 					{
@@ -119,31 +165,32 @@ export const POST: RequestHandler = async ({ request }) => {
 						subject: `New order #${result.orderNumber} - ${paperDetails}`,
 						html: `
 							<p><strong>New order received!</strong></p>
-							<p><strong>Order #:</strong> ${result.orderNumber}</p>
-							<p><strong>Customer:</strong> ${customerDetails.name || "Unknown"}</p>
-							<p><strong>Email:</strong> ${customerDetails.email}</p>
-							<p><strong>Item:</strong> ${metadata.imageTitle || "N/A"}</p>
-							<p><strong>Print:</strong> ${paperDetails}</p>
+							<p><strong>Order #:</strong> ${escapeHtml(result.orderNumber)}</p>
+							<p><strong>Customer:</strong> ${escapeHtml(customerDetails.name || "Unknown")}</p>
+							<p><strong>Email:</strong> ${escapeHtml(customerDetails.email)}</p>
+							<p><strong>Item:</strong> ${escapeHtml(metadata.imageTitle || "N/A")}</p>
+							<p><strong>Print:</strong> ${escapeHtml(paperDetails)}</p>
 							<p><strong>Total:</strong> $${orderTotal.toFixed(2)}</p>
 							<p><strong>Shipping address:</strong><br/>
-							${shippingDetails.name}<br/>
-							${shippingDetails.address?.line1}<br/>
-							${shippingDetails.address?.line2 ? shippingDetails.address.line2 + "<br/>" : ""}
-							${shippingDetails.address?.city}, ${shippingDetails.address?.state} ${shippingDetails.address?.postal_code}</p>
+							${escapeHtml(shippingDetails.name)}<br/>
+							${escapeHtml(shippingDetails.address.line1)}<br/>
+							${shippingDetails.address.line2 ? escapeHtml(shippingDetails.address.line2) + "<br/>" : ""}
+							${escapeHtml(shippingDetails.address.city)}, ${escapeHtml(shippingDetails.address.state)} ${escapeHtml(shippingDetails.address.postal_code)}</p>
 						`,
 					});
 
 					// Send customer confirmation
+					const firstName = customerDetails.name?.split(" ")[0] || "there";
 					await resend.emails.send({
 						from: FROM_EMAIL,
 						to: customerDetails.email,
 						subject: "Thank you for your order!",
 						html: `
-							<p>Hi ${customerDetails.name?.split(" ")[0] || "there"},</p>
+							<p>Hi ${escapeHtml(firstName)},</p>
 							<p>Thank you for your order! I've received it and it'll be on its way soon.</p>
-							<p><strong>Order #:</strong> ${result.orderNumber}</p>
-							<p><strong>Your print:</strong> ${metadata.imageTitle}</p>
-							<p><strong>Size & paper:</strong> ${paperDetails}</p>
+							<p><strong>Order #:</strong> ${escapeHtml(result.orderNumber)}</p>
+							<p><strong>Your print:</strong> ${escapeHtml(metadata.imageTitle)}</p>
+							<p><strong>Size & paper:</strong> ${escapeHtml(paperDetails)}</p>
 							<p><strong>Total:</strong> $${orderTotal.toFixed(2)}</p>
 							<p>You'll receive tracking info once it ships.</p>
 							<p>— Margaret</p>
@@ -171,9 +218,9 @@ export const POST: RequestHandler = async ({ request }) => {
 						subject: `[URGENT] Order ${sanityOrder._id} failed - manual attention needed`,
 						html: `
 							<p><strong style="color: red;">Order fulfillment failed!</strong></p>
-							<p><strong>Order ID:</strong> ${sanityOrder._id}</p>
-							<p><strong>Customer:</strong> ${customerDetails?.name || "Unknown"} (${customerDetails?.email})</p>
-							<p><strong>Error:</strong> ${err instanceof Error ? err.message : "Unknown error"}</p>
+							<p><strong>Order ID:</strong> ${escapeHtml(sanityOrder._id)}</p>
+							<p><strong>Customer:</strong> ${escapeHtml(customerDetails?.name || "Unknown")} (${escapeHtml(customerDetails?.email || "")})</p>
+							<p><strong>Error:</strong> ${escapeHtml(err instanceof Error ? err.message : "Unknown error")}</p>
 							<p>Please check LumaPrints and process manually.</p>
 						`,
 					});

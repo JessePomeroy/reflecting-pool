@@ -15,8 +15,8 @@ import { page } from "$app/stores";
 		align-items: center;
 		justify-content: center;
 		min-height: 60vh;
-		font-family: 'Cormorant', serif;
-		color: #1a1f2e;
+		font-family: var(--font-serif);
+		color: var(--ink);
 		text-align: center;
 		gap: 1rem;
 	}
@@ -31,7 +31,7 @@ import { page } from "$app/stores";
 	}
 
 	a {
-		color: #1a1f2e;
+		color: var(--ink);
 		text-decoration: underline;
 	}
 </style>

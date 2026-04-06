@@ -57,11 +57,11 @@ onMount(() => {
 
 	// Scroll-driven focus — update which image is closest to viewport center
 	if (window.innerWidth < 768) {
-		const scrollEl = document.querySelector('.gallery-view') as HTMLElement;
+		const scrollEl = document.querySelector(".gallery-view") as HTMLElement;
 		if (scrollEl) {
 			function updateFocus() {
 				const midY = window.innerHeight / 2;
-				const photos = scrollEl.querySelectorAll('.gallery-photo');
+				const photos = scrollEl.querySelectorAll(".gallery-photo");
 				let closestIdx = 0;
 				let closestDist = Infinity;
 				photos.forEach((el, i) => {
@@ -76,9 +76,9 @@ onMount(() => {
 				focusedIndex = closestIdx;
 			}
 
-			scrollEl.addEventListener('scroll', updateFocus, { passive: true });
+			scrollEl.addEventListener("scroll", updateFocus, { passive: true });
 			updateFocus(); // initial check
-			return () => scrollEl.removeEventListener('scroll', updateFocus);
+			return () => scrollEl.removeEventListener("scroll", updateFocus);
 		}
 	}
 });
@@ -142,17 +142,17 @@ onMount(() => {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 1.1rem;
 		color: transparent;
-		-webkit-text-stroke: 1px rgba(240, 244, 248, 0.6);
+		-webkit-text-stroke: 1px rgba(var(--paper-rgb), 0.6);
 		letter-spacing: 0.1em;
 		transition: all 300ms ease;
 		padding: 0.5rem;
 	}
 
 	.back-button:hover {
-		-webkit-text-stroke: 1px rgba(240, 244, 248, 1);
+		-webkit-text-stroke: 1px rgba(var(--paper-rgb), 1);
 	}
 
 	.back-arrow {
@@ -165,11 +165,11 @@ onMount(() => {
 		left: 50%;
 		transform: translateX(-50%);
 		z-index: 50;
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: clamp(1.2rem, 2.5vw, 1.8rem);
 		color: transparent;
-		-webkit-text-stroke: 1px rgba(240, 244, 248, 0.6);
+		-webkit-text-stroke: 1px rgba(var(--paper-rgb), 0.6);
 		letter-spacing: 0.25em;
 		text-transform: lowercase;
 		margin: 0;

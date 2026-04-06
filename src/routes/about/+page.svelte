@@ -1,7 +1,7 @@
 <script lang="ts">
-import ContactForm from '$lib/components/ContactForm.svelte';
-import SEO from '$lib/components/SEO.svelte';
-import type { PageData } from './$types';
+import ContactForm from "$lib/components/ContactForm.svelte";
+import SEO from "$lib/components/SEO.svelte";
+import type { PageData } from "./$types";
 
 let { data }: { data: PageData } = $props();
 
@@ -164,7 +164,7 @@ const calConfig = "{'layout':'month_view'}";
 
 	.back-link {
 		display: inline-block;
-		color: rgba(26, 31, 46, 0.5);
+		color: rgba(var(--ink-rgb), 0.5);
 		text-decoration: none;
 		font-size: 0.9rem;
 		letter-spacing: 0.05em;
@@ -173,14 +173,14 @@ const calConfig = "{'layout':'month_view'}";
 	}
 
 	.back-link:hover {
-		color: rgba(26, 31, 46, 0.8);
+		color: rgba(var(--ink-rgb), 0.8);
 	}
 
 	h1 {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: 3rem;
-		color: #1a1f2e;
+		color: var(--ink);
 		letter-spacing: 0.15em;
 		text-transform: lowercase;
 	}
@@ -216,28 +216,28 @@ const calConfig = "{'layout':'month_view'}";
 	}
 
 	.social-link {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.8rem;
 		letter-spacing: 0.1em;
 		text-transform: lowercase;
-		color: rgba(26, 31, 46, 0.45);
+		color: rgba(var(--ink-rgb), 0.45);
 		text-decoration: none;
 		transition: color 0.25s ease;
-		border-bottom: 1px solid rgba(26, 31, 46, 0.2);
+		border-bottom: 1px solid rgba(var(--ink-rgb), 0.2);
 		padding-bottom: 1px;
 	}
 
 	.social-link:hover {
-		color: rgba(26, 31, 46, 0.75);
-		border-bottom-color: rgba(26, 31, 46, 0.5);
+		color: rgba(var(--ink-rgb), 0.75);
+		border-bottom-color: rgba(var(--ink-rgb), 0.5);
 	}
 
 	/* ─── Bio Column ─────────────────────────────────────────── */
 	.artist-name {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: 2rem;
-		color: #1a1f2e;
+		color: var(--ink);
 		letter-spacing: 0.12em;
 		text-transform: lowercase;
 		margin-bottom: 1.5rem;
@@ -252,25 +252,25 @@ const calConfig = "{'layout':'month_view'}";
 
 	.bio-text p,
 	.statement-text p {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 1.05rem;
 		line-height: 1.75;
-		color: rgba(26, 31, 46, 0.7);
+		color: rgba(var(--ink-rgb), 0.7);
 	}
 
 	.statement-block {
 		margin-bottom: 2.5rem;
 		padding-left: 1.25rem;
-		border-left: 1px solid rgba(26, 31, 46, 0.15);
+		border-left: 1px solid rgba(var(--ink-rgb), 0.15);
 	}
 
 	.statement-label {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: 0.75rem;
 		letter-spacing: 0.15em;
 		text-transform: lowercase;
-		color: rgba(26, 31, 46, 0.4);
+		color: rgba(var(--ink-rgb), 0.4);
 		margin-bottom: 0.75rem;
 	}
 
@@ -298,18 +298,18 @@ const calConfig = "{'layout':'month_view'}";
 	}
 
 	dt {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.75rem;
 		letter-spacing: 0.1em;
 		text-transform: lowercase;
-		color: rgba(26, 31, 46, 0.4);
+		color: rgba(var(--ink-rgb), 0.4);
 		padding-top: 0.1rem;
 	}
 
 	dd {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(26, 31, 46, 0.65);
+		color: rgba(var(--ink-rgb), 0.65);
 		margin: 0;
 	}
 
@@ -328,33 +328,33 @@ const calConfig = "{'layout':'month_view'}";
 	}
 
 	.section-heading {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: 1.4rem;
-		color: #1a1f2e;
+		color: var(--ink);
 		letter-spacing: 0.1em;
 		text-transform: lowercase;
 	}
 
 	.contact-intro,
 	.booking-intro {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.95rem;
 		line-height: 1.6;
-		color: rgba(26, 31, 46, 0.55);
+		color: rgba(var(--ink-rgb), 0.55);
 		margin-bottom: 0.5rem;
 	}
 
 	/* Booking button */
 	.booking-btn {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.85rem;
 		font-weight: 400;
 		letter-spacing: 0.15em;
 		text-transform: lowercase;
-		color: #1a1f2e;
+		color: var(--ink);
 		background: transparent;
-		border: 1px solid rgba(26, 31, 46, 0.3);
+		border: 1px solid rgba(var(--ink-rgb), 0.3);
 		border-radius: 2px;
 		padding: 0.8rem 1.75rem;
 		cursor: pointer;
@@ -367,9 +367,9 @@ const calConfig = "{'layout':'month_view'}";
 	}
 
 	.booking-btn:hover {
-		background: #1a1f2e;
-		color: rgba(240, 244, 248, 0.9);
-		border-color: #1a1f2e;
+		background: var(--ink);
+		color: rgba(var(--paper-rgb), 0.9);
+		border-color: var(--ink);
 	}
 
 	/* ─── Responsive ─────────────────────────────────────────── */

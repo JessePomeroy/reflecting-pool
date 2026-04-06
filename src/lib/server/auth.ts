@@ -1,21 +1,20 @@
+/**
+ * Admin auth helpers — backed by Auth.js (Google OAuth with email allowlist).
+ * See `src/auth.ts` for the provider config and `src/hooks.server.ts` for
+ * how `locals.user.isAdmin` is populated.
+ */
 import type { RequestEvent } from "@sveltejs/kit";
 import { redirect } from "@sveltejs/kit";
 
-const ADMIN_COOKIE_NAME = "rp_admin_session";
-
-// TODO: Replace with real auth (OAuth, magic link, etc.)
-// For now, this checks for a simple session cookie
-// Set the cookie manually or via a login endpoint
-
-export function requireAdmin(event: RequestEvent): void {
-	const session = event.cookies.get(ADMIN_COOKIE_NAME);
-
-	if (!session) {
-		// TODO: Uncomment when ready to enforce auth
-		// throw redirect(302, '/admin/login');
-	}
+/** True if the request carries a valid admin session. */
+export function isAdmin(event: RequestEvent): boolean {
+	return event.locals.user?.isAdmin === true;
 }
 
-export function isAdmin(event: RequestEvent): boolean {
-	return !!event.cookies.get(ADMIN_COOKIE_NAME);
+/** Redirect to the admin login page when the session is missing or invalid. */
+export function requireAdmin(event: RequestEvent): void {
+	if (!isAdmin(event)) {
+		const next = event.url.pathname + event.url.search;
+		throw redirect(302, `/admin/login?next=${encodeURIComponent(next)}`);
+	}
 }

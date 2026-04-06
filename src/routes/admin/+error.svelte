@@ -3,9 +3,9 @@ import { page } from "$app/stores";
 </script>
 
 <div class="error-page">
-	<h1>something went wrong</h1>
-	<p>{$page.status === 404 ? 'this page could not be found.' : 'an unexpected error occurred.'}</p>
-	<a href="/admin">← back to admin</a>
+	<h1>Something went wrong</h1>
+	<p>{$page.status === 404 ? "This page could not be found." : "An unexpected error occurred."}</p>
+	<a href="/admin">← Back to admin</a>
 </div>
 
 <style>
@@ -15,31 +15,38 @@ import { page } from "$app/stores";
 		align-items: center;
 		justify-content: center;
 		min-height: 60vh;
-		font-family: 'Cormorant', serif;
-		background: #0f1219;
-		color: #c8cfd8;
 		text-align: center;
 		gap: 1rem;
+		color: rgba(var(--paper-rgb), 0.82);
 	}
 
 	h1 {
-		font-weight: 300;
-		font-size: 2rem;
-		color: #e2e5ea;
+		font-family: var(--font-serif);
+		font-weight: 400;
+		font-size: 1.75rem;
+		color: rgba(var(--paper-rgb), 0.95);
+		margin: 0;
+		letter-spacing: 0.01em;
 	}
 
 	p {
-		color: rgba(200, 207, 216, 0.5);
+		color: rgba(var(--paper-rgb), 0.55);
+		font-size: 0.9375rem;
+		margin: 0;
 	}
 
 	a {
-		color: #c8cfd8;
-		text-decoration: underline;
-		opacity: 0.7;
-		transition: opacity 0.2s ease;
+		color: rgba(var(--paper-rgb), 0.82);
+		text-decoration: none;
+		font-size: 0.875rem;
+		padding: 0.5rem 1rem;
+		border: 1px solid rgba(var(--paper-rgb), 0.14);
+		border-radius: 2px;
+		transition: color 0.15s ease, border-color 0.15s ease;
 	}
 
 	a:hover {
-		opacity: 1;
+		color: rgba(var(--paper-rgb), 1);
+		border-color: rgba(var(--paper-rgb), 0.3);
 	}
 </style>

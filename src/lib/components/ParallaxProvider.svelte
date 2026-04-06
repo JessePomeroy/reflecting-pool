@@ -1,8 +1,8 @@
 <script lang="ts">
 import { onMount, setContext } from "svelte";
 import { browser } from "$app/environment";
-import { detectDevice } from "$lib/stores/device";
 import type { ParallaxContext, Ripple } from "$lib/types/gallery";
+import { detectDevice } from "$lib/utils/device";
 import { clamp, lerp } from "$lib/utils/math";
 
 interface Props {
@@ -139,22 +139,27 @@ onMount(() => {
 
 	if (isTouch && window.DeviceOrientationEvent) {
 		// iOS 13+ requires permission for gyroscope access
-		const DOE = DeviceOrientationEvent as any;
-		if (typeof DOE.requestPermission === 'function') {
+		interface DeviceOrientationEventWithPermission {
+			requestPermission?: () => Promise<"granted" | "denied">;
+		}
+		const DOE = DeviceOrientationEvent as unknown as DeviceOrientationEventWithPermission;
+		if (typeof DOE.requestPermission === "function") {
 			// iOS: request on first user interaction (must be click/touch gesture)
 			const requestGyro = () => {
-				DOE.requestPermission().then((state: string) => {
-					if (state === 'granted') {
-						window.addEventListener('deviceorientation', handleOrientation, { passive: true });
-					}
-				}).catch(() => {});
+				DOE.requestPermission?.()
+					.then((state) => {
+						if (state === "granted") {
+							window.addEventListener("deviceorientation", handleOrientation, { passive: true });
+						}
+					})
+					.catch(() => {});
 			};
 			// Use both click and touchend for maximum compatibility
-			window.addEventListener('click', requestGyro, { once: true });
-			window.addEventListener('touchend', requestGyro, { once: true });
+			window.addEventListener("click", requestGyro, { once: true });
+			window.addEventListener("touchend", requestGyro, { once: true });
 		} else {
 			// Android / non-iOS — no permission needed
-			window.addEventListener('deviceorientation', handleOrientation, { passive: true });
+			window.addEventListener("deviceorientation", handleOrientation, { passive: true });
 		}
 	}
 

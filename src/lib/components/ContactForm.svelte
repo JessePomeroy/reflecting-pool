@@ -1,45 +1,45 @@
 <script lang="ts">
-type FormState = 'idle' | 'sending' | 'success' | 'error';
+type FormState = "idle" | "sending" | "success" | "error";
 
-let formStatus: FormState = $state('idle');
-let errorMessage: string = $state('');
+let formStatus: FormState = $state("idle");
+let errorMessage: string = $state("");
 
-let name = $state('');
-let email = $state('');
-let subject = $state('');
-let message = $state('');
+let name = $state("");
+let email = $state("");
+let subject = $state("");
+let message = $state("");
 
 async function handleSubmit(e: SubmitEvent) {
 	e.preventDefault();
-	formStatus = 'sending';
-	errorMessage = '';
+	formStatus = "sending";
+	errorMessage = "";
 
 	try {
-		const res = await fetch('/api/contact', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+		const res = await fetch("/api/contact", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ name, email, subject, message }),
 		});
 
 		if (!res.ok) {
-			const data = await res.json().catch(() => ({})) as { error?: string };
-			throw new Error(data.error ?? 'something went wrong');
+			const data = (await res.json().catch(() => ({}))) as { error?: string };
+			throw new Error(data.error ?? "something went wrong");
 		}
 
-		formStatus = 'success';
-		name = '';
-		email = '';
-		subject = '';
-		message = '';
+		formStatus = "success";
+		name = "";
+		email = "";
+		subject = "";
+		message = "";
 	} catch (err) {
-		formStatus = 'error';
-		errorMessage = err instanceof Error ? err.message : 'something went wrong';
+		formStatus = "error";
+		errorMessage = err instanceof Error ? err.message : "something went wrong";
 	}
 }
 
 function reset() {
-	formStatus = 'idle';
-	errorMessage = '';
+	formStatus = "idle";
+	errorMessage = "";
 }
 </script>
 
@@ -130,20 +130,20 @@ function reset() {
 	}
 
 	label {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.8rem;
 		letter-spacing: 0.1em;
-		color: rgba(26, 31, 46, 0.5);
+		color: rgba(var(--ink-rgb), 0.5);
 		text-transform: lowercase;
 	}
 
 	input,
 	textarea {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 1rem;
-		color: #1a1f2e;
+		color: var(--ink);
 		background: rgba(255, 255, 255, 0.35);
-		border: 1px solid rgba(26, 31, 46, 0.15);
+		border: 1px solid rgba(var(--ink-rgb), 0.15);
 		border-radius: 2px;
 		padding: 0.65rem 0.85rem;
 		width: 100%;
@@ -158,13 +158,13 @@ function reset() {
 
 	input::placeholder,
 	textarea::placeholder {
-		color: rgba(26, 31, 46, 0.3);
+		color: rgba(var(--ink-rgb), 0.3);
 		font-style: italic;
 	}
 
 	input:focus,
 	textarea:focus {
-		border-color: rgba(26, 31, 46, 0.35);
+		border-color: rgba(var(--ink-rgb), 0.35);
 		background: rgba(255, 255, 255, 0.55);
 	}
 
@@ -175,13 +175,13 @@ function reset() {
 	}
 
 	.submit-btn {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.85rem;
 		font-weight: 400;
 		letter-spacing: 0.15em;
 		text-transform: lowercase;
-		color: rgba(240, 244, 248, 0.9);
-		background: #1a1f2e;
+		color: rgba(var(--paper-rgb), 0.9);
+		background: var(--ink);
 		border: none;
 		border-radius: 2px;
 		padding: 0.8rem 1.75rem;
@@ -194,7 +194,7 @@ function reset() {
 	}
 
 	.submit-btn:hover:not(:disabled) {
-		background: rgba(26, 31, 46, 0.8);
+		background: rgba(var(--ink-rgb), 0.8);
 	}
 
 	.submit-btn:disabled {
@@ -203,7 +203,7 @@ function reset() {
 	}
 
 	.error-message {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.9rem;
 		color: #8b3a3a;
 		font-style: italic;
@@ -217,18 +217,18 @@ function reset() {
 	}
 
 	.success-message {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 1.1rem;
 		font-style: italic;
-		color: rgba(26, 31, 46, 0.7);
+		color: rgba(var(--ink-rgb), 0.7);
 	}
 
 	.reset-btn {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.8rem;
 		letter-spacing: 0.1em;
 		text-transform: lowercase;
-		color: rgba(26, 31, 46, 0.45);
+		color: rgba(var(--ink-rgb), 0.45);
 		background: none;
 		border: none;
 		cursor: pointer;
@@ -239,6 +239,6 @@ function reset() {
 	}
 
 	.reset-btn:hover {
-		color: rgba(26, 31, 46, 0.7);
+		color: rgba(var(--ink-rgb), 0.7);
 	}
 </style>

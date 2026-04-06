@@ -75,7 +75,15 @@ SANITY_DATASET=production
 SANITY_API_TOKEN=...
 
 PUBLIC_SITE_URL=https://clientdomain.com
+
+AUTH_SECRET=<openssl rand -base64 32>
+AUTH_GOOGLE_ID=...
+AUTH_GOOGLE_SECRET=...
+AUTH_TRUST_HOST=true
+ADMIN_EMAIL=client@example.com
 ```
+
+See `ADMIN-AUTH.md` for the Google OAuth setup and handoff steps.
 
 ### Content Setup
 
@@ -319,7 +327,7 @@ Bundle maintenance for all your clients:
 - prefers-reduced-motion accessibility
 - Vercel Analytics
 - Error boundaries on all route groups
-- Admin auth middleware (prepped, needs activation)
+- Admin auth: Google OAuth with email allowlist (Auth.js)
 
 ### What Needs Human Work Before Launch
 - Connect real Sanity project (replace mock data)
@@ -327,7 +335,7 @@ Bundle maintenance for all your clients:
 - Set real Stripe + LumaPrints + Resend credentials
 - Verify Resend `from` domain
 - Replace Cal.com placeholder with real booking link
-- Enable admin auth
+- Configure Google OAuth + admin email allowlist (see `ADMIN-AUTH.md`)
 - Test full checkout flow end-to-end
 - Client training session (30 min)
 

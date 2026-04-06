@@ -1,5 +1,5 @@
 <script lang="ts">
-import { page } from '$app/stores';
+import { page } from "$app/stores";
 </script>
 
 <svelte:head>
@@ -47,29 +47,29 @@ import { page } from '$app/stores';
 	}
 
 	.error-code {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 5rem;
 		font-weight: 300;
-		color: rgba(26, 31, 46, 0.12);
+		color: rgba(var(--ink-rgb), 0.12);
 		line-height: 1;
 		letter-spacing: 0.1em;
 		display: block;
 	}
 
 	h1.error-message {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: 2rem;
-		color: #1a1f2e;
+		color: var(--ink);
 		letter-spacing: 0.12em;
 		text-transform: lowercase;
 		margin: 0;
 	}
 
 	.error-detail {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 1rem;
-		color: rgba(26, 31, 46, 0.5);
+		color: rgba(var(--ink-rgb), 0.5);
 		font-style: italic;
 		max-width: 320px;
 		line-height: 1.6;
@@ -78,15 +78,15 @@ import { page } from '$app/stores';
 	.home-link {
 		display: inline-block;
 		margin-top: 1rem;
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.9rem;
 		letter-spacing: 0.06em;
-		color: rgba(26, 31, 46, 0.5);
+		color: rgba(var(--ink-rgb), 0.5);
 		text-decoration: none;
 		transition: color 0.25s ease;
 	}
 
 	.home-link:hover {
-		color: rgba(26, 31, 46, 0.8);
+		color: rgba(var(--ink-rgb), 0.8);
 	}
 </style>

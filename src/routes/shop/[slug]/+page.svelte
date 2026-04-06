@@ -158,27 +158,27 @@ async function handleCheckout() {
 	}
 
 	.breadcrumb a {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(26, 31, 46, 0.5);
+		color: rgba(var(--ink-rgb), 0.5);
 		text-decoration: none;
 		letter-spacing: 0.05em;
 		transition: color 0.3s ease;
 	}
 
 	.breadcrumb a:hover {
-		color: rgba(26, 31, 46, 0.8);
+		color: rgba(var(--ink-rgb), 0.8);
 	}
 
 	.breadcrumb .sep {
-		color: rgba(26, 31, 46, 0.3);
+		color: rgba(var(--ink-rgb), 0.3);
 		font-size: 0.85rem;
 	}
 
 	.breadcrumb .current {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(26, 31, 46, 0.7);
+		color: rgba(var(--ink-rgb), 0.7);
 		letter-spacing: 0.05em;
 	}
 
@@ -192,7 +192,7 @@ async function handleCheckout() {
 	.product-image-wrapper {
 		aspect-ratio: 4 / 5;
 		overflow: hidden;
-		background: rgba(26, 31, 46, 0.05);
+		background: rgba(var(--ink-rgb), 0.05);
 		border-radius: 2px;
 	}
 
@@ -203,26 +203,26 @@ async function handleCheckout() {
 	}
 
 	.product-gallery {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.85rem;
-		color: rgba(26, 31, 46, 0.4);
+		color: rgba(var(--ink-rgb), 0.4);
 		letter-spacing: 0.08em;
 		text-transform: lowercase;
 		margin-bottom: 0.5rem;
 	}
 
 	h1 {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-weight: 400;
 		font-size: 2rem;
-		color: #1a1f2e;
+		color: var(--ink);
 		margin-bottom: 0.5rem;
 	}
 
 	.product-caption {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 1rem;
-		color: rgba(26, 31, 46, 0.5);
+		color: rgba(var(--ink-rgb), 0.5);
 		font-style: italic;
 		margin-bottom: 2rem;
 		line-height: 1.5;
@@ -234,9 +234,9 @@ async function handleCheckout() {
 
 	.option-label {
 		display: block;
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.85rem;
-		color: rgba(26, 31, 46, 0.5);
+		color: rgba(var(--ink-rgb), 0.5);
 		letter-spacing: 0.1em;
 		text-transform: lowercase;
 		margin-bottom: 0.75rem;
@@ -254,7 +254,7 @@ async function handleCheckout() {
 		flex-direction: column;
 		align-items: flex-start;
 		padding: 0.75rem 1rem;
-		border: 1px solid rgba(26, 31, 46, 0.15);
+		border: 1px solid rgba(var(--ink-rgb), 0.15);
 		border-radius: 2px;
 		background: transparent;
 		cursor: pointer;
@@ -263,24 +263,24 @@ async function handleCheckout() {
 	}
 
 	.paper-btn:hover {
-		border-color: rgba(26, 31, 46, 0.3);
+		border-color: rgba(var(--ink-rgb), 0.3);
 	}
 
 	.paper-btn.active {
-		border-color: #1a1f2e;
-		background: rgba(26, 31, 46, 0.03);
+		border-color: var(--ink);
+		background: rgba(var(--ink-rgb), 0.03);
 	}
 
 	.paper-name {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 1rem;
-		color: #1a1f2e;
+		color: var(--ink);
 	}
 
 	.paper-desc {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.8rem;
-		color: rgba(26, 31, 46, 0.4);
+		color: rgba(var(--ink-rgb), 0.4);
 		margin-top: 0.15rem;
 	}
 
@@ -295,7 +295,7 @@ async function handleCheckout() {
 		flex-direction: column;
 		align-items: center;
 		padding: 0.6rem 0.5rem;
-		border: 1px solid rgba(26, 31, 46, 0.15);
+		border: 1px solid rgba(var(--ink-rgb), 0.15);
 		border-radius: 2px;
 		background: transparent;
 		cursor: pointer;
@@ -303,50 +303,50 @@ async function handleCheckout() {
 	}
 
 	.size-btn:hover {
-		border-color: rgba(26, 31, 46, 0.3);
+		border-color: rgba(var(--ink-rgb), 0.3);
 	}
 
 	.size-btn.active {
-		border-color: #1a1f2e;
-		background: rgba(26, 31, 46, 0.03);
+		border-color: var(--ink);
+		background: rgba(var(--ink-rgb), 0.03);
 	}
 
 	.size-label {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.95rem;
-		color: #1a1f2e;
+		color: var(--ink);
 	}
 
 	.size-price {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.75rem;
-		color: rgba(26, 31, 46, 0.4);
+		color: rgba(var(--ink-rgb), 0.4);
 		margin-top: 0.15rem;
 	}
 
 	.purchase-section {
 		margin-top: 2rem;
 		padding-top: 1.5rem;
-		border-top: 1px solid rgba(26, 31, 46, 0.1);
+		border-top: 1px solid rgba(var(--ink-rgb), 0.1);
 	}
 
 	.current-price {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 1.8rem;
 		font-weight: 300;
-		color: #1a1f2e;
+		color: var(--ink);
 		margin-bottom: 1rem;
 	}
 
 	.buy-btn {
 		width: 100%;
 		padding: 0.9rem;
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 1.1rem;
 		letter-spacing: 0.1em;
 		text-transform: lowercase;
 		color: #c8cfd8;
-		background: #1a1f2e;
+		background: var(--ink);
 		border: none;
 		border-radius: 2px;
 		cursor: pointer;
@@ -363,9 +363,9 @@ async function handleCheckout() {
 	}
 
 	.shipping-note {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.8rem;
-		color: rgba(26, 31, 46, 0.4);
+		color: rgba(var(--ink-rgb), 0.4);
 		text-align: center;
 		margin-top: 0.75rem;
 		line-height: 1.4;

@@ -47,22 +47,14 @@ export const ORDER_STATUSES = [
 	{ value: "cancelled", label: "Cancelled" },
 ] as const;
 
-/** Get color class for status */
+/**
+ * Return the status key used for styling. Each admin page defines
+ * `[data-status="..."]` selectors matching these keys in its `<style>` block.
+ * (Kept for backwards compatibility — prefer using the `status` value directly
+ * as `data-status={order.status}`.)
+ */
 export function getStatusColor(status: string): string {
-	const colors: Record<string, string> = {
-		processing: "bg-blue-500",
-		submitted: "bg-yellow-500",
-		printing: "bg-purple-500",
-		shipped: "bg-orange-500",
-		delivered: "bg-green-500",
-		refunded: "bg-red-500",
-		fulfillment_error: "bg-red-600",
-		cancelled: "bg-gray-500",
-		new: "bg-red-500",
-		read: "bg-yellow-500",
-		replied: "bg-green-500",
-	};
-	return colors[status] || "bg-gray-500";
+	return status || "cancelled";
 }
 
 // Date filter presets

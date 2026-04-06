@@ -8,6 +8,7 @@ import {
 	SANITY_PROJECT_ID,
 } from "$env/static/private";
 import { PUBLIC_SITE_URL } from "$env/static/public";
+import { escapeHtml } from "$lib/server/html";
 import { rateLimit } from "$lib/server/rate-limit";
 import type { RequestHandler } from "./$types";
 
@@ -98,12 +99,12 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 			subject: `[contact] ${subject}`,
 			html: `
 				<div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; color: #1a1f2e;">
-					<h2 style="font-weight: 400; font-size: 1.5rem; margin-bottom: 1rem;">${subject}</h2>
-					<p style="margin-bottom: 0.5rem;"><strong>from:</strong> ${name} &lt;${email}&gt;</p>
+					<h2 style="font-weight: 400; font-size: 1.5rem; margin-bottom: 1rem;">${escapeHtml(subject)}</h2>
+					<p style="margin-bottom: 0.5rem;"><strong>from:</strong> ${escapeHtml(name)} &lt;${escapeHtml(email)}&gt;</p>
 					<hr style="border: none; border-top: 1px solid rgba(26,31,46,0.15); margin: 1rem 0;" />
-					<p style="line-height: 1.6; white-space: pre-wrap;">${message}</p>
+					<p style="line-height: 1.6; white-space: pre-wrap;">${escapeHtml(message)}</p>
 					<hr style="border: none; border-top: 1px solid rgba(26,31,46,0.15); margin: 1rem 0;" />
-					<p style="font-size: 0.8rem; color: rgba(26,31,46,0.4);">received ${submittedAt} via ${PUBLIC_SITE_URL ?? "margarethelena.com"}</p>
+					<p style="font-size: 0.8rem; color: rgba(26,31,46,0.4);">received ${escapeHtml(submittedAt)} via ${escapeHtml(PUBLIC_SITE_URL ?? "margarethelena.com")}</p>
 				</div>
 			`,
 		}),

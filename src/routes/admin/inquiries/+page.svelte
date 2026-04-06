@@ -150,7 +150,9 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 					</p>
 					<p class="modal-date">{formatDateTime(selectedInquiry.submittedAt)}</p>
 				</div>
-				<button class="modal-close" onclick={closeModal} aria-label="Close">✕</button>
+				<button class="modal-close" onclick={closeModal} aria-label="Close">
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+				</button>
 			</div>
 
 			<div class="modal-body">
@@ -206,14 +208,16 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 	}
 
 	.page-header h1 {
-		font-size: 1.875rem;
-		font-weight: 600;
-		color: #f9fafb;
-		margin-bottom: 0.25rem;
+		font-family: var(--font-serif);
+		font-size: 2rem;
+		font-weight: 400;
+		letter-spacing: 0.01em;
+		color: var(--admin-heading);
+		margin: 0 0 0.25rem;
 	}
 
 	.subtitle {
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		font-size: 0.9375rem;
 	}
 
@@ -224,8 +228,8 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 
 	/* Table */
 	.table-wrapper {
-		background: #1f2937;
-		border: 1px solid #374151;
+		background: var(--admin-surface);
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.5rem;
 		overflow: auto;
 	}
@@ -239,10 +243,10 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 	.inquiries-table th {
 		text-align: left;
 		padding: 0.75rem 1rem;
-		color: #6b7280;
+		color: var(--admin-text-subtle);
 		font-weight: 500;
-		border-bottom: 1px solid #374151;
-		background: #111827;
+		border-bottom: 1px solid var(--admin-border-strong);
+		background: var(--admin-bg);
 		position: sticky;
 		top: 0;
 		white-space: nowrap;
@@ -250,8 +254,8 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 
 	.inquiries-table td {
 		padding: 0.75rem 1rem;
-		color: #e5e7eb;
-		border-bottom: 1px solid #1f2937;
+		color: var(--admin-text);
+		border-bottom: 1px solid var(--admin-surface);
 		vertical-align: top;
 	}
 
@@ -261,7 +265,7 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 	}
 
 	.inquiry-row:hover td {
-		background: #374151;
+		background: var(--admin-border-strong);
 	}
 
 	.inquiry-row:last-child td {
@@ -273,11 +277,11 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 	}
 
 	.inquiry-row.is-new:hover td {
-		background: #374151;
+		background: var(--admin-border-strong);
 	}
 
 	.col-date {
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		font-size: 0.8125rem;
 		white-space: nowrap;
 	}
@@ -288,7 +292,7 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 	}
 
 	.col-email {
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		font-size: 0.8125rem;
 		white-space: nowrap;
 	}
@@ -299,7 +303,7 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 	}
 
 	.col-preview {
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		font-size: 0.8125rem;
 		max-width: 260px;
 	}
@@ -307,37 +311,39 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 	.btn-view {
 		padding: 0.25rem 0.625rem;
 		background: transparent;
-		border: 1px solid #374151;
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.25rem;
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		font-size: 0.75rem;
 		cursor: pointer;
 	}
 
 	.btn-view:hover {
-		background: #374151;
-		color: #f9fafb;
+		background: var(--admin-border-strong);
+		color: var(--admin-heading);
 	}
 
-	/* Status Badges */
+	/* Status Badges — muted outline style */
 	.status-badge {
 		display: inline-block;
-		padding: 0.2rem 0.6rem;
-		border-radius: 9999px;
-		font-size: 0.75rem;
+		padding: 0.2rem 0.625rem;
+		border-radius: 2px;
+		font-size: 0.7rem;
 		font-weight: 500;
-		color: white;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		border: 1px solid currentColor;
 	}
 
-	.status-badge[data-status="new"] { background: #ef4444; }
-	.status-badge[data-status="read"] { background: #eab308; color: #111; }
-	.status-badge[data-status="replied"] { background: #10b981; }
+	.status-badge[data-status="new"] { color: var(--status-rose); }
+	.status-badge[data-status="read"] { color: var(--status-amber); }
+	.status-badge[data-status="replied"] { color: var(--status-sage); }
 
 	/* Empty */
 	.empty-state {
 		padding: 3rem;
 		text-align: center;
-		color: #6b7280;
+		color: var(--admin-text-subtle);
 	}
 
 	/* Modal */
@@ -354,8 +360,8 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 	}
 
 	.modal {
-		background: #1f2937;
-		border: 1px solid #374151;
+		background: var(--admin-surface);
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.75rem;
 		width: 100%;
 		max-width: 600px;
@@ -367,23 +373,25 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 		justify-content: space-between;
 		align-items: flex-start;
 		padding: 1.5rem;
-		border-bottom: 1px solid #374151;
+		border-bottom: 1px solid var(--admin-border-strong);
 	}
 
 	.modal-header h2 {
-		font-size: 1.125rem;
-		font-weight: 600;
-		color: #f9fafb;
-		margin-bottom: 0.25rem;
+		font-family: var(--font-serif);
+		font-size: 1.375rem;
+		font-weight: 400;
+		letter-spacing: 0.01em;
+		color: var(--admin-heading);
+		margin: 0 0 0.25rem;
 	}
 
 	.modal-meta {
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		font-size: 0.875rem;
 	}
 
 	.modal-date {
-		color: #6b7280;
+		color: var(--admin-text-subtle);
 		font-size: 0.8125rem;
 		margin-top: 0.125rem;
 	}
@@ -391,16 +399,20 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 	.modal-close {
 		background: transparent;
 		border: none;
-		color: #9ca3af;
-		font-size: 1.25rem;
+		color: var(--admin-text-muted);
 		cursor: pointer;
-		padding: 0.25rem;
-		line-height: 1;
+		padding: 0.375rem;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 2px;
 		flex-shrink: 0;
+		transition: color 0.15s ease, background 0.15s ease;
 	}
 
 	.modal-close:hover {
-		color: #f9fafb;
+		color: var(--admin-heading);
+		background: var(--admin-border);
 	}
 
 	.modal-body {
@@ -410,7 +422,7 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 	.message-section,
 	.actions-section {
 		padding: 1.25rem 0;
-		border-bottom: 1px solid #374151;
+		border-bottom: 1px solid var(--admin-border-strong);
 	}
 
 	.actions-section {
@@ -423,13 +435,13 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
-		color: #6b7280;
+		color: var(--admin-text-subtle);
 		margin-bottom: 0.75rem;
 	}
 
 	.message-text {
 		font-size: 0.9375rem;
-		color: #e5e7eb;
+		color: var(--admin-text);
 		line-height: 1.7;
 		white-space: pre-wrap;
 	}
@@ -450,16 +462,16 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 	.btn-action {
 		padding: 0.5rem 1rem;
 		background: transparent;
-		border: 1px solid #374151;
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.375rem;
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		font-size: 0.875rem;
 		cursor: pointer;
 	}
 
 	.btn-action:not(:disabled):hover {
-		background: #374151;
-		color: #f9fafb;
+		background: var(--admin-border-strong);
+		color: var(--admin-heading);
 	}
 
 	.btn-action.active,
@@ -469,12 +481,12 @@ const newCount = $derived(inquiries.filter((i) => i.status === "new").length);
 	}
 
 	.btn-replied {
-		border-color: #10b981;
-		color: #10b981;
+		border-color: var(--admin-accent);
+		color: var(--admin-accent);
 	}
 
 	.btn-replied:not(:disabled):hover {
-		background: #10b981;
+		background: var(--admin-accent);
 		color: white;
 	}
 

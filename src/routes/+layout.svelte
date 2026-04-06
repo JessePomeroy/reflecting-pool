@@ -37,13 +37,25 @@ inject({ mode: dev ? "development" : "production" });
 	muted
 	playsinline
 	src="/videos/caustics.mp4"
-	oncanplaythrough={() => console.log('Video loaded!')}
-	onerror={(e) => console.log('Video error:', e)}
 ></video>
 <div class="caustics-overlay"></div>
 {@render children()}
 
 <style>
+	/* Design tokens — use rgb triplets so the same channels can be reused
+	   at any opacity via rgba(var(--paper-rgb), X). Mobile breakpoint is
+	   documented here for reference (CSS custom properties cannot be used
+	   inside @media queries, so the 768px value is still hardcoded in each
+	   component's media block — keep them in sync with --bp-mobile). */
+	:global(:root) {
+		--ink: #1a1f2e;
+		--ink-rgb: 26, 31, 46;
+		--paper: #f0f4f8;
+		--paper-rgb: 240, 244, 248;
+		--font-serif: 'Cormorant', serif;
+		--bp-mobile: 768px;
+	}
+
 	:global(*) {
 		margin: 0;
 		padding: 0;
@@ -51,9 +63,9 @@ inject({ mode: dev ? "development" : "production" });
 	}
 
 	:global(html, body) {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		background: transparent;
-		color: rgba(240, 244, 248, 0.85);
+		color: rgba(var(--paper-rgb), 0.85);
 		overflow-x: hidden;
 		min-height: 100vh;
 		-webkit-font-smoothing: antialiased;
@@ -82,11 +94,12 @@ inject({ mode: dev ? "development" : "production" });
 		z-index: -1;
 		background: linear-gradient(
 			to bottom,
-			#1a1f2e 0%,
-			#1a1f2e 20%,
-			#3a4255 45%,
-			#8a9aab 70%,
-			#c8cfd8 100%
+			rgba(var(--ink-rgb),1) 0%,
+			rgba(var(--ink-rgb),1) 12%,
+			rgba(var(--ink-rgb),0.92) 22%,
+			rgba(58, 66, 85, 0.6) 45%,
+			rgba(138, 154, 171, 0.35) 70%,
+			rgba(200, 207, 216, 0.25) 100%
 		);
 		pointer-events: none;
 	}
@@ -115,7 +128,7 @@ inject({ mode: dev ? "development" : "production" });
 	}
 
 	:global(::-webkit-scrollbar-thumb) {
-		background: rgba(26, 31, 46, 0.3);
+		background: rgba(var(--ink-rgb),0.3);
 		border-radius: 3px;
 	}
 </style>

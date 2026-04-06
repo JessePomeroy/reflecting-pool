@@ -68,22 +68,22 @@ function closeMenu() {
 	}
 
 	.desktop li a {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-weight: 400;
 		font-size: clamp(0.85rem, 1.2vw, 1rem);
-		color: rgba(240, 244, 248, 0.45);
+		color: rgba(var(--paper-rgb), 0.45);
 		text-decoration: none;
 		letter-spacing: 0.15em;
 		transition: color 300ms ease;
 	}
 
 	.desktop li a:hover {
-		color: rgba(240, 244, 248, 0.8);
+		color: rgba(var(--paper-rgb), 0.8);
 	}
 
 	.desktop li + li::before {
 		content: '·';
-		color: rgba(240, 244, 248, 0.25);
+		color: rgba(var(--paper-rgb), 0.25);
 		margin-right: 1.5rem;
 	}
 
@@ -106,7 +106,7 @@ function closeMenu() {
 		display: block;
 		width: 24px;
 		height: 2px;
-		background: rgba(240, 244, 248, 0.7);
+		background: rgba(var(--paper-rgb), 0.7);
 		transition: all 300ms ease;
 	}
 
@@ -124,7 +124,7 @@ function closeMenu() {
 	.mobile-overlay {
 		position: fixed;
 		inset: 0;
-		background: rgba(26, 31, 46, 0.97);
+		background: rgba(var(--ink-rgb), 0.97);
 		z-index: 200;
 		display: flex;
 		align-items: center;
@@ -143,10 +143,10 @@ function closeMenu() {
 	}
 
 	.nav-links-mobile li a {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: 2rem;
-		color: rgba(240, 244, 248, 0.7);
+		color: rgba(var(--paper-rgb), 0.7);
 		text-decoration: none;
 		letter-spacing: 0.2em;
 		display: block;
@@ -155,7 +155,7 @@ function closeMenu() {
 	}
 
 	.nav-links-mobile li a:hover {
-		color: rgba(240, 244, 248, 1);
+		color: rgba(var(--paper-rgb), 1);
 	}
 
 	@keyframes fadeSlideIn {

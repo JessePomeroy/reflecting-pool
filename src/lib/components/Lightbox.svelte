@@ -1,5 +1,4 @@
 <script lang="ts">
-import { onMount } from "svelte";
 import type { ClusterImage } from "$lib/types/gallery";
 
 interface Props {
@@ -12,11 +11,15 @@ interface Props {
 let { src, currentIndex, images, onclose }: Props = $props();
 
 let index = $state(0);
-$effect(() => {
+$effect.pre(() => {
 	index = currentIndex;
 });
 let visible = $state(false);
 let currentSrc = $derived(images[index]?.src ?? src);
+
+// DOM refs for focus management
+let dialogEl = $state<HTMLDivElement | undefined>(undefined);
+let previouslyFocused: HTMLElement | null = null;
 
 // Touch swipe tracking
 let touchStartX = 0;
@@ -30,9 +33,29 @@ function prev() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
-	if (e.key === "Escape") onclose();
+	if (e.key === "Escape") {
+		onclose();
+		return;
+	}
 	if (e.key === "ArrowRight") next();
 	if (e.key === "ArrowLeft") prev();
+	// Focus trap — confine Tab cycles within the dialog's focusable elements
+	if (e.key === "Tab" && dialogEl) {
+		const focusables = dialogEl.querySelectorAll<HTMLElement>(
+			"button:not([disabled]), [href], [tabindex]:not([tabindex='-1'])",
+		);
+		if (focusables.length === 0) return;
+		const first = focusables[0];
+		const last = focusables[focusables.length - 1];
+		const active = document.activeElement as HTMLElement | null;
+		if (e.shiftKey && active === first) {
+			e.preventDefault();
+			last.focus();
+		} else if (!e.shiftKey && active === last) {
+			e.preventDefault();
+			first.focus();
+		}
+	}
 }
 
 function handleTouchStart(e: TouchEvent) {
@@ -47,13 +70,16 @@ function handleTouchEnd(e: TouchEvent) {
 	}
 }
 
-onMount(() => {
+$effect(() => {
+	// Remember what was focused before opening so we can restore it on close
+	previouslyFocused = document.activeElement as HTMLElement | null;
 	requestAnimationFrame(() => {
 		visible = true;
+		dialogEl?.focus();
 	});
-
-	// Focus for keyboard events
-	return () => {};
+	return () => {
+		previouslyFocused?.focus();
+	};
 });
 </script>
 
@@ -62,6 +88,7 @@ onMount(() => {
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
+	bind:this={dialogEl}
 	class="lightbox"
 	class:visible
 	onclick={onclose}
@@ -70,27 +97,27 @@ onMount(() => {
 	role="dialog"
 	aria-modal="true"
 	aria-label="Image viewer"
-	tabindex="-1"
+	tabindex="0"
 >
 	<div class="lightbox-overlay"></div>
 
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="lightbox-content" onclick={(e) => e.stopPropagation()}>
-		<img src={currentSrc} alt="" class="lightbox-image" />
+		<img src={currentSrc} alt="" role="presentation" class="lightbox-image" />
 	</div>
 
 	<div class="lightbox-controls">
-		<button class="nav-btn prev" onclick={(e) => { e.stopPropagation(); prev(); }} disabled={index === 0}>
+		<button class="nav-btn prev" onclick={(e) => { e.stopPropagation(); prev(); }} disabled={index === 0} aria-label="Previous image">
 			‹
 		</button>
-		<span class="counter">{index + 1} / {images.length}</span>
-		<button class="nav-btn next" onclick={(e) => { e.stopPropagation(); next(); }} disabled={index === images.length - 1}>
+		<span class="counter" aria-live="polite">{index + 1} / {images.length}</span>
+		<button class="nav-btn next" onclick={(e) => { e.stopPropagation(); next(); }} disabled={index === images.length - 1} aria-label="Next image">
 			›
 		</button>
 	</div>
 
-	<button class="close-btn" onclick={onclose}>×</button>
+	<button class="close-btn" onclick={onclose} aria-label="Close image viewer">×</button>
 </div>
 
 <style>
@@ -149,8 +176,8 @@ onMount(() => {
 
 	.nav-btn {
 		background: none;
-		border: 1px solid rgba(240, 244, 248, 0.2);
-		color: rgba(240, 244, 248, 0.7);
+		border: 1px solid rgba(var(--paper-rgb), 0.2);
+		color: rgba(var(--paper-rgb), 0.7);
 		font-size: 1.5rem;
 		width: 44px;
 		height: 44px;
@@ -165,8 +192,8 @@ onMount(() => {
 	}
 
 	.nav-btn:hover:not(:disabled) {
-		border-color: rgba(240, 244, 248, 0.5);
-		color: rgba(240, 244, 248, 1);
+		border-color: rgba(var(--paper-rgb), 0.5);
+		color: rgba(var(--paper-rgb), 1);
 	}
 
 	.nav-btn:disabled {
@@ -175,9 +202,9 @@ onMount(() => {
 	}
 
 	.counter {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(240, 244, 248, 0.5);
+		color: rgba(var(--paper-rgb), 0.5);
 		letter-spacing: 0.15em;
 	}
 
@@ -188,7 +215,7 @@ onMount(() => {
 		z-index: 2;
 		background: none;
 		border: none;
-		color: rgba(240, 244, 248, 0.6);
+		color: rgba(var(--paper-rgb), 0.6);
 		font-size: 2rem;
 		cursor: pointer;
 		width: 44px;
@@ -200,7 +227,7 @@ onMount(() => {
 	}
 
 	.close-btn:hover {
-		color: rgba(240, 244, 248, 1);
+		color: rgba(var(--paper-rgb), 1);
 	}
 
 	@media (prefers-reduced-motion: no-preference) {

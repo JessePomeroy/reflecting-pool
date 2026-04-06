@@ -123,14 +123,16 @@ let { data }: { data: PageData } = $props();
 	}
 
 	.page-header h1 {
-		font-size: 1.875rem;
-		font-weight: 600;
-		color: #f9fafb;
-		margin-bottom: 0.25rem;
+		font-family: var(--font-serif);
+		font-size: 2rem;
+		font-weight: 400;
+		letter-spacing: 0.01em;
+		color: var(--admin-heading);
+		margin: 0 0 0.25rem;
 	}
 
 	.subtitle {
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		font-size: 0.9375rem;
 	}
 
@@ -186,8 +188,8 @@ let { data }: { data: PageData } = $props();
 	}
 
 	.gallery-card {
-		background: #1f2937;
-		border: 1px solid #374151;
+		background: var(--admin-surface);
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.5rem;
 		padding: 1.25rem;
 		display: flex;
@@ -204,13 +206,13 @@ let { data }: { data: PageData } = $props();
 	.gallery-title {
 		font-size: 1rem;
 		font-weight: 600;
-		color: #f9fafb;
+		color: var(--admin-heading);
 		margin-bottom: 0.125rem;
 	}
 
 	.gallery-slug {
 		font-size: 0.8125rem;
-		color: #6b7280;
+		color: var(--admin-text-subtle);
 		font-family: monospace;
 	}
 
@@ -219,20 +221,20 @@ let { data }: { data: PageData } = $props();
 		padding: 0.2rem 0.6rem;
 		border-radius: 9999px;
 		font-weight: 500;
-		background: #374151;
-		color: #6b7280;
+		background: var(--admin-border-strong);
+		color: var(--admin-text-subtle);
 	}
 
 	.visibility-badge.visible {
 		background: rgba(16, 185, 129, 0.15);
-		color: #10b981;
+		color: var(--admin-accent);
 	}
 
 	.gallery-stats {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
 		gap: 0.75rem;
-		border-top: 1px solid #374151;
+		border-top: 1px solid var(--admin-border-strong);
 		padding-top: 1rem;
 	}
 
@@ -245,11 +247,11 @@ let { data }: { data: PageData } = $props();
 	.stat-value {
 		font-size: 1.25rem;
 		font-weight: 600;
-		color: #f9fafb;
+		color: var(--admin-heading);
 	}
 
 	.stat-value.print-count {
-		color: #10b981;
+		color: var(--admin-accent);
 	}
 
 	.stat-value.print-pct {
@@ -258,13 +260,13 @@ let { data }: { data: PageData } = $props();
 
 	.stat-label {
 		font-size: 0.75rem;
-		color: #6b7280;
+		color: var(--admin-text-subtle);
 	}
 
 	.gallery-card-footer {
 		display: flex;
 		gap: 0.75rem;
-		border-top: 1px solid #374151;
+		border-top: 1px solid var(--admin-border-strong);
 		padding-top: 1rem;
 	}
 
@@ -273,16 +275,16 @@ let { data }: { data: PageData } = $props();
 		text-align: center;
 		padding: 0.4rem 0.75rem;
 		background: transparent;
-		border: 1px solid #374151;
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.375rem;
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		font-size: 0.8125rem;
 		text-decoration: none;
 	}
 
 	.btn-link:hover {
-		background: #374151;
-		color: #f9fafb;
+		background: var(--admin-border-strong);
+		color: var(--admin-heading);
 	}
 
 	.btn-edit {
@@ -303,8 +305,8 @@ let { data }: { data: PageData } = $props();
 
 	/* Summary Card */
 	.summary-card {
-		background: #1f2937;
-		border: 1px solid #374151;
+		background: var(--admin-surface);
+		border: 1px solid var(--admin-border-strong);
 		border-radius: 0.5rem;
 		padding: 1.25rem;
 	}
@@ -312,7 +314,7 @@ let { data }: { data: PageData } = $props();
 	.summary-card h2 {
 		font-size: 0.875rem;
 		font-weight: 500;
-		color: #9ca3af;
+		color: var(--admin-text-muted);
 		margin-bottom: 1rem;
 	}
 

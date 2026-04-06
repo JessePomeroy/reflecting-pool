@@ -61,17 +61,17 @@ void main() {
 
   // Color — translucent water blob, shifts on hover
   vec3 baseColor = mix(vec3(0.85, 0.9, 1.0), vec3(0.95, 0.88, 0.7), uHover);
-  vec3 ringColor = mix(vec3(0.3, 0.35, 0.4), vec3(0.9, 0.75, 0.4), uHover);
-  float glow = smoothstep(threshold - 0.6, threshold, field) * 0.15;
+  vec3 ringColor = mix(vec3(0.08, 0.1, 0.18), vec3(0.9, 0.75, 0.4), uHover);
+  float glow = smoothstep(threshold - 0.6, threshold, field) * 0.25;
   float inner = smoothstep(threshold, threshold + 2.0, field);
   vec3 color = mix(baseColor, vec3(1.0), inner * 0.6);
 
-  // Edge refraction ring
-  float ring = smoothstep(threshold - 0.15, threshold, field)
-             - smoothstep(threshold, threshold + 0.3, field);
-  color += ringColor * ring;
+  // Edge refraction ring (stronger so cursor reads over bright caustics)
+  float ring = smoothstep(threshold - 0.2, threshold, field)
+             - smoothstep(threshold, threshold + 0.4, field);
+  color += ringColor * ring * 1.6;
 
-  float alpha = edge * 0.55 + glow;
+  float alpha = edge * 0.85 + glow;
   gl_FragColor = vec4(color, alpha);
 }
 `;

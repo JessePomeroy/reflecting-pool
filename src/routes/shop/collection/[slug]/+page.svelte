@@ -82,27 +82,27 @@ const startingPrice = getStartingPrice();
 	}
 
 	.breadcrumb a {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(26, 31, 46, 0.5);
+		color: rgba(var(--ink-rgb), 0.5);
 		text-decoration: none;
 		letter-spacing: 0.05em;
 		transition: color 0.3s ease;
 	}
 
 	.breadcrumb a:hover {
-		color: rgba(26, 31, 46, 0.8);
+		color: rgba(var(--ink-rgb), 0.8);
 	}
 
 	.breadcrumb .sep {
-		color: rgba(26, 31, 46, 0.3);
+		color: rgba(var(--ink-rgb), 0.3);
 		font-size: 0.85rem;
 	}
 
 	.breadcrumb .current {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(26, 31, 46, 0.7);
+		color: rgba(var(--ink-rgb), 0.7);
 		letter-spacing: 0.05em;
 	}
 
@@ -113,19 +113,19 @@ const startingPrice = getStartingPrice();
 	}
 
 	h1 {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: 2.5rem;
-		color: #1a1f2e;
+		color: var(--ink);
 		letter-spacing: 0.12em;
 		text-transform: lowercase;
 		margin-bottom: 0.75rem;
 	}
 
 	.collection-desc {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 1.05rem;
-		color: rgba(26, 31, 46, 0.55);
+		color: rgba(var(--ink-rgb), 0.55);
 		max-width: 520px;
 		margin: 0 auto 0.5rem;
 		line-height: 1.6;
@@ -133,9 +133,9 @@ const startingPrice = getStartingPrice();
 	}
 
 	.collection-count {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(26, 31, 46, 0.4);
+		color: rgba(var(--ink-rgb), 0.4);
 		letter-spacing: 0.05em;
 	}
 
@@ -160,7 +160,7 @@ const startingPrice = getStartingPrice();
 	.print-image-wrapper {
 		aspect-ratio: 4 / 5;
 		overflow: hidden;
-		background: rgba(26, 31, 46, 0.05);
+		background: rgba(var(--ink-rgb), 0.05);
 		border-radius: 2px;
 	}
 
@@ -180,23 +180,23 @@ const startingPrice = getStartingPrice();
 	}
 
 	.print-title {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-weight: 400;
 		font-size: 1.1rem;
-		color: #1a1f2e;
+		color: var(--ink);
 		margin-bottom: 0.2rem;
 	}
 
 	.print-price {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(26, 31, 46, 0.6);
+		color: rgba(var(--ink-rgb), 0.6);
 	}
 
 	.empty-state {
 		text-align: center;
 		padding: 4rem 2rem;
-		color: rgba(26, 31, 46, 0.5);
+		color: rgba(var(--ink-rgb), 0.5);
 		font-style: italic;
 	}
 
@@ -208,16 +208,16 @@ const startingPrice = getStartingPrice();
 	}
 
 	.back-link {
-		font-family: 'Cormorant', serif;
+		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(26, 31, 46, 0.5);
+		color: rgba(var(--ink-rgb), 0.5);
 		text-decoration: none;
 		letter-spacing: 0.05em;
 		transition: color 0.3s ease;
 	}
 
 	.back-link:hover {
-		color: rgba(26, 31, 46, 0.8);
+		color: rgba(var(--ink-rgb), 0.8);
 	}
 
 	/* Responsive */

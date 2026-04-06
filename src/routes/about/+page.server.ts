@@ -1,4 +1,6 @@
-import type { PageServerLoad } from './$types';
+import type { PageServerLoad } from "./$types";
+
+export const prerender = true;
 
 export interface AboutData {
 	heading: string;
@@ -21,8 +23,8 @@ export const load: PageServerLoad = async () => {
 	// ]);
 
 	const data: AboutData = {
-		heading: 'about',
-		portrait: '/images/flower-01.jpg',
+		heading: "about",
+		portrait: "/images/flower-01.jpg",
 		bio: `margaret helena is a photographer based in the midwest, drawn to the quiet and overlooked — the wildflower at the roadside, the petal catching afternoon light, the garden just before rain. her work lives in that liminal space between document and dream.
 
 she works primarily with natural light and film, favoring intimacy over spectacle. each image is an invitation to slow down.`,
@@ -30,17 +32,16 @@ she works primarily with natural light and film, favoring intimacy over spectacl
 
 i am interested in beauty that is earned, not performed. in the particular rather than the general. in what the light does when it thinks no one is watching.`,
 		highlights: [
-			{ label: 'based in', value: 'chicago, illinois' },
-			{ label: 'medium', value: 'film · digital' },
-			{ label: 'available for', value: 'portrait sessions · editorial · botanical' },
-			{ label: 'prints', value: 'archival fine art on museum-quality paper' },
+			{ label: "based in", value: "chicago, illinois" },
+			{ label: "medium", value: "film · digital" },
+			{ label: "available for", value: "portrait sessions · editorial · botanical" },
+			{ label: "prints", value: "archival fine art on museum-quality paper" },
 		],
-		socialLinks: [
-			{ platform: 'instagram', url: 'https://instagram.com/margarethelena' },
-		],
+		socialLinks: [{ platform: "instagram", url: "https://instagram.com/margarethelena" }],
 		seo: {
-			description: 'margaret helena — photographer based in chicago. fine art floral photography, portrait sessions, and archival prints.',
-			ogImage: '/images/flower-03.jpg',
+			description:
+				"margaret helena — photographer based in chicago. fine art floral photography, portrait sessions, and archival prints.",
+			ogImage: "/images/flower-03.jpg",
 		},
 	};
 
