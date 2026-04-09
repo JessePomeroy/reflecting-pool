@@ -18,11 +18,9 @@ const config = {
 		// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
 		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
 		adapter: adapter(),
-		// CSRF protection is enabled by default via origin checks on cross-origin
-		// form submissions. JSON POSTs are inherently CSRF-safe (fetch + custom
-		// Content-Type triggers a CORS preflight we do not permit). Webhooks
-		// (e.g. /api/webhooks/stripe) validate a provider signature out of band.
-		// To permit additional origins in future, use `csrf: { trustedOrigins: [...] }`.
+		alias: {
+			$convex: "./convex/_generated",
+		},
 	},
 };
 

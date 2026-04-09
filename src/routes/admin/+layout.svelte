@@ -1,21 +1,35 @@
 <script lang="ts">
+import { setAdminConfig } from "@jessepomeroy/admin";
+import { setupConvex } from "convex-svelte";
 import type { Snippet } from "svelte";
 import { page } from "$app/stores";
+import { PUBLIC_CONVEX_URL } from "$env/static/public";
+import { adminConfig } from "$lib/config/admin";
+
+setupConvex(PUBLIC_CONVEX_URL);
+setAdminConfig(adminConfig);
 
 interface Props {
+	data: any;
 	children: Snippet;
 }
 
-let { children }: Props = $props();
+let { data, children }: Props = $props();
 
 let sidebarOpen = $state(false);
 
-type NavIcon = "dashboard" | "orders" | "inquiries" | "galleries";
-const navItems: { href: string; label: string; icon: NavIcon }[] = [
-	{ href: "/admin", label: "Dashboard", icon: "dashboard" },
-	{ href: "/admin/orders", label: "Orders", icon: "orders" },
-	{ href: "/admin/inquiries", label: "Inquiries", icon: "inquiries" },
-	{ href: "/admin/galleries", label: "Galleries", icon: "galleries" },
+const navItems: { href: string; label: string; separator?: boolean }[] = [
+	{ href: "/admin", label: "dashboard" },
+	{ href: "/admin/inquiries", label: "inquiries" },
+	{ href: "/admin/orders", label: "orders" },
+	{ href: "/admin/galleries", label: "galleries" },
+	{ href: "/admin/crm", label: "clients", separator: true },
+	{ href: "/admin/board", label: "board" },
+	{ href: "/admin/quotes", label: "quotes" },
+	{ href: "/admin/contracts", label: "contracts" },
+	{ href: "/admin/invoicing", label: "invoicing" },
+	{ href: "/admin/emails", label: "emails", separator: true },
+	{ href: "/admin/messages", label: "messages" },
 ];
 
 function isActive(href: string, currentPath: string): boolean {
@@ -28,7 +42,7 @@ function isActive(href: string, currentPath: string): boolean {
 	<title>Admin · Reflecting Pool</title>
 </svelte:head>
 
-<div class="admin-layout">
+<div class="admin-layout" data-admin>
 	<!-- Mobile Header -->
 	<header class="mobile-header">
 		<button class="menu-toggle" onclick={() => (sidebarOpen = !sidebarOpen)} aria-label="Toggle menu">
@@ -38,45 +52,37 @@ function isActive(href: string, currentPath: string): boolean {
 				<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
 			{/if}
 		</button>
-		<span class="brand">Reflecting Pool</span>
+		<span class="brand">{adminConfig.siteName}</span>
 	</header>
 
 	<!-- Sidebar -->
 	<aside class="sidebar" class:open={sidebarOpen}>
 		<div class="sidebar-header">
-			<h1 class="brand">Reflecting Pool</h1>
+			<h1 class="brand">{adminConfig.siteName}</h1>
 			<span class="badge">Admin</span>
 		</div>
 
 		<nav class="nav">
 			{#each navItems as item (item.href)}
+				{#if item.separator}
+					<div class="nav-separator"></div>
+				{/if}
 				<a
 					href={item.href}
 					class="nav-item"
 					class:active={isActive(item.href, $page.url.pathname)}
 					onclick={() => (sidebarOpen = false)}
 				>
-					<span class="nav-icon" aria-hidden="true">
-						{#if item.icon === "dashboard"}
-							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-						{:else if item.icon === "orders"}
-							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
-						{:else if item.icon === "inquiries"}
-							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M3 7l9 6 9-6"/></svg>
-						{:else if item.icon === "galleries"}
-							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="1.5"/><circle cx="9" cy="10" r="1.5"/><path d="M21 15l-5-5L7 18"/></svg>
-						{/if}
-					</span>
 					<span class="nav-label">{item.label}</span>
 				</a>
 			{/each}
 		</nav>
 
 		<div class="sidebar-footer">
-			<a href="/" class="back-link">← Back to site</a>
+			<a href="/" class="back-link">← back to site</a>
 			<form method="POST" action="/admin/logout" class="logout-form">
 				<input type="hidden" name="redirectTo" value="/admin/login" />
-				<button type="submit" class="logout-btn">Sign out</button>
+				<button type="submit" class="logout-btn">sign out</button>
 			</form>
 		</div>
 	</aside>
@@ -93,34 +99,7 @@ function isActive(href: string, currentPath: string): boolean {
 </div>
 
 <style>
-	/* ── Admin design tokens — harmonized with site palette ────────── */
 	.admin-layout {
-		/* Neutrals derived from --ink / --paper */
-		--admin-bg: #1a1f2e;
-		--admin-surface: #242a3b;
-		--admin-surface-raised: #2b3244;
-		--admin-border: rgba(var(--paper-rgb), 0.08);
-		--admin-border-strong: rgba(var(--paper-rgb), 0.14);
-
-		--admin-heading: rgba(var(--paper-rgb), 0.95);
-		--admin-text: rgba(var(--paper-rgb), 0.82);
-		--admin-text-muted: rgba(var(--paper-rgb), 0.55);
-		--admin-text-subtle: rgba(var(--paper-rgb), 0.35);
-
-		--admin-accent: rgba(var(--paper-rgb), 0.85);
-		--admin-accent-hover: rgba(var(--paper-rgb), 1);
-		--admin-active: rgba(var(--paper-rgb), 0.08);
-
-		/* Status palette — muted, derived */
-		--status-slate: #6b7fa8;
-		--status-amber: #b89a5e;
-		--status-lavender: #9d7eb3;
-		--status-peach: #c48b6a;
-		--status-sage: #7ea487;
-		--status-rose: #b87c7c;
-		--status-dusty-red: #a8676e;
-		--status-gray: rgba(var(--paper-rgb), 0.35);
-
 		display: flex;
 		min-height: 100vh;
 		background: var(--admin-bg);
@@ -133,7 +112,6 @@ function isActive(href: string, currentPath: string): boolean {
 		cursor: inherit;
 	}
 
-	/* Sidebar */
 	.sidebar {
 		width: 240px;
 		background: var(--admin-surface);
@@ -154,8 +132,7 @@ function isActive(href: string, currentPath: string): boolean {
 	}
 
 	.brand {
-		font-family: var(--font-serif);
-		font-size: 1.15rem;
+		font-size: 1.1rem;
 		font-weight: 400;
 		letter-spacing: 0.04em;
 		color: var(--admin-heading);
@@ -179,6 +156,7 @@ function isActive(href: string, currentPath: string): boolean {
 	.nav {
 		flex: 1;
 		padding: 0.75rem 0;
+		overflow-y: auto;
 	}
 
 	.nav-item {
@@ -189,7 +167,7 @@ function isActive(href: string, currentPath: string): boolean {
 		color: var(--admin-text-muted);
 		text-decoration: none;
 		border-left: 2px solid transparent;
-		transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+		transition: color 0.15s, background 0.15s, border-color 0.15s;
 	}
 
 	.nav-item:hover {
@@ -209,14 +187,17 @@ function isActive(href: string, currentPath: string): boolean {
 		justify-content: center;
 		width: 18px;
 		height: 18px;
-		color: inherit;
 		opacity: 0.85;
 	}
 
 	.nav-label {
 		font-size: 0.875rem;
-		font-weight: 400;
-		letter-spacing: 0.01em;
+	}
+
+	.nav-separator {
+		height: 1px;
+		background: var(--admin-border);
+		margin: 6px 1.5rem;
 	}
 
 	.sidebar-footer {
@@ -251,15 +232,13 @@ function isActive(href: string, currentPath: string): boolean {
 		letter-spacing: 0.05em;
 		cursor: pointer;
 		text-align: left;
-		transition: color 0.15s ease, border-color 0.15s ease;
+		transition: color 0.15s, border-color 0.15s;
 	}
 
 	.logout-btn:hover {
-		border-color: var(--admin-border-strong);
 		color: var(--admin-heading);
 	}
 
-	/* Mobile Header */
 	.mobile-header {
 		display: none;
 	}
@@ -271,24 +250,21 @@ function isActive(href: string, currentPath: string): boolean {
 		cursor: pointer;
 		padding: 0.5rem;
 		display: inline-flex;
-		align-items: center;
-		justify-content: center;
 	}
 
-	/* Overlay for mobile */
 	.overlay {
 		display: none;
 	}
 
-	/* Content */
 	.content {
 		flex: 1;
 		margin-left: 240px;
 		padding: 2rem 2.5rem;
 		min-height: 100vh;
+		max-width: calc(100vw - 240px);
+		overflow-x: hidden;
 	}
 
-	/* Responsive */
 	@media (max-width: 768px) {
 		.sidebar {
 			transform: translateX(-100%);
@@ -316,6 +292,7 @@ function isActive(href: string, currentPath: string): boolean {
 		.content {
 			margin-left: 0;
 			padding: 4rem 1.25rem 2rem;
+			max-width: 100vw;
 		}
 
 		.overlay {

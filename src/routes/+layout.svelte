@@ -54,6 +54,8 @@ inject({ mode: dev ? "development" : "production" });
 		--paper-rgb: 240, 244, 248;
 		--font-serif: 'Cormorant', serif;
 		--bp-mobile: 768px;
+		--admin-dark-rgb: var(--ink-rgb);
+		--admin-light-rgb: var(--paper-rgb);
 	}
 
 	:global(*) {
