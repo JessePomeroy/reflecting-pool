@@ -2,7 +2,6 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "$convex/api";
 import { env } from "$env/dynamic/public";
 import { adminConfig } from "$lib/config/admin";
-import { requireAdmin } from "$lib/server/auth";
 import type { LayoutServerLoad } from "./$types";
 
 let _convex: ConvexHttpClient | null = null;
@@ -13,10 +12,7 @@ function getConvex() {
 	return _convex;
 }
 
-export const load: LayoutServerLoad = async (event) => {
-	if (event.url.pathname === "/admin/login") return {};
-	requireAdmin(event);
-
+export const load: LayoutServerLoad = async () => {
 	const convex = getConvex();
 	const result = await convex.query(api.platform.checkTier, { siteUrl: adminConfig.siteUrl });
 
