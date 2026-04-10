@@ -90,20 +90,12 @@ describe("POST /api/webhooks/stripe", () => {
 		vi.clearAllMocks();
 		vi.resetModules();
 
-		// Re-apply mocks after resetModules
-		vi.mock("../../lib/server/sanity", () => ({
-			createSanityOrder: mockCreateSanityOrder,
-			updateSanityOrder: mockUpdateSanityOrder,
-		}));
-		vi.mock("../../lib/server/lumaprints", () => ({
-			createOrder: mockCreateLumaOrder,
-			buildLumaPrintsOrder: mockBuildLumaOrder,
-		}));
-		vi.mock("../../lib/server/stripe", () => ({
-			verifyWebhook: mockVerifyWebhook,
-			stripe: {},
-		}));
-
+		// Top-level vi.mock() calls above are hoisted by Vitest and stay
+		// active across resetModules() — they only need to be declared once.
+		// (Re-applying them here is a no-op: Vitest statically hoists all
+		//  vi.mock() calls in the file to the top of the module, so nested
+		//  calls become duplicate top-level registrations and Vitest 4
+		//  warns they'll become an error in the future.)
 		const mod = await import("../../routes/api/webhooks/stripe/+server");
 		POST = mod.POST as unknown as typeof POST;
 	});

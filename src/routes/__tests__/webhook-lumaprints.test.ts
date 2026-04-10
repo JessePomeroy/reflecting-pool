@@ -45,11 +45,8 @@ describe("POST /api/webhooks/lumaprints", () => {
 		vi.clearAllMocks();
 		vi.resetModules();
 
-		vi.mock("../../lib/server/sanity", () => ({
-			findOrderByLumaprintsNumber: mockFindOrder,
-			updateSanityOrder: mockUpdateOrder,
-		}));
-
+		// Top-level vi.mock() above is hoisted by Vitest and stays active
+		// across resetModules() — no need to re-apply inside beforeEach.
 		const mod = await import("../../routes/api/webhooks/lumaprints/+server");
 		POST = mod.POST as unknown as typeof POST;
 	});
