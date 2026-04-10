@@ -100,9 +100,14 @@ src/
 ### LumaPrints API Client (`src/lib/server/lumaprints.ts`)
 
 ```ts
-import { LUMAPRINTS_API_KEY, LUMAPRINTS_API_SECRET, LUMAPRINTS_STORE_ID } from '$env/static/private';
+import {
+  LUMAPRINTS_API_KEY,
+  LUMAPRINTS_API_SECRET,
+  LUMAPRINTS_STORE_ID,
+  LUMAPRINTS_USE_SANDBOX,
+} from '$env/static/private';
 
-const BASE_URL = import.meta.env.DEV
+const BASE_URL = LUMAPRINTS_USE_SANDBOX === "true"
   ? 'https://us.api-sandbox.lumaprints.com'
   : 'https://us.api.lumaprints.com';
 
@@ -384,6 +389,7 @@ export async function POST({ request }) {
 LUMAPRINTS_API_KEY=eab4f36a...
 LUMAPRINTS_API_SECRET=5ce35c...
 LUMAPRINTS_STORE_ID=83765
+LUMAPRINTS_USE_SANDBOX=true    # optional; default is production
 
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
@@ -394,6 +400,23 @@ SANITY_PROJECT_ID=...
 SANITY_DATASET=production
 SANITY_API_TOKEN=...  # write access for webhooks
 ```
+
+### Production vs sandbox routing
+
+The client picks between sandbox and production based on `LUMAPRINTS_USE_SANDBOX`:
+
+- `LUMAPRINTS_USE_SANDBOX=true` → `https://us.api-sandbox.lumaprints.com`
+- unset or anything else → `https://us.api.lumaprints.com`
+
+**Recommended Vercel configuration:**
+
+| Environment | `LUMAPRINTS_USE_SANDBOX` | Why |
+|---|---|---|
+| Production | `false` (or unset) | Real orders, real customers |
+| Preview | `true` | Every PR branch deploys to a preview URL. Test the full checkout + webhook flow there without triggering real fulfillment. |
+| Development (`.env.local`) | `true` | Local `pnpm dev` should never submit real orders |
+
+**Why an explicit env var instead of `import.meta.env.DEV`:** the Vite `DEV` flag is `true` only for `pnpm dev`. Vercel preview builds run in production mode, so a `DEV`-based switch would route preview-branch checkouts to **production** LumaPrints — a silent footgun for any PR touching the webhook. The dedicated env var gives each Vercel target independent control. (This is an upgrade ported from angelsrest audit #22; both projects now share the pattern.)
 
 ---
 

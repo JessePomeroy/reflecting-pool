@@ -5,6 +5,7 @@ import {
 	LUMAPRINTS_API_KEY,
 	LUMAPRINTS_API_SECRET,
 	LUMAPRINTS_STORE_ID,
+	LUMAPRINTS_USE_SANDBOX,
 } from "$env/static/private";
 import type {
 	LumaPrintsOrder,
@@ -14,9 +15,16 @@ import type {
 	Recipient,
 } from "$lib/shop/types";
 
-const BASE_URL = import.meta.env.DEV
-	? "https://us.api-sandbox.lumaprints.com"
-	: "https://us.api.lumaprints.com";
+// Sandbox switch is driven by an explicit LUMAPRINTS_USE_SANDBOX env var
+// instead of `import.meta.env.DEV`. The Vite DEV flag is true only for
+// `pnpm dev` and leaves Vercel preview deployments pointing at production
+// LumaPrints — a silent footgun for any PR touching checkout. An explicit
+// var lets each environment (local / preview / production) be configured
+// independently. See LUMAPRINTS.md for the recommended Vercel config.
+const BASE_URL =
+	LUMAPRINTS_USE_SANDBOX === "true"
+		? "https://us.api-sandbox.lumaprints.com"
+		: "https://us.api.lumaprints.com";
 
 function getHeaders(): HeadersInit {
 	return {
