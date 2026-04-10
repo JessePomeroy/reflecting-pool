@@ -6,9 +6,9 @@ interface Props {
 	image?: string;
 }
 
-let { title, description, url = '', image = '' }: Props = $props();
+let { title, description, url = "", image = "" }: Props = $props();
 
-const siteName = 'margaret helena · photography';
+const siteName = "margaret helena · photography";
 const fullTitle = $derived(title ? `${title} · margaret helena` : siteName);
 </script>
 

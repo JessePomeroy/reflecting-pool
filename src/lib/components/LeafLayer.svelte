@@ -3,7 +3,13 @@ import { getContext, onMount } from "svelte";
 import { browser } from "$app/environment";
 import type { FloatingLeaf, ParallaxContext } from "$lib/types/gallery";
 import { clamp, randomRange } from "$lib/utils/math";
-import { createRippleSystem, applyClickImpulse, stepRipple, snapshotPush, LEAF_RIPPLE } from "$lib/utils/ripple";
+import {
+	applyClickImpulse,
+	createRippleSystem,
+	LEAF_RIPPLE,
+	snapshotPush,
+	stepRipple,
+} from "$lib/utils/ripple";
 
 interface Props {
 	hidden?: boolean;
@@ -46,7 +52,10 @@ onMount(() => {
 });
 
 // ── Click-ripple push (shared physics — drift mode, no spring-back) ─────
-let ripple = { push: [] as Array<{x:number;y:number}>, vel: [] as Array<{x:number;y:number}> };
+let ripple = {
+	push: [] as Array<{ x: number; y: number }>,
+	vel: [] as Array<{ x: number; y: number }>,
+};
 let leafPushOutput = $state.raw<Array<{ x: number; y: number }>>([]);
 
 onMount(() => {
@@ -55,12 +64,12 @@ onMount(() => {
 	function handlePageClick(e: MouseEvent) {
 		const clickX = (e.clientX / window.innerWidth) * 100;
 		const clickY = (e.clientY / window.innerHeight) * 100;
-		const positions = leaves.map(l => ({ x: l.x, y: l.y }));
+		const positions = leaves.map((l) => ({ x: l.x, y: l.y }));
 		applyClickImpulse(clickX, clickY, positions, ripple.vel, LEAF_RIPPLE);
 	}
 
-	window.addEventListener('click', handlePageClick);
-	return () => window.removeEventListener('click', handlePageClick);
+	window.addEventListener("click", handlePageClick);
+	return () => window.removeEventListener("click", handlePageClick);
 });
 
 // Initialize ripple arrays when leaves are ready

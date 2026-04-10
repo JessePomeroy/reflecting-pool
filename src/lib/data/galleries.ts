@@ -27,18 +27,31 @@ function makeCluster(id: string, title: string, slug: string, nums: string[]): G
 
 export const clusters: GalleryCluster[] = [
 	makeCluster("wildflowers", "Wildflowers", "wildflowers", [
-		"01", "02", "03", "04", "05", "06", "07",
+		"01",
+		"02",
+		"03",
+		"04",
+		"05",
+		"06",
+		"07",
 	]),
 	makeCluster("garden-portraits", "Garden Portraits", "garden-portraits", [
-		"08", "09", "10", "11", "13",
+		"08",
+		"09",
+		"10",
+		"11",
+		"13",
 	]),
-	makeCluster("close-ups", "Close-ups", "close-ups", [
-		"14", "15", "16", "17", "18", "19", "20",
-	]),
-	makeCluster("moody-blooms", "Moody Blooms", "moody-blooms", [
-		"21", "22", "24", "25", "26", "27",
-	]),
+	makeCluster("close-ups", "Close-ups", "close-ups", ["14", "15", "16", "17", "18", "19", "20"]),
+	makeCluster("moody-blooms", "Moody Blooms", "moody-blooms", ["21", "22", "24", "25", "26", "27"]),
 	makeCluster("panoramic", "Panoramic", "panoramic", [
-		"28", "29", "30", "31", "32", "33", "34", "35",
+		"28",
+		"29",
+		"30",
+		"31",
+		"32",
+		"33",
+		"34",
+		"35",
 	]),
 ];

@@ -86,11 +86,7 @@ export function applyClickImpulse(
  * Step the ripple physics one frame.
  * @returns true if any element is still moving (needs re-render)
  */
-export function stepRipple(
-	push: Vec2[],
-	vel: Vec2[],
-	config: RippleConfig,
-): boolean {
+export function stepRipple(push: Vec2[], vel: Vec2[], config: RippleConfig): boolean {
 	let anyMoving = false;
 	const threshold = config.mode === "drift" ? 0.005 : 0.01;
 
