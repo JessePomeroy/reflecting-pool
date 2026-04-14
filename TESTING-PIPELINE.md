@@ -350,6 +350,15 @@ git push -u origin main
 □ Test one more checkout end-to-end on production
 ```
 
+### CI Setup
+
+The repo includes a CI workflow (`.github/workflows/ci.yml`) that runs lint and type check on every push. It needs one secret to install `@jessepomeroy/admin` from GitHub Packages:
+
+1. Go to the repo's **Settings → Secrets and variables → Actions**
+2. Add `GH_PACKAGES_TOKEN` — a classic PAT with `read:packages` scope
+
+CI uses placeholder env vars for type checking (real secrets stay on Vercel only). The build step is not in CI — Vercel handles production builds.
+
 ---
 
 ## Phase 6: Client Handoff (When Ready)

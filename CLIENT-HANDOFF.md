@@ -319,7 +319,8 @@ Bundle maintenance for all your clients:
 
 ### Infrastructure
 - 109 automated tests (Vitest)
-- GitHub Actions CI/CD (lint → test → build)
+- GitHub Actions CI (lint → type check) — build handled by Vercel
+- CI installs `@jessepomeroy/admin` from GitHub Packages via `GH_PACKAGES_TOKEN` secret
 - Pre-commit hooks (Biome + lint-staged)
 - Rate limiting on API endpoints
 - robots.txt + sitemap.xml
