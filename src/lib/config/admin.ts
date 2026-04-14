@@ -5,9 +5,11 @@ import { api } from "$convex/api";
 // Use a Proxy — never spread `api` (it's a Proxy with no own enumerable props).
 const apiWithAliases = new Proxy(api, {
 	get(target, prop, receiver) {
+		// @ts-expect-error -- galleries namespace added during client onboarding
 		if (prop === "galleryDelivery") return target.galleries;
 		return Reflect.get(target, prop, receiver);
 	},
+	// @ts-expect-error -- galleries namespace added during client onboarding
 }) as typeof api & { galleryDelivery: typeof api.galleries };
 
 export const adminConfig: AdminConfig = {
