@@ -1,7 +1,7 @@
 // Retail pricing for prints
 // Cost data from LumaPrints + margin strategy from LUMAPRINTS.md
 
-import type { PaperType, PrintDimensions } from "./types";
+import type { PrintDimensions } from "./types";
 
 /** Cost and retail prices per paper type and size */
 interface PriceEntry {
@@ -11,7 +11,7 @@ interface PriceEntry {
 
 /**
  * Pricing lookup table.
- * Key format: "{paperType}:{width}x{height}"
+ * Key format: "{paperName}:{width}x{height}"
  */
 const PRICE_TABLE: Record<string, PriceEntry> = {
 	// Archival Matte (subcategory 103001)
@@ -27,24 +27,24 @@ const PRICE_TABLE: Record<string, PriceEntry> = {
 	"Glossy:16x20": { cost: 10.2, retail: 95 },
 };
 
-function priceKey(paper: PaperType, size: PrintDimensions): string {
+function priceKey(paper: string, size: PrintDimensions): string {
 	return `${paper}:${size.width}x${size.height}`;
 }
 
 /** Get the retail price for a paper + size combination */
-export function getRetailPrice(paper: PaperType, size: PrintDimensions): number | null {
+export function getRetailPrice(paper: string, size: PrintDimensions): number | null {
 	const entry = PRICE_TABLE[priceKey(paper, size)];
 	return entry?.retail ?? null;
 }
 
 /** Get the cost (LumaPrints wholesale) for a paper + size */
-export function getCost(paper: PaperType, size: PrintDimensions): number | null {
+export function getCost(paper: string, size: PrintDimensions): number | null {
 	const entry = PRICE_TABLE[priceKey(paper, size)];
 	return entry?.cost ?? null;
 }
 
 /** Get the profit margin for a paper + size */
-export function getMargin(paper: PaperType, size: PrintDimensions): number | null {
+export function getMargin(paper: string, size: PrintDimensions): number | null {
 	const entry = PRICE_TABLE[priceKey(paper, size)];
 	if (!entry) return null;
 	return entry.retail - entry.cost;
@@ -56,7 +56,7 @@ export function getStartingPrice(): number {
 }
 
 /** Get the starting retail price for a specific paper type */
-export function getStartingPriceForPaper(paper: PaperType): number {
+export function getStartingPriceForPaper(paper: string): number {
 	const prices = Object.entries(PRICE_TABLE)
 		.filter(([key]) => key.startsWith(paper))
 		.map(([, entry]) => entry.retail);
@@ -68,9 +68,9 @@ export function formatPrice(cents: number): string {
 	return `$${cents.toFixed(0)}`;
 }
 
-/** Get all prices for display (paper × size matrix) */
+/** Get all prices for display (paper x size matrix) */
 export function getAllPrices(): {
-	paper: PaperType;
+	paper: string;
 	width: number;
 	height: number;
 	sizeLabel: string;
@@ -81,7 +81,7 @@ export function getAllPrices(): {
 		const [paper, dims] = key.split(":");
 		const [w, h] = dims.split("x").map(Number);
 		return {
-			paper: paper as PaperType,
+			paper,
 			width: w,
 			height: h,
 			sizeLabel: `${w}×${h}`,

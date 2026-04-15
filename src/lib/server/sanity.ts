@@ -5,6 +5,7 @@
 import { createClient } from "@sanity/client";
 import { SANITY_API_TOKEN, SANITY_DATASET, SANITY_PROJECT_ID } from "$env/static/private";
 import type { Order, PrintCollection, PrintProduct } from "$lib/shop/types";
+import { V2_SIZES } from "$lib/shop/v2Catalog";
 
 export const sanityClient = createClient({
 	projectId: SANITY_PROJECT_ID,
@@ -248,12 +249,7 @@ function getMockCollections(): PrintCollection[] {
 	];
 }
 
-const DEFAULT_SIZES = [
-	{ width: 4, height: 6, label: "4×6" },
-	{ width: 8, height: 10, label: "8×10" },
-	{ width: 11, height: 14, label: "11×14" },
-	{ width: 16, height: 20, label: "16×20" },
-];
+const DEFAULT_SIZES = V2_SIZES.map((s) => ({ width: s.width, height: s.height, label: s.label }));
 
 function makeMockPrint(
 	num: string,
@@ -340,6 +336,6 @@ function getMockProducts(): PrintProduct[] {
 //     lqip: img.image.asset.metadata?.lqip,
 //     galleryTitle,
 //     gallerySlug,
-//     availableSizes: AVAILABLE_SIZES,
+//     availableSizes: V2_SIZES.map(s => ({ width: s.width, height: s.height, label: s.label })),
 //   };
 // }

@@ -1,47 +1,11 @@
 // Types for the print shop integration
 
-/** Paper types available from LumaPrints (Fine Art Paper category 103) */
-export type PaperType = "Archival Matte" | "Glossy";
-
-/** LumaPrints subcategory IDs for paper types */
-export const PAPER_SUBCATEGORY_IDS: Record<PaperType, number> = {
-	"Archival Matte": 103001,
-	Glossy: 103007,
-};
-
 /** Available print dimensions (inches) */
 export interface PrintDimensions {
 	width: number;
 	height: number;
 	label: string; // e.g., "8×10"
 }
-
-export const AVAILABLE_SIZES: PrintDimensions[] = [
-	{ width: 4, height: 6, label: "4×6" },
-	{ width: 8, height: 10, label: "8×10" },
-	{ width: 11, height: 14, label: "11×14" },
-	{ width: 16, height: 20, label: "16×20" },
-];
-
-/** A paper option with subcategory ID for LumaPrints */
-export interface PaperOption {
-	name: PaperType;
-	subcategoryId: number;
-	description: string;
-}
-
-export const PAPER_OPTIONS: PaperOption[] = [
-	{
-		name: "Archival Matte",
-		subcategoryId: 103001,
-		description: "Museum-quality archival matte — rich tones, no glare",
-	},
-	{
-		name: "Glossy",
-		subcategoryId: 103007,
-		description: "Vibrant glossy finish — vivid colors, high contrast",
-	},
-];
 
 /** A print product displayed in the shop */
 export interface PrintProduct {
@@ -118,6 +82,10 @@ export interface OrderItem {
 	width: number;
 	height: number;
 	quantity: number;
+	borderWidth?: number;
+	frameSubcategoryId?: number;
+	canvasSubcategoryId?: number;
+	canvasWrapHex?: string;
 }
 
 /** LumaPrints API order payload */
@@ -144,6 +112,7 @@ export interface LumaPrintsOrder {
 		height: number;
 		file: { imageUrl: string };
 		orderItemOptions: number[];
+		solidColorHexCode?: string;
 	}[];
 }
 

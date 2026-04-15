@@ -102,10 +102,10 @@ describe("buildLumaPrintsOrder", () => {
 		}
 	});
 
-	it("strips query params from image URLs in order items", () => {
+	it("uses prepareSanityUrlForPrint for image URLs in order items", () => {
 		const order = buildLumaPrintsOrder("order-6", mockRecipient, mockItems);
 		for (const item of order.orderItems) {
-			expect(item.file.imageUrl).not.toContain("?");
+			expect(item.file.imageUrl).toContain("?max=8000&q=100");
 		}
 	});
 
@@ -126,6 +126,30 @@ describe("buildLumaPrintsOrder", () => {
 		expect(item.width).toBe(8);
 		expect(item.height).toBe(10);
 		expect(item.quantity).toBe(1);
+	});
+
+	it("includes solidColorHexCode when canvasWrapHex is set", () => {
+		const canvasItems: OrderItem[] = [
+			{
+				imageUrl: "https://cdn.sanity.io/images/proj/dataset/photo.jpg",
+				paperSubcategoryId: 103001,
+				canvasSubcategoryId: 101001,
+				canvasWrapHex: "#000000",
+				width: 16,
+				height: 20,
+				quantity: 1,
+			},
+		];
+		const order = buildLumaPrintsOrder("canvas-order", mockRecipient, canvasItems);
+		const item = order.orderItems[0];
+		expect(item.solidColorHexCode).toBe("#000000");
+		expect(item.subcategoryId).toBe(101001);
+	});
+
+	it("omits solidColorHexCode when canvasWrapHex is not set", () => {
+		const order = buildLumaPrintsOrder("no-canvas-order", mockRecipient, mockItems);
+		const item = order.orderItems[0];
+		expect(item.solidColorHexCode).toBeUndefined();
 	});
 });
 

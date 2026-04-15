@@ -53,7 +53,6 @@ describe("getRetailPrice", () => {
 	});
 
 	it("returns null for unknown paper type", () => {
-		// @ts-expect-error — intentionally wrong type for test
 		expect(getRetailPrice("Velvet Rag", size(8, 10))).toBeNull();
 	});
 });

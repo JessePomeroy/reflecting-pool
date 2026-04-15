@@ -1,71 +1,85 @@
 import { describe, expect, it } from "vitest";
-import { AVAILABLE_SIZES, PAPER_OPTIONS, PAPER_SUBCATEGORY_IDS } from "../shop/types";
+import { getPaper, getSize, V2_PAPERS, V2_SIZES } from "../shop/v2Catalog";
 
-describe("PAPER_SUBCATEGORY_IDS", () => {
-	it("Archival Matte has subcategory ID 103001", () => {
-		expect(PAPER_SUBCATEGORY_IDS["Archival Matte"]).toBe(103001);
+describe("V2_PAPERS", () => {
+	it("has at least one paper entry", () => {
+		expect(V2_PAPERS.length).toBeGreaterThan(0);
 	});
 
-	it("Glossy has subcategory ID 103007", () => {
-		expect(PAPER_SUBCATEGORY_IDS["Glossy"]).toBe(103007);
+	it("includes Archival Matte with subcategory ID 103001", () => {
+		const paper = V2_PAPERS.find((p) => p.name === "Archival Matte");
+		expect(paper).toBeDefined();
+		expect(paper!.subcategoryId).toBe(103001);
 	});
 
-	it("has exactly 2 paper types", () => {
-		expect(Object.keys(PAPER_SUBCATEGORY_IDS)).toHaveLength(2);
+	it("includes Glossy with subcategory ID 103007", () => {
+		const paper = V2_PAPERS.find((p) => p.name === "Glossy");
+		expect(paper).toBeDefined();
+		expect(paper!.subcategoryId).toBe(103007);
+	});
+
+	it("all papers have slug, name, subcategoryId, and description", () => {
+		for (const p of V2_PAPERS) {
+			expect(typeof p.slug).toBe("string");
+			expect(p.slug.length).toBeGreaterThan(0);
+			expect(typeof p.name).toBe("string");
+			expect(p.name.length).toBeGreaterThan(0);
+			expect(typeof p.subcategoryId).toBe("number");
+			expect(typeof p.description).toBe("string");
+		}
 	});
 });
 
-describe("AVAILABLE_SIZES", () => {
-	it("has 4 available sizes", () => {
-		expect(AVAILABLE_SIZES).toHaveLength(4);
+describe("V2_SIZES", () => {
+	it("has at least one size entry", () => {
+		expect(V2_SIZES.length).toBeGreaterThan(0);
 	});
 
-	it("includes 4×6 size", () => {
-		expect(AVAILABLE_SIZES).toContainEqual({ width: 4, height: 6, label: "4×6" });
+	it("includes 8x10 size", () => {
+		const size = V2_SIZES.find((s) => s.slug === "8x10");
+		expect(size).toBeDefined();
+		expect(size!.width).toBe(8);
+		expect(size!.height).toBe(10);
 	});
 
-	it("includes 8×10 size", () => {
-		expect(AVAILABLE_SIZES).toContainEqual({ width: 8, height: 10, label: "8×10" });
-	});
-
-	it("includes 11×14 size", () => {
-		expect(AVAILABLE_SIZES).toContainEqual({ width: 11, height: 14, label: "11×14" });
-	});
-
-	it("includes 16×20 size", () => {
-		expect(AVAILABLE_SIZES).toContainEqual({ width: 16, height: 20, label: "16×20" });
-	});
-
-	it("all sizes have width, height, and label", () => {
-		for (const s of AVAILABLE_SIZES) {
+	it("all sizes have slug, label, width, and height", () => {
+		for (const s of V2_SIZES) {
+			expect(typeof s.slug).toBe("string");
+			expect(s.slug.length).toBeGreaterThan(0);
+			expect(typeof s.label).toBe("string");
 			expect(typeof s.width).toBe("number");
 			expect(typeof s.height).toBe("number");
-			expect(typeof s.label).toBe("string");
-			expect(s.label.length).toBeGreaterThan(0);
 		}
 	});
 });
 
-describe("PAPER_OPTIONS", () => {
-	it("has 2 paper options", () => {
-		expect(PAPER_OPTIONS).toHaveLength(2);
+describe("getPaper", () => {
+	it("returns paper by slug", () => {
+		const paper = getPaper("archival-matte");
+		expect(paper).toBeDefined();
+		expect(paper!.name).toBe("Archival Matte");
 	});
 
-	it("Archival Matte option matches subcategory ID", () => {
-		const opt = PAPER_OPTIONS.find((p) => p.name === "Archival Matte");
-		expect(opt).toBeDefined();
-		expect(opt!.subcategoryId).toBe(PAPER_SUBCATEGORY_IDS["Archival Matte"]);
+	it("returns undefined for unknown slug", () => {
+		expect(getPaper("nonexistent")).toBeUndefined();
 	});
 
-	it("Glossy option matches subcategory ID", () => {
-		const opt = PAPER_OPTIONS.find((p) => p.name === "Glossy");
-		expect(opt).toBeDefined();
-		expect(opt!.subcategoryId).toBe(PAPER_SUBCATEGORY_IDS["Glossy"]);
+	it("returns synthetic entry for canvas slugs", () => {
+		const paper = getPaper("canvas-black-0.75");
+		expect(paper).toBeDefined();
+		expect(paper!.subcategoryId).toBe(0);
+	});
+});
+
+describe("getSize", () => {
+	it("returns size by slug", () => {
+		const size = getSize("8x10");
+		expect(size).toBeDefined();
+		expect(size!.width).toBe(8);
+		expect(size!.height).toBe(10);
 	});
 
-	it("all options have a non-empty description", () => {
-		for (const opt of PAPER_OPTIONS) {
-			expect(opt.description.length).toBeGreaterThan(0);
-		}
+	it("returns undefined for unknown slug", () => {
+		expect(getSize("99x99")).toBeUndefined();
 	});
 });

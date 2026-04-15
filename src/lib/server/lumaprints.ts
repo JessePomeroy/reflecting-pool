@@ -7,6 +7,7 @@ import {
 	LUMAPRINTS_STORE_ID,
 	LUMAPRINTS_USE_SANDBOX,
 } from "$env/static/private";
+import { prepareSanityUrlForPrint } from "$lib/shop/lumaprintsUrls";
 import type {
 	LumaPrintsOrder,
 	LumaPrintsOrderResponse,
@@ -97,7 +98,7 @@ export async function validateImage(
 	imageUrl: string,
 	width: number,
 	height: number,
-	subcategoryId = 103001,
+	subcategoryId: number,
 ): Promise<{ valid: boolean; message?: string }> {
 	const res = await fetch(`${BASE_URL}/api/v1/images/check`, {
 		method: "POST",
@@ -156,16 +157,22 @@ export function buildLumaPrintsOrder(
 			country: recipient.country,
 			phone: recipient.phone || "",
 		},
-		orderItems: items.map((item, i) => ({
-			externalItemId: `${externalId}-item-${i + 1}`,
-			subcategoryId: item.paperSubcategoryId,
-			quantity: item.quantity,
-			width: item.width,
-			height: item.height,
-			file: {
-				imageUrl: cleanImageUrl(item.imageUrl), // CRITICAL: strip query params
-			},
-			orderItemOptions: [39], // ALWAYS No Bleed (option 39)
-		})),
+		orderItems: items.map((item, i) => {
+			const orderItem: LumaPrintsOrder["orderItems"][number] = {
+				externalItemId: `${externalId}-item-${i + 1}`,
+				subcategoryId: item.canvasSubcategoryId ?? item.paperSubcategoryId,
+				quantity: item.quantity,
+				width: item.width,
+				height: item.height,
+				file: {
+					imageUrl: prepareSanityUrlForPrint(item.imageUrl),
+				},
+				orderItemOptions: [39], // ALWAYS No Bleed (option 39)
+			};
+			if (item.canvasWrapHex) {
+				orderItem.solidColorHexCode = item.canvasWrapHex;
+			}
+			return orderItem;
+		}),
 	};
 }

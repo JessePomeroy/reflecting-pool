@@ -3,7 +3,7 @@ import { PUBLIC_SITE_URL } from "$env/static/public";
 import { rateLimit } from "$lib/server/rate-limit";
 import { createCheckoutSession } from "$lib/server/stripe";
 import { getRetailPrice } from "$lib/shop/pricing";
-import type { CheckoutMetadata, PaperType } from "$lib/shop/types";
+import type { CheckoutMetadata } from "$lib/shop/types";
 import type { RequestHandler } from "./$types";
 
 export const POST: RequestHandler = async ({ request, getClientAddress }) => {
@@ -34,7 +34,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	}
 
 	// Verify price matches our pricing table (prevent client-side tampering)
-	const expectedPrice = getRetailPrice(paperName as PaperType, {
+	const expectedPrice = getRetailPrice(paperName as string, {
 		width: paperWidth,
 		height: paperHeight,
 		label: paperSizeLabel,

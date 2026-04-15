@@ -1,16 +1,20 @@
 <script lang="ts">
 import { formatPrice, getRetailPrice } from "$lib/shop/pricing";
-import type { PaperType } from "$lib/shop/types";
 import type { PageData } from "./$types";
 
 let { data }: { data: PageData } = $props();
 
-let selectedPaper = $state<PaperType>("Archival Matte");
+let selectedPaper = $state<string>("Archival Matte");
 let selectedSizeIndex = $state(1); // default to 8×10
 
 let selectedSize = $derived(data.sizes[selectedSizeIndex]);
 let currentPrice = $derived(getRetailPrice(selectedPaper, selectedSize));
 let isSubmitting = $state(false);
+
+function getSelectedSubcategoryId(): number {
+	const paper = data.paperOptions.find((p) => p.name === selectedPaper);
+	return paper?.subcategoryId ?? 0;
+}
 
 async function handleCheckout() {
 	if (!currentPrice || isSubmitting) return;
@@ -25,7 +29,7 @@ async function handleCheckout() {
 				imageUrl: data.product.imageUrl,
 				imageTitle: data.product.title,
 				paperName: selectedPaper,
-				paperSubcategoryId: selectedPaper === "Archival Matte" ? 103001 : 103007,
+				paperSubcategoryId: getSelectedSubcategoryId(),
 				paperWidth: selectedSize.width,
 				paperHeight: selectedSize.height,
 				paperSizeLabel: selectedSize.label,
