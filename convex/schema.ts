@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { categoryValidator } from "./helpers/validators";
 
 export default defineSchema({
 	// Photographers you've built sites for
@@ -82,7 +83,7 @@ export default defineSchema({
 		name: v.string(),
 		email: v.optional(v.string()),
 		phone: v.optional(v.string()),
-		category: v.union(v.literal("photography"), v.literal("web")),
+		category: categoryValidator,
 		type: v.optional(
 			v.union(
 				// Photography types
@@ -181,7 +182,7 @@ export default defineSchema({
 		quoteNumber: v.string(),
 		clientId: v.id("photographyClients"),
 		clientName: v.optional(v.string()),
-		category: v.optional(v.union(v.literal("photography"), v.literal("web"))),
+		category: v.optional(categoryValidator),
 		status: v.union(
 			v.literal("draft"),
 			v.literal("sent"),
@@ -211,7 +212,7 @@ export default defineSchema({
 	quotePresets: defineTable({
 		siteUrl: v.string(),
 		name: v.string(),
-		category: v.optional(v.union(v.literal("photography"), v.literal("web"))),
+		category: v.optional(categoryValidator),
 		packages: v.array(
 			v.object({
 				name: v.string(),
@@ -228,7 +229,7 @@ export default defineSchema({
 		title: v.string(),
 		clientId: v.id("photographyClients"),
 		clientName: v.optional(v.string()),
-		category: v.optional(v.union(v.literal("photography"), v.literal("web"))),
+		category: v.optional(categoryValidator),
 		templateId: v.optional(v.id("contractTemplates")),
 		status: v.union(
 			v.literal("draft"),

@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { mutation, query } from "./_generated/server";
+import { deleteDocument } from "./helpers/deleting";
 
 export const list = query({
 	args: {
@@ -177,11 +178,7 @@ export const markPaid = mutation({
 export const remove = mutation({
 	args: { invoiceId: v.id("invoices"), siteUrl: v.string() },
 	handler: async (ctx, { invoiceId, siteUrl }) => {
-		const doc = await ctx.db.get(invoiceId);
-		if (!doc || doc.siteUrl !== siteUrl) {
-			throw new Error("Not found");
-		}
-		await ctx.db.delete(invoiceId);
+		await deleteDocument(ctx, invoiceId, siteUrl);
 	},
 });
 
