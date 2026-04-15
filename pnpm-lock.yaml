@@ -17,6 +17,9 @@ importers:
       '@mmailaender/convex-better-auth-svelte':
         specifier: ^0.7.3
         version: 0.7.3(d5788bbc9921e9466ba07c8295cec43a)
+      '@mmailaender/convex-svelte':
+        specifier: ^0.18.0
+        version: 0.18.0(@sveltejs/kit@2.55.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.1)(vite@7.3.1(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.1)(typescript@5.9.3)(vite@7.3.1(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.34.1(react@19.2.5))(svelte@5.55.1)(zod@4.3.6)
       '@sanity/client':
         specifier: ^7.20.0
         version: 7.20.0
@@ -29,9 +32,6 @@ importers:
       convex:
         specifier: ^1.34.1
         version: 1.34.1(react@19.2.5)
-      convex-svelte:
-        specifier: ^0.0.12
-        version: 0.0.12(convex@1.34.1(react@19.2.5))(svelte@5.55.1)
       resend:
         specifier: ^6.10.0
         version: 6.10.0
@@ -1194,12 +1194,6 @@ packages:
       zod:
         optional: true
 
-  convex-svelte@0.0.12:
-    resolution: {integrity: sha512-sUZoYp4ZsokyvKlbbg1dWYB7MkAjZn4nNG9DnADEt9L6KTKuhhnEIt6fdLj+3GnVBUGDTssm17+7ppzFc4y7Gg==}
-    peerDependencies:
-      convex: ^1.10.0
-      svelte: ^5.0.0
-
   convex@1.34.1:
     resolution: {integrity: sha512-ooyFnZVVq0u6b5zt0Ptq8QB2ixhf/2vXe+PIcUtdtrs0lq/TwpkmmruHdqkFmWgMd6N+Tmfy8AGkz6QnZUYZBA==}
     engines: {node: '>=18.0.0', npm: '>=7.0.0'}
@@ -1570,11 +1564,6 @@ packages:
 
   rou3@0.7.12:
     resolution: {integrity: sha512-iFE4hLDuloSWcD7mjdCDhx2bKcIsYbtOTpfH5MHHLSKMOUyjqQXTeZVa289uuwEGEKFoE/BAPbhaU4B774nceg==}
-
-  runed@0.31.1:
-    resolution: {integrity: sha512-v3czcTnO+EJjiPvD4dwIqfTdHLZ8oH0zJheKqAHh9QMViY7Qb29UlAMRpX7ZtHh7AFqV60KmfxaJ9QMy+L1igQ==}
-    peerDependencies:
-      svelte: ^5.7.0
 
   runed@0.37.1:
     resolution: {integrity: sha512-MeFY73xBW8IueWBm012nNFIGy19WUGPLtknavyUPMpnyt350M47PhGSGrGoSLbidwn+Zlt/O0cp8/OZE3LASWA==}
@@ -2674,13 +2663,6 @@ snapshots:
       typescript: 5.9.3
       zod: 4.3.6
 
-  convex-svelte@0.0.12(convex@1.34.1(react@19.2.5))(svelte@5.55.1):
-    dependencies:
-      convex: 1.34.1(react@19.2.5)
-      esm-env: 1.2.2
-      runed: 0.31.1(svelte@5.55.1)
-      svelte: 5.55.1
-
   convex@1.34.1(react@19.2.5):
     dependencies:
       esbuild: 0.27.0
@@ -3090,11 +3072,6 @@ snapshots:
       fsevents: 2.3.3
 
   rou3@0.7.12: {}
-
-  runed@0.31.1(svelte@5.55.1):
-    dependencies:
-      esm-env: 1.2.2
-      svelte: 5.55.1
 
   runed@0.37.1(@sveltejs/kit@2.55.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.1)(vite@7.3.1(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.1)(typescript@5.9.3)(vite@7.3.1(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.1)(zod@4.3.6):
     dependencies:
