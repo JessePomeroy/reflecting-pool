@@ -32,9 +32,6 @@
   "lint-staged": {
     "*.{js,ts}": [
       "biome check --write"
-    ],
-    "*.svelte": [
-      "biome check --write"
     ]
   },
   "dependencies": {
