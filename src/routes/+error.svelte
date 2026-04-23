@@ -1,27 +1,28 @@
 <script lang="ts">
-import { page } from "$app/stores";
+// Audit H24: migrated from deprecated `$app/stores` to `$app/state`.
+import { page } from "$app/state";
 </script>
 
 <svelte:head>
-	<title>{$page.status} · margaret helena</title>
+	<title>{page.status} · margaret helena</title>
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <div class="error-page">
 	<div class="error-content">
-		<span class="error-code">{$page.status}</span>
+		<span class="error-code">{page.status}</span>
 		<h1 class="error-message">
-			{#if $page.status === 404}
+			{#if page.status === 404}
 				page not found
 			{:else}
 				something went wrong
 			{/if}
 		</h1>
 		<p class="error-detail">
-			{#if $page.status === 404}
+			{#if page.status === 404}
 				this page has wandered off — like a petal in the wind.
 			{:else}
-				{$page.error?.message ?? 'an unexpected error occurred.'}
+				{page.error?.message ?? 'an unexpected error occurred.'}
 			{/if}
 		</p>
 		<a href="/" class="home-link">← back to gallery</a>

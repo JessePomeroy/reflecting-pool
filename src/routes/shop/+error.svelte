@@ -1,10 +1,11 @@
 <script lang="ts">
-import { page } from "$app/stores";
+// Audit H24: migrated from deprecated `$app/stores` to `$app/state`.
+import { page } from "$app/state";
 </script>
 
 <div class="error-page">
 	<h1>something went wrong</h1>
-	<p>{$page.status === 404 ? 'this print could not be found.' : 'please try again in a moment.'}</p>
+	<p>{page.status === 404 ? 'this print could not be found.' : 'please try again in a moment.'}</p>
 	<a href="/shop">← back to shop</a>
 </div>
 

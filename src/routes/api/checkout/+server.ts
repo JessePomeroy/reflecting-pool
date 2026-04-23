@@ -33,14 +33,38 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 		error(400, "Missing required fields");
 	}
 
+	// Audit H31: numeric + range check on paper dimensions. Without this,
+	// a crafted request could push `paperWidth: 999999` through to the
+	// webhook → LumaPrints, with no upper bound on the order. Mirrored in
+	// the webhook as defense-in-depth.
+	const widthNum = Number(paperWidth);
+	const heightNum = Number(paperHeight);
+	if (
+		!Number.isFinite(widthNum) ||
+		widthNum <= 0 ||
+		widthNum > 120 ||
+		!Number.isFinite(heightNum) ||
+		heightNum <= 0 ||
+		heightNum > 120
+	) {
+		error(400, "Invalid paper dimensions");
+	}
+	const subcategoryNum = Number(paperSubcategoryId);
+	if (!Number.isFinite(subcategoryNum) || subcategoryNum <= 0) {
+		error(400, "Invalid paper subcategory");
+	}
+
 	// Verify price matches our pricing table (prevent client-side tampering)
 	const expectedPrice = getRetailPrice(paperName as string, {
-		width: paperWidth,
-		height: paperHeight,
+		width: widthNum,
+		height: heightNum,
 		label: paperSizeLabel,
 	});
 
-	if (!expectedPrice || expectedPrice !== priceInDollars) {
+	// Audit H6: tolerant compare so future computed prices don't break on
+	// a fractional-cent rounding difference. Integer-cents is the right
+	// long-term fix; this is the interim.
+	if (!expectedPrice || Math.abs(expectedPrice - Number(priceInDollars)) > 0.01) {
 		error(400, "Invalid price");
 	}
 

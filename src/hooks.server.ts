@@ -1,9 +1,13 @@
 /**
  * SvelteKit Server Hooks
  *
- * Security headers and auth route handling.
- * Admin auth is handled client-side by Better Auth via the admin package.
+ * Security headers and auth route handling. Admin auth is enforced both
+ * server-side (via `$lib/server/adminAuth.ts` called from admin loaders,
+ * audit C12) and client-side (via Better Auth AuthGuard in the admin
+ * dashboard package).
  */
+
+import type { Handle } from "@sveltejs/kit";
 
 function addSecurityHeaders(response: Response): Response {
 	const cloned = new Response(response.body, response);
@@ -14,13 +18,15 @@ function addSecurityHeaders(response: Response): Response {
 	return cloned;
 }
 
-export async function handle({ event, resolve }) {
+export const handle: Handle = async ({ event, resolve }) => {
 	const response = await resolve(event);
 
-	// Skip security headers for auth API routes (response is immutable)
+	// Skip security headers for auth API routes. Better Auth sets its own
+	// response headers and consumes the body; wrapping here would double-set
+	// or corrupt them.
 	if (event.url.pathname.startsWith("/api/auth")) {
 		return response;
 	}
 
 	return addSecurityHeaders(response);
-}
+};

@@ -1,10 +1,11 @@
 <script lang="ts">
-import { page } from "$app/stores";
+// Audit H24: migrated from deprecated `$app/stores` to `$app/state`.
+import { page } from "$app/state";
 </script>
 
 <div class="error-page">
 	<h1>Something went wrong</h1>
-	<p>{$page.status === 404 ? "This page could not be found." : "An unexpected error occurred."}</p>
+	<p>{page.status === 404 ? "This page could not be found." : "An unexpected error occurred."}</p>
 	<a href="/admin">← Back to admin</a>
 </div>
 

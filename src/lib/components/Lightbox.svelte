@@ -10,10 +10,14 @@ interface Props {
 
 let { src, currentIndex, images, onclose }: Props = $props();
 
-let index = $state(0);
-$effect.pre(() => {
-	index = currentIndex;
-});
+// Audit H25: previously we synced `index = currentIndex` inside an
+// `$effect.pre`, which is the prop-to-state sync anti-pattern: any
+// re-render that re-reads `currentIndex` clobbers local increments from
+// next()/prev(). The parent currently only sets `currentIndex` once at
+// open time, so the bug didn't manifest — but any future parent-driven
+// navigation would overwrite the user's paging. Initialize once from the
+// prop and let the component own its paging thereafter.
+let index = $state(currentIndex);
 let visible = $state(false);
 let currentSrc = $derived(images[index]?.src ?? src);
 

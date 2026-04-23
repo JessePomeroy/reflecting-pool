@@ -10,6 +10,11 @@ let selectedSizeIndex = $state(1); // default to 8×10
 let selectedSize = $derived(data.sizes[selectedSizeIndex]);
 let currentPrice = $derived(getRetailPrice(selectedPaper, selectedSize));
 let isSubmitting = $state(false);
+// Audit H27: surface checkout errors to the customer instead of swallowing
+// them in a console.error. A failed /api/checkout call was previously just
+// an isSubmitting = false with no visible feedback — the button silently
+// became clickable again.
+let checkoutError = $state<string | null>(null);
 
 function getSelectedSubcategoryId(): number {
 	const paper = data.paperOptions.find((p) => p.name === selectedPaper);
@@ -19,6 +24,7 @@ function getSelectedSubcategoryId(): number {
 async function handleCheckout() {
 	if (!currentPrice || isSubmitting) return;
 	isSubmitting = true;
+	checkoutError = null;
 
 	try {
 		const res = await fetch("/api/checkout", {
@@ -37,12 +43,23 @@ async function handleCheckout() {
 			}),
 		});
 
+		if (!res.ok) {
+			const text = await res.text().catch(() => "");
+			throw new Error(text || `checkout failed (${res.status})`);
+		}
+
 		const { url } = await res.json();
 		if (url) {
 			window.location.href = url;
+			return;
 		}
+		throw new Error("checkout session did not return a url.");
 	} catch (err) {
 		console.error("Checkout error:", err);
+		checkoutError =
+			err instanceof Error
+				? err.message.toLowerCase()
+				: "something went wrong. please try again.";
 		isSubmitting = false;
 	}
 }
@@ -136,6 +153,9 @@ async function handleCheckout() {
 				>
 					{isSubmitting ? 'redirecting…' : 'buy now'}
 				</button>
+				{#if checkoutError}
+					<p class="checkout-error" role="alert" aria-live="polite">{checkoutError}</p>
+				{/if}
 				<p class="shipping-note">
 					Free shipping on all orders. Prints are made to order — allow 2–3 weeks for
 					delivery.
@@ -373,6 +393,16 @@ async function handleCheckout() {
 		text-align: center;
 		margin-top: 0.75rem;
 		line-height: 1.4;
+	}
+
+	.checkout-error {
+		font-family: var(--font-serif);
+		font-size: 0.85rem;
+		font-style: italic;
+		color: rgba(var(--ink-rgb), 0.72);
+		text-align: center;
+		margin-top: 0.75rem;
+		letter-spacing: 0.03em;
 	}
 
 	@media (max-width: 768px) {
