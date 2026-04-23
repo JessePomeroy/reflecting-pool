@@ -230,6 +230,69 @@ Config touch-points that depend on the domain:
      Biome-Svelte re-enable (H37).
   10. Polish: remaining MEDIUM (M2/M3/M5 etc.) and LOW items.
 
+## Session memory — 2026-04-23 Better Auth five-layer fix
+
+After `/admin` 401'd on a signed-in user, five compounding causes in
+the Better Auth → Convex handshake. All fixed; closes AUDIT H1.
+
+1. **Set-Cookie collapse in hand-rolled auth proxy.** The old
+   `src/routes/api/auth/[...all]/+server.ts` built response headers
+   via `new Headers(res.headers)`, which joins repeated `Set-Cookie`
+   lines with a comma — browsers only keep the first cookie. Session
+   cookie survived, `better-auth.convex_jwt` was lost, so
+   `getToken(cookies)` returned null and `requireAuthWithIdentity`
+   401'd. **Fix:** swap to the one-liner `createSvelteKitHandler()`
+   from `@mmailaender/convex-better-auth-svelte/sveltekit` — official
+   canonical pattern (see the package's SvelteKit framework guide).
+   This is a known SvelteKit issue (sveltejs/kit#3460, #4840, #13947)
+   — `response.headers.getSetCookie()` is the escape, but
+   `createSvelteKitHandler` already uses it.
+2. **Stale JWKS alg mismatch silently swallowed.** The convex plugin's
+   sign-in after-hook has a try/catch that eats
+   `ERR_JOSE_NOT_SUPPORTED`. A JWKS row generated under a prior
+   algorithm (e.g. EdDSA before the 0.10 → RS256 migration) trips this
+   on every sign-in; browser sees "success" with no JWT cookie set.
+   **Fix:** `jwksRotateOnTokenGenerationError: true` on the convex
+   plugin in `angelsrest/convex/auth.ts`. Per the
+   `convex-better-auth` 0.10 migration guide, this flag is a
+   migration-safety net; "can be disabled later if desired" but no
+   urgency. Leave on.
+3. **Pre-flag JWKS rows don't self-clean.** The rotate flag only
+   triggers on a *new* generation error; existing poisoned rows keep
+   failing. **Fix:** one-shot `npx convex run
+   devPasswordReset:rotateJwks` in angelsrest wipes every JWKS row so
+   the next sign-in regenerates. `internalMutation`, dev-only.
+4. **Dev password reset without Resend.** No email provider wired on
+   dev Convex, so Better Auth's reset-email flow dead-ends. **Fix:**
+   `node angelsrest/scripts/hash-password.mjs <pw>` prints a scrypt
+   hash; pipe into `npx convex run
+   devPasswordReset:setCredentialPasswordHash
+     '{"userId":"<bauth user _id>","newHash":"<paste>"}'`. Both are
+   dev-only internal tools; the script has no network/deps and the
+   mutation is `internalMutation` (not callable from browsers).
+5. **SvelteKit cookie staleness after sign-in.** `+layout.server.ts`
+   runs with the pre-sign-in cookie; a fresh JWT set by an in-page
+   sign-in action isn't visible until the next full doc load.
+   Symptom: admin 401s immediately after a successful sign-in, works
+   on Cmd+Shift+R. Known SvelteKit quirk (any POST-then-stay-on-page
+   flow). Not baked into the sign-in form deliberately (one-time
+   quirk; clients only see this on first-ever sign-in or post-
+   password-reset).
+
+**Future-client implications:**
+- Layers 1+2 live in the template now. New clients inherit the fixes
+  automatically — no re-debugging. The `createSvelteKitHandler`
+  one-liner and the `jwksRotateOnTokenGenerationError` flag are both
+  in the spoke-template path.
+- Layers 3+4 are dev-only operator tools in angelsrest. Each new
+  client spoke will eventually need `rotateJwks` during setup (the
+  shared angelsrest Convex deployment may still be running an old
+  key). The password-reset utility will be useful anytime a dev
+  forgets their dev password.
+- Layer 5 — the hard-reload quirk — is inherent to SvelteKit's
+  server-load caching and will affect any client's admin dashboard
+  on first sign-in. Document in client onboarding, not in code.
+
 ## Useful commands
 
 ```bash

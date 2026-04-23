@@ -239,14 +239,23 @@ shipping portal/delivery routes, the findings below need to close.
 
 ### Auth Flow / Server-Side Session
 
-- [ ] **H1** `src/routes/api/auth/[...all]/+server.ts:1-36` — The auth proxy
-  rewrites requests to `PUBLIC_CONVEX_SITE_URL` (falling back to
-  `PUBLIC_CONVEX_URL?.replace(".cloud", ".site") || ""`). If either env
-  var is misconfigured at deploy time, the proxy targets the empty string
-  or the wrong host silently. No allowlist, no origin check. Currently
-  server-env-sourced so not externally controllable, but a typo in Vercel
-  env config could send auth traffic nowhere. _Fix:_ Fail-closed if
-  `PUBLIC_CONVEX_SITE_URL` is missing; log + error on Convex-domain mismatch.
+- [x] **H1** `src/routes/api/auth/[...all]/+server.ts` — Hand-rolled
+  `fetch()` proxy replaced with `createSvelteKitHandler()` from
+  `@mmailaender/convex-better-auth-svelte/sveltekit` (2026-04-23). The
+  original had two real failure modes: (1) missing/misconfigured
+  `PUBLIC_CONVEX_SITE_URL` silently targeted the empty string; (2)
+  `new Headers(response.headers)` collapsed multiple `Set-Cookie`
+  headers into one comma-joined value, causing browsers to lose every
+  cookie after the first — symptomatically losing `better-auth.convex_jwt`
+  and 401'ing the admin dashboard on every sign-in. Both go away with
+  the canonical one-liner: `createSvelteKitHandler()` reads the Convex
+  URL from its own configuration (fail-closed) and preserves each
+  Set-Cookie separately via `getSetCookie()`. Known SvelteKit issue
+  (sveltejs/kit#3460, #4840, #13947) — hand-rolled proxies should use
+  `response.headers.getSetCookie()`; better to just use the official
+  handler. Pairs with the `jwksRotateOnTokenGenerationError: true` flag
+  on `angelsrest/convex/auth.ts` (convex plugin config) — see the new
+  reflection at the bottom of this file for the full five-layer story.
 
 - [ ] **H2** `src/lib/server/stripe.ts:8-10` + `src/routes/api/webhooks/stripe/+server.ts:12-14` —
   `ADMIN_EMAIL` and `FROM_EMAIL` have hardcoded personal-email fallbacks
@@ -746,9 +755,11 @@ shipping portal/delivery routes, the findings below need to close.
   commented "shared with angelsrest"; the shared-secret pattern is
   a code-smell worth its own comment + migration note.
 
-- [ ] **L8** `CLAUDE.md` is 6 lines and mostly a pointer to
-  `AGENTS.md`. Either drop `CLAUDE.md` or pick one as canonical —
-  matches angelsrest L23.
+- [x] **L8** `CLAUDE.md` is no longer a pointer file — it's the
+  canonical session-memory doc (2026-04-23 rewrite). Closed; `CLAUDE.md`
+  now covers platform model, key architectural facts, session memory
+  for the audit sweep + the Better Auth five-layer fix, and useful
+  commands. `AGENTS.md` remains the ambient dev-workflow doc.
 
 - [ ] **L9** `src/routes/api/contact/+server.ts` — rate limit wired,
   escapes wired. One nit: the rate-limit key is IP-only. If you ever
@@ -770,10 +781,10 @@ shipping portal/delivery routes, the findings below need to close.
 | Severity | Count | Completed | Remaining |
 |----------|-------|-----------|-----------|
 | CRITICAL | 14    | 13        | 1 (C11 — user key rotation) |
-| HIGH     | 44    | 26        | 18 |
+| HIGH     | 44    | 27        | 17 |
 | MEDIUM   | 20    | 3         | 17 |
-| LOW      | 11    | 1         | 10 |
-| **Total**| **89** | **43**   | **46** |
+| LOW      | 11    | 2         | 9 |
+| **Total**| **89** | **45**   | **44** |
 
 Compare to angelsrest (136 items, 105 resolved): reflecting-pool caught up
 to angelsrest's auth foundation + webhook hardening + delivery-route in one
@@ -1000,4 +1011,124 @@ src/routes/shop/[slug]/+page.svelte
 .env.example                (new)
 .github/workflows/ci.yml
 package.json
+```
+
+---
+
+## Reflection — Better Auth five-layer fix (2026-04-23)
+
+Closes H1. The audit originally flagged H1 narrowly (env-misconfig
+fail-open on the hand-rolled auth proxy). Debugging a real-world
+`/admin 401 after successful sign-in` surfaced four additional
+compounding causes that the audit didn't track. Documenting here so
+future me doesn't re-derive the same trap.
+
+**The symptom:** sign-in to `/admin` succeeded (browser got a 200 back,
+session cookie set, URL transitioned to `/admin`), but the dashboard
+immediately 401'd. Server logs showed `requireAuthWithIdentity` failing
+on `getToken(cookies)` returning null. The `better-auth.convex_jwt`
+cookie was not being set on the response. Five root causes, in order
+of discovery:
+
+1. **Set-Cookie collapse in the proxy.** The hand-rolled fetch() proxy
+   at `src/routes/api/auth/[...all]/+server.ts` wrapped the Convex
+   response headers with `new Headers(response.headers)`. `new Headers()`
+   joins repeated `Set-Cookie` headers with a comma separator — which
+   browsers mis-parse, keeping only the first cookie. Known SvelteKit
+   issue (sveltejs/kit#3460, #4840, #13947). **Fix:** swap to
+   `createSvelteKitHandler()` from
+   `@mmailaender/convex-better-auth-svelte/sveltekit`, the canonical
+   official pattern. Internally it uses `response.headers.getSetCookie()`
+   which preserves each cookie as a separate array entry.
+
+2. **JWKS alg mismatch silently swallowed.** Even with the proxy
+   fixed, `better-auth.convex_jwt` still wasn't being set on some
+   sign-ins. Turned out to be the Convex plugin's sign-in after-hook
+   catching `ERR_JOSE_NOT_SUPPORTED` from a JWKS row whose kty was RSA
+   but whose alg wasn't compatible with the plugin's current jose
+   library. This is a known migration hazard: when convex-better-auth
+   went from 0.10 → RS256 (from EdDSA) for `customJwt` compatibility,
+   pre-existing JWKS keys broke. **Fix:**
+   `jwksRotateOnTokenGenerationError: true` on the convex plugin in
+   `angelsrest/convex/auth.ts`. Per the official 0.10 migration guide,
+   this flag "can be disabled later if desired" — but it's safe to
+   leave on permanently. It only triggers on actual generation errors.
+
+3. **Pre-flag JWKS rows still poisoned sign-ins.** The rotate flag
+   only engages when generation *errors* — existing-but-working-poorly
+   keys don't trigger it. Had to manually wipe the JWKS table.
+   **Fix:** added `devPasswordReset:rotateJwks` to
+   `angelsrest/convex/devPasswordReset.ts` — an `internalMutation`
+   that deletes every row from the betterAuth component's JWKS table.
+   `npx convex run devPasswordReset:rotateJwks` once; next sign-in
+   regenerates clean keys.
+
+4. **No password-reset path in dev.** With sign-in repeatedly broken,
+   had to try various Google OAuth + email/password combinations.
+   Couldn't remember the dev password. Resend isn't wired on the dev
+   Convex deployment (and you don't want to pay for transactional mail
+   on every dev spoke), so the "forgot password" email flow dead-ends.
+   **Fix:** added `scripts/hash-password.mjs` to angelsrest (node
+   built-ins only, no deps) which prints a Better Auth-compatible
+   scrypt hash, and `devPasswordReset:setCredentialPasswordHash`
+   (internalMutation) to patch the hash directly onto the credential
+   account row. Both dev-only; `internalMutation`s are not publicly
+   callable, and the script runs locally without network.
+
+5. **SvelteKit cookie staleness after sign-in.** Even after all four
+   fixes, the first sign-in still 401'd briefly until a hard reload.
+   Root cause: SvelteKit's `+layout.server.ts` runs with the request
+   cookies that were present at the *start* of the request; a fresh
+   JWT cookie set by an in-page sign-in action isn't visible until the
+   next document load. This is inherent to SvelteKit's server-load
+   model and affects any post-then-stay-on-page flow. **Fix:** none
+   needed in code — Cmd+Shift+R on first-ever sign-in is a known
+   one-time quirk. Could be baked in via `window.location.reload()`
+   on sign-in success, but would add complexity for a quirk most
+   clients only hit once (first sign-in or after a password reset).
+
+**Best-practice review.** All three code fixes (createSvelteKitHandler,
+jwksRotateOnTokenGenerationError, the dev password-reset utility) match
+official documentation:
+
+- SvelteKit framework guide for `convex-better-auth` recommends exactly
+  `export const { GET, POST } = createSvelteKitHandler();` — the
+  one-liner we landed on.
+- The 0.10 migration guide explicitly recommends
+  `jwksRotateOnTokenGenerationError: true` during/after the EdDSA →
+  RS256 transition.
+- The dev password-reset utility is a pragmatic workaround for
+  email-less dev environments; the `internalMutation` + local scrypt
+  script split is as safe as it gets (no browser-reachable surface).
+
+**Future-client implications.** The code fixes (layers 1 + 2) live in
+the platform template going forward — new client spokes inherit both
+automatically without re-debugging. The dev tools (layers 3 + 4) live
+in angelsrest and are shared across spokes via the monorepo; any
+operator can `npx convex run devPasswordReset:*` against any deployment
+they have access to. Layer 5 — the cookie-staleness quirk — is inherent
+to SvelteKit and will affect every client's first sign-in; document in
+client onboarding, not in code.
+
+**What the audit originally missed.** H1 flagged a narrower concern
+(env misconfig fail-open). The actual debugging path surfaced three
+additional latent issues that weren't in the audit: multi-Set-Cookie
+handling, JWKS algorithm migration hazards, and SvelteKit cookie
+timing. Each one silently caused auth failures under the right
+conditions. The takeaway for future audits: when `auth proxy` shows up
+as a finding, don't just audit env handling — also audit cookie
+forwarding, JWT issuance path, and post-auth loader timing.
+
+Files touched (session 2):
+
+```
+reflecting-pool:
+  src/routes/api/auth/[...all]/+server.ts   (hand-rolled → createSvelteKitHandler)
+  vite.config.ts                            (disable basicSsl by default)
+
+angelsrest:
+  convex/auth.ts                            (jwksRotateOnTokenGenerationError: true)
+  convex/devPasswordReset.ts                (new: rotateJwks + setCredentialPasswordHash)
+  scripts/hash-password.mjs                 (new: scrypt hasher, no deps)
+  convex/_generated/api.d.ts                (regenerated — drops stale _scratchEnv ref)
 ```
