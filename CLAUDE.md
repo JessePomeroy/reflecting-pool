@@ -89,15 +89,22 @@ Config touch-points that depend on the domain:
 
 ## Canonical docs
 
+**In the repo** (technical reference + tooling-consumed):
 - `AUDIT.md` — live audit findings + session reflection at the end.
+  Commit messages cite audit IDs from here.
 - `AGENTS.md` — dev workflow doc. Prefer over ad-hoc instructions.
-- `CLIENT-HANDOFF.md` — full service-setup + launch checklist for Maggie
-  (see the top "For Maggie — launch sequence" section). Also covers
-  pricing + client-training content.
-- `ADMIN-AUTH.md` — **stale**: describes Auth.js, reality is Better Auth.
-  Update when time allows.
-- `TESTING-PIPELINE.md` — step-by-step testing guide for before-launch
-  QA.
+- `ARCHITECTURE.md` — animation/parallax architecture.
+- `LUMAPRINTS.md` — LumaPrints integration reference.
+- `SANITY-SCHEMA.md` — Sanity schema definitions (for H42a un-mock).
+
+**In the Obsidian vault**
+(`~/Documents/quilt/02_reference/projects/reflecting pool/`, moved
+2026-04-23):
+- `client-handoff.md` — pricing + launch sequence + client-training
+  content. Operator-facing notes, not repo tooling.
+- `testing-pipeline.md` — step-by-step before-launch QA checklist.
+- `admin-auth-stale.md` — old Auth.js-based admin-auth notes;
+  superseded by the Better Auth setup in the repo. Kept for history.
 
 ## Aesthetic vocabulary
 
