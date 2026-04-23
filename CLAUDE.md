@@ -1,13 +1,35 @@
 # CLAUDE.md — session memory for reflecting-pool
 
-Last updated: 2026-04-23 (multi-tenant Gap 1: Convex schema consolidation)
+Last updated: 2026-04-23 (prod domain = zippymiggy.com; Sanity scoped to
+CMS-only; orders migrating from Sanity → Convex)
+
+## Prod domain
+
+**`https://www.zippymiggy.com/`** is the production URL. Apex
+`https://zippymiggy.com` should redirect to the `www` host (configure at
+registrar / Vercel). Until DNS is live, treat the domain as a hard-coded
+future reference — do not deploy without it.
+
+Config touch-points that depend on the domain:
+- `adminConfig.siteUrl` in `src/lib/config/admin.ts` → `"zippymiggy.com"`
+  (bare domain, no scheme, no www — the key `platformClients.siteUrl`
+  matches against).
+- `platformClients.siteUrl` in Convex (via `ensureSiteAdmin`):
+  `"zippymiggy.com"`.
+- Convex env `SITE_URL` on the `--prod` deployment:
+  `npx convex env set --prod SITE_URL https://www.zippymiggy.com`.
+- `trustedOrigins` in `angelsrest/convex/auth.ts` must enumerate both
+  `https://www.zippymiggy.com` and `https://zippymiggy.com` alongside the
+  angelsrest entries (single Convex codebase, multi-deploy — one list
+  covers both sites' origins).
+- Vercel env: `SITE_URL`, `PUBLIC_SITE_URL`.
 
 ## Repo snapshot
 
 - **reflecting-pool** is Margaret Helena's fine-art photography site
-  (margarethelena.com). SvelteKit + Convex + Better Auth + Sanity (mocked)
-  + LumaPrints (print fulfillment) + Stripe (checkout) + a Cloudflare
-  Worker for gallery image storage.
+  (prod: **zippymiggy.com**). SvelteKit + Convex + Better Auth + Sanity
+  (CMS only, currently mocked) + LumaPrints (print fulfillment) + Stripe
+  (checkout) + a Cloudflare Worker for gallery image storage.
 - **Admin UI** is consumed from `@jessepomeroy/admin` (a separate repo at
   `/Users/jessepomeroy/Documents/work/admin-dashboard`). The admin package
   ships components + server handlers only; it calls this repo's Convex
@@ -63,9 +85,18 @@ Last updated: 2026-04-23 (multi-tenant Gap 1: Convex schema consolidation)
    hash-diffs `convex/_generated/api.d.ts` on every main-branch push and
    auto-bumps the patch version when it changes. First publish requires
    manual intervention — see `angelsrest/packages/crm-api/README.md`.
-1. **Sanity is mocked** — `src/lib/server/sanity.ts` returns fake orders.
-   Audit H42 tracks un-mocking. Several audit items (C13/C14 idempotency,
-   H29 PII redaction) go from theoretical to live when this flips.
+1. **Sanity = CMS only, orders = Convex.** `src/lib/server/sanity.ts`
+   handles gallery/print reads (`fetchPrintableProducts`,
+   `fetchCollections`, `fetchCollectionWithPrints`, `fetchPrintProduct`).
+   Those are still mocked until the Sanity project is live (audit H42a).
+   **Orders do NOT live in Sanity** — the Stripe + LumaPrints webhooks
+   write to Convex via `@jessepomeroy/crm-api` (`api.orders.create` /
+   `api.orders.updateStatus` / `api.orders.getByLumaprintsOrderNumber`),
+   same pattern as angelsrest. C13/C14 idempotency is already enforced
+   by the `by_stripeSessionId` index on the Convex orders table. The
+   legacy `*SanityOrder` functions were removed on the Sanity → Convex
+   migration (2026-04-23); if you see them in an old branch, that's
+   pre-migration code.
 2. **No `WEBHOOK_SECRET` in prod yet** — needs
    `npx convex env set WEBHOOK_SECRET <value>` AND Vercel. The
    `convex/orders.ts`, `convex/invoices.markPaid`, and
@@ -91,17 +122,19 @@ Last updated: 2026-04-23 (multi-tenant Gap 1: Convex schema consolidation)
    See `~/Documents/quilt/00_inbox/2026-04-23 PR candidate —
    convex-better-auth-svelte pause bug.md` for the full design.
 6. **Admin identity on `platformClients`** — the
-   `platformClients.siteUrl` for this site is `"reflecting-pool.com"`
+   `platformClients.siteUrl` for this site is `"zippymiggy.com"`
    (bare domain, no scheme; must match what `adminConfig.siteUrl`
    sends). `adminEmails` currently contains `thinkingofview@gmail.com`
    on dev + prod so Jesse can sign in during development.
    **At handoff: swap in Maggie's admin email** via
    `npx convex run platform:ensureSiteAdmin
-     '{"siteUrl":"reflecting-pool.com","adminEmail":"<maggie-email>"}'`
+     '{"siteUrl":"zippymiggy.com","adminEmail":"<maggie-email>"}'`
    on both dev and `--prod`. Keep Jesse's email in the list if ongoing
    admin access is desired, or drop it via a second patch. See
    `convex/platform.ts#ensureSiteAdmin` — it's idempotent and
-   append-only.
+   append-only. **NB**: any `platformClients` rows still keyed to
+   `"reflecting-pool.com"` are pre-domain-decision stubs — re-run
+   `ensureSiteAdmin` with the new key or patch them directly.
 
 ## Session memory — 2026-04-23 audit sweep
 
@@ -115,29 +148,37 @@ Last updated: 2026-04-23 (multi-tenant Gap 1: Convex schema consolidation)
   2. User action: set `WEBHOOK_SECRET` (Vercel + Convex),
      `LUMAPRINTS_WEBHOOK_SECRET` (Vercel).
   3. User action: enable GitHub branch protection on `main` (H35).
-  4. User action: fix prod Convex `SITE_URL` — currently set to
-     `https://angelsrest.online` on `loyal-swan-967` (wrong — carried
-     over from the angelsrest deployment template). Should be
-     reflecting-pool's real prod domain (`https://margarethelena.com`?
-     confirm with Maggie). Run `npx convex env set --prod SITE_URL
-     https://<real-domain>`. Dev is correctly set to
-     `http://localhost:5173`. Until this is fixed, Better Auth's
-     OAuth callback and `trustedOrigins` on prod will redirect/compare
-     against the wrong host.
-  5. User action: when prod domain is finalized, extend
-     `convex/auth.ts` `trustedOrigins` to include it explicitly
-     alongside `siteUrl` (mirrors angelsrest's list which enumerates
-     both apex + `www.`).
-  6. Code: port `convex/stripeFees.ts` for H4 (fee capture scheduled
+  4. User action: set prod Convex `SITE_URL` to the new domain
+     (currently still set to `https://angelsrest.online` on
+     `loyal-swan-967` — carried over from the angelsrest template).
+     Run `npx convex env set --prod SITE_URL https://www.zippymiggy.com`.
+     Dev is correctly set to `http://localhost:5173`. Until this lands,
+     Better Auth's OAuth callback and `trustedOrigins` on prod redirect
+     and compare against the wrong host.
+  5. User action: extend `angelsrest/convex/auth.ts` `trustedOrigins` to
+     include `https://www.zippymiggy.com` and `https://zippymiggy.com`
+     alongside the angelsrest entries, then redeploy both Convex
+     deployments (`npx convex deploy` from angelsrest for each).
+  6. User action: point `zippymiggy.com` DNS at Vercel and add it as a
+     production domain in the Vercel project (with apex → www redirect).
+  7. Code: port `convex/stripeFees.ts` for H4 (fee capture scheduled
      action). Requires Node runtime + STRIPE_SECRET_KEY on Convex.
-  7. Code: un-mock Sanity (H42) before first real customer. When that
-     lands, port angelsrest's `convex/inquiries.ts` too so the admin
-     inquiries page stops stubbing `inquiries: []` in
-     `src/routes/admin/inquiries/+page.server.ts`, and drop the
-     `as unknown as AdminAPI` cast in `src/lib/config/admin.ts`.
-  8. Code: `@sentry/sveltekit` wire-up (H39), adapter-vercel pin (H38),
+  8. Code (H42 split):
+     - **H42a** — un-mock Sanity CMS reads (`fetchPrintableProducts`,
+       `fetchCollections`, `fetchCollectionWithPrints`,
+       `fetchPrintProduct`) once the Sanity project is created and the
+       `gallery` schema is deployed.
+     - **H42b** — (**in progress 2026-04-23**) rewrite Stripe +
+       LumaPrints webhooks to write orders to Convex via crm-api instead
+       of the `*SanityOrder` stubs. Changes to `orders.create`,
+       `orders.updateStatus`, new `orders.getByLumaprintsOrderNumber`.
+     - **H42c** — port `convex/inquiries.ts` to angelsrest so the admin
+       inquiries page stops stubbing `inquiries: []` in
+       `src/routes/admin/inquiries/+page.server.ts`; drop the
+       `as unknown as AdminAPI` cast in `src/lib/config/admin.ts`.
+  9. Code: `@sentry/sveltekit` wire-up (H39), adapter-vercel pin (H38),
      Biome-Svelte re-enable (H37).
-  9. Polish: remaining MEDIUM (M2/M3/M5 etc.) and LOW items.
+  10. Polish: remaining MEDIUM (M2/M3/M5 etc.) and LOW items.
 
 ## Useful commands
 

@@ -1,10 +1,17 @@
-// Sanity client — server-only
-// Write token needed for creating orders from webhooks
-// TODO: Replace mock data with real Sanity queries once project ID is set
+// Sanity client — server-only, CMS-only.
+//
+// Scope (audit H42a): this module handles only gallery/print CMS reads.
+// Orders do NOT live in Sanity — the Stripe + LumaPrints webhooks write
+// to Convex via `@jessepomeroy/crm-api` (see
+// `src/routes/api/webhooks/stripe/+server.ts`). See CLAUDE.md §"Key
+// architectural facts" #1 for the split.
+//
+// TODO (H42a): Replace mock data with real Sanity queries once the
+// project is created and the `gallery` schema is deployed.
 
 import { createClient } from "@sanity/client";
 import { SANITY_API_TOKEN, SANITY_DATASET, SANITY_PROJECT_ID } from "$env/static/private";
-import type { Order, PrintCollection, PrintProduct } from "$lib/shop/types";
+import type { PrintCollection, PrintProduct } from "$lib/shop/types";
 import { V2_SIZES } from "$lib/shop/v2Catalog";
 
 export const sanityClient = createClient({
@@ -12,7 +19,8 @@ export const sanityClient = createClient({
 	dataset: SANITY_DATASET,
 	token: SANITY_API_TOKEN,
 	apiVersion: "2024-01-01",
-	useCdn: false, // We need fresh data for orders
+	// CDN on — gallery reads are public and tolerate the short stale window.
+	useCdn: true,
 });
 
 // ─── GROQ Queries ───────────────────────────────────────────
@@ -138,66 +146,12 @@ export async function fetchPrintProduct(slug: string): Promise<PrintProduct | nu
 	return products.find((p) => p.slug === slug) ?? null;
 }
 
-/**
- * Create an order document in Sanity.
- * Called from Stripe webhook after successful checkout.
- */
-export async function createSanityOrder(data: {
-	stripeSessionId: string;
-	customerName: string;
-	customerEmail: string;
-	paperName: string;
-	paperSize: string;
-	amount: number;
-	imageUrl: string;
-	imageTitle: string;
-}): Promise<Order> {
-	// TODO: Uncomment when Sanity project is set up:
-	// return sanityClient.create({
-	//   _type: 'order',
-	//   ...data,
-	//   status: 'processing',
-	//   createdAt: new Date().toISOString(),
-	// });
-
-	// Mock: return a fake order for development
-	console.log("[Sanity Mock] Creating order:", data);
-	return {
-		_id: `mock-order-${Date.now()}`,
-		stripeSessionId: data.stripeSessionId,
-		customerName: data.customerName,
-		customerEmail: data.customerEmail,
-		status: "processing",
-		paperName: data.paperName,
-		paperSize: data.paperSize,
-		amount: data.amount,
-		createdAt: new Date().toISOString(),
-	};
-}
-
-/**
- * Update an order in Sanity (e.g., with LumaPrints order number or tracking).
- */
-export async function updateSanityOrder(orderId: string, data: Partial<Order>): Promise<void> {
-	// TODO: Uncomment when Sanity project is set up:
-	// await sanityClient.patch(orderId).set(data).commit();
-
-	console.log(`[Sanity Mock] Updating order ${orderId}:`, data);
-}
-
-/**
- * Find an order by LumaPrints order number.
- */
-export async function findOrderByLumaprintsNumber(orderNumber: string): Promise<Order | null> {
-	// TODO: Uncomment when Sanity project is set up:
-	// return sanityClient.fetch(
-	//   `*[_type == "order" && lumaprintsOrderNumber == $orderNumber][0]`,
-	//   { orderNumber }
-	// );
-
-	console.log(`[Sanity Mock] Looking up order by LumaPrints #${orderNumber}`);
-	return null;
-}
+// Order-related functions (`createSanityOrder`, `updateSanityOrder`,
+// `findOrderByLumaprintsNumber`, `findOrderByStripeSessionId`) used to
+// live here. They were removed on the H42b Sanity → Convex migration
+// (2026-04-23). Orders now live in Convex; the webhook handlers call
+// `api.orders.create` / `api.orders.updateStatus` /
+// `api.orders.getByLumaprintsOrderNumber` via `@jessepomeroy/crm-api`.
 
 // ─── Mock Data ──────────────────────────────────────────────
 

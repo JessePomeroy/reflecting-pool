@@ -1,39 +1,60 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Order } from "../../lib/shop/types";
 
 // ─── Module Mocks ─────────────────────────────────────────────────────────────
 
-const mockFindOrder = vi.fn();
-const mockUpdateOrder = vi.fn();
+const mockConvexQuery = vi.fn();
+const mockConvexMutation = vi.fn();
 
-vi.mock("../../lib/server/sanity", () => ({
-	findOrderByLumaprintsNumber: mockFindOrder,
-	updateSanityOrder: mockUpdateOrder,
+vi.mock("../../lib/server/convexClient", () => ({
+	getConvex: () => ({
+		query: mockConvexQuery,
+		mutation: mockConvexMutation,
+	}),
+}));
+
+// The webhook pulls `env.WEBHOOK_SECRET` + the LumaPrints verification
+// secrets from `$env/dynamic/private`. Stub a signing + shared secret so
+// `verifyCaller` accepts the requests below. Tests that need unauth'd
+// responses override the signing path via headers.
+vi.mock("$env/dynamic/private", () => ({
+	env: {
+		WEBHOOK_SECRET: "test-webhook-secret",
+		LUMAPRINTS_WEBHOOK_SECRET: "test-shared-secret",
+		LUMAPRINTS_WEBHOOK_SIGNING_SECRET: "",
+	},
 }));
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function makeRequest(body: unknown) {
+type MakeRequestOpts = {
+	body: unknown;
+	// ?token=... in the URL. Explicit `null` to test the unauth path; default
+	// applied via `??` below so passing `token: undefined` in destructuring
+	// *also* takes the default. We only skip the token query-string when the
+	// caller passes `null` explicitly.
+	token?: string | null;
+};
+
+function makeRequest({ body, token }: MakeRequestOpts) {
+	const rawBody = JSON.stringify(body);
+	const resolvedToken = token === null ? null : (token ?? "test-shared-secret");
+	const urlString = `https://example.test/api/webhooks/lumaprints${resolvedToken ? `?token=${encodeURIComponent(resolvedToken)}` : ""}`;
 	return {
 		request: {
-			json: () => Promise.resolve(body),
-			text: () => Promise.resolve(JSON.stringify(body)),
-			headers: { get: () => null },
+			text: () => Promise.resolve(rawBody),
+			headers: { get: (_: string) => null },
 		},
+		url: new URL(urlString),
 	};
 }
 
-const MOCK_ORDER: Order = {
-	_id: "sanity-order-xyz",
-	stripeSessionId: "cs_test_abc",
-	customerName: "Jane Doe",
+const MOCK_ORDER = {
+	_id: "j9zxxxx",
+	orderNumber: "ORD-00099",
+	status: "printing" as const,
 	customerEmail: "jane@example.com",
-	status: "printing",
-	paperName: "Archival Matte",
-	paperSize: "8×10",
-	amount: 35,
-	lumaprintsOrderNumber: "LP-55555",
-	createdAt: new Date().toISOString(),
+	trackingNumber: undefined,
+	trackingUrl: undefined,
 };
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -45,23 +66,23 @@ describe("POST /api/webhooks/lumaprints", () => {
 		vi.clearAllMocks();
 		vi.resetModules();
 
-		// Top-level vi.mock() above is hoisted by Vitest and stays active
-		// across resetModules() — no need to re-apply inside beforeEach.
 		const mod = await import("../../routes/api/webhooks/lumaprints/+server");
 		POST = mod.POST as unknown as typeof POST;
 	});
 
 	it("returns 200 on a valid shipment.created event", async () => {
-		mockFindOrder.mockResolvedValue(MOCK_ORDER);
-		mockUpdateOrder.mockResolvedValue(undefined);
+		mockConvexQuery.mockResolvedValue(MOCK_ORDER);
+		mockConvexMutation.mockResolvedValue(undefined);
 
 		const req = makeRequest({
-			event: "shipment.created",
-			data: {
-				orderNumber: "LP-55555",
-				trackingNumber: "1Z999AA10123456784",
-				trackingUrl: "https://ups.com/track?tracknum=1Z999AA10123456784",
-				carrier: "UPS",
+			body: {
+				event: "shipment.created",
+				data: {
+					orderNumber: "LP-55555",
+					trackingNumber: "1Z999AA10123456784",
+					trackingUrl: "https://ups.com/track?tracknum=1Z999AA10123456784",
+					carrier: "UPS",
+				},
 			},
 		});
 
@@ -71,60 +92,69 @@ describe("POST /api/webhooks/lumaprints", () => {
 		expect(data.received).toBe(true);
 	});
 
-	it("updates Sanity order with tracking info on shipment.created", async () => {
-		mockFindOrder.mockResolvedValue(MOCK_ORDER);
-		mockUpdateOrder.mockResolvedValue(undefined);
+	it("updates Convex order with tracking info on shipment.created", async () => {
+		mockConvexQuery.mockResolvedValue(MOCK_ORDER);
+		mockConvexMutation.mockResolvedValue(undefined);
 
 		const req = makeRequest({
-			event: "shipment.created",
-			data: {
-				orderNumber: "LP-55555",
-				trackingNumber: "1Z999AA10123456784",
-				trackingUrl: "https://ups.com/track?tracknum=1Z999AA10123456784",
-				carrier: "UPS",
+			body: {
+				event: "shipment.created",
+				data: {
+					orderNumber: "LP-55555",
+					trackingNumber: "1Z999AA10123456784",
+					trackingUrl: "https://ups.com/track?tracknum=1Z999AA10123456784",
+					carrier: "UPS",
+				},
 			},
 		});
 
 		await POST(req as never);
 
-		expect(mockUpdateOrder).toHaveBeenCalledWith(
-			"sanity-order-xyz",
-			expect.objectContaining({
-				status: "shipped",
-				trackingNumber: "1Z999AA10123456784",
-				trackingUrl: "https://ups.com/track?tracknum=1Z999AA10123456784",
-				shippingCarrier: "UPS",
-			}),
-		);
-		// shippedAt should be a valid ISO date string
-		const call = mockUpdateOrder.mock.calls[0][1];
-		expect(typeof call.shippedAt).toBe("string");
-		expect(new Date(call.shippedAt).getTime()).not.toBeNaN();
+		// Lookup goes through `api.orders.getByLumaprintsOrderNumber`
+		const [, queryArgs] = mockConvexQuery.mock.calls[0];
+		expect(queryArgs).toMatchObject({
+			webhookSecret: "test-webhook-secret",
+			siteUrl: "zippymiggy.com",
+			lumaprintsOrderNumber: "LP-55555",
+		});
+
+		// Then orders.updateStatus with tracking
+		const [, updateArgs] = mockConvexMutation.mock.calls[0];
+		expect(updateArgs).toMatchObject({
+			orderId: MOCK_ORDER._id,
+			status: "shipped",
+			trackingNumber: "1Z999AA10123456784",
+			trackingUrl: "https://ups.com/track?tracknum=1Z999AA10123456784",
+		});
 	});
 
-	it("handles unknown order gracefully (no Sanity update)", async () => {
-		mockFindOrder.mockResolvedValue(null); // order not found
+	it("handles unknown order gracefully (no Convex mutation)", async () => {
+		mockConvexQuery.mockResolvedValue(null); // order not found
 
 		const req = makeRequest({
-			event: "shipment.created",
-			data: {
-				orderNumber: "LP-UNKNOWN",
-				trackingNumber: "1Z000",
-				carrier: "FedEx",
+			body: {
+				event: "shipment.created",
+				data: {
+					orderNumber: "LP-UNKNOWN",
+					trackingNumber: "1Z000",
+					carrier: "FedEx",
+				},
 			},
 		});
 
 		const response = await POST(req as never);
 		expect(response.status).toBe(200);
-		expect(mockUpdateOrder).not.toHaveBeenCalled();
+		expect(mockConvexMutation).not.toHaveBeenCalled();
 	});
 
 	it("returns 400 when orderNumber is missing from shipment.created", async () => {
 		const req = makeRequest({
-			event: "shipment.created",
-			data: {
-				// no orderNumber
-				trackingNumber: "1Z999",
+			body: {
+				event: "shipment.created",
+				data: {
+					// no orderNumber
+					trackingNumber: "1Z999",
+				},
 			},
 		});
 
@@ -134,37 +164,41 @@ describe("POST /api/webhooks/lumaprints", () => {
 
 	it("returns 200 and ignores unknown event types", async () => {
 		const req = makeRequest({
-			event: "order.updated",
-			data: { orderNumber: "LP-12345" },
+			body: {
+				event: "order.updated",
+				data: { orderNumber: "LP-12345" },
+			},
 		});
 
 		const response = await POST(req as never);
 		expect(response.status).toBe(200);
-		expect(mockFindOrder).not.toHaveBeenCalled();
-		expect(mockUpdateOrder).not.toHaveBeenCalled();
+		expect(mockConvexQuery).not.toHaveBeenCalled();
+		expect(mockConvexMutation).not.toHaveBeenCalled();
 	});
 
-	it("returns 400 for invalid JSON", async () => {
-		const req = {
-			request: {
-				json: () => Promise.reject(new SyntaxError("Unexpected token")),
-			},
-		};
+	it("returns 401 when caller presents no shared token", async () => {
+		const req = makeRequest({
+			body: { event: "shipment.created", data: { orderNumber: "LP-1" } },
+			token: null,
+		});
 
 		const response = await POST(req as never);
-		expect(response.status).toBe(400);
+		expect(response.status).toBe(401);
+		expect(mockConvexQuery).not.toHaveBeenCalled();
 	});
 
-	it("returns 200 even when Sanity update throws (do not crash)", async () => {
-		mockFindOrder.mockResolvedValue(MOCK_ORDER);
-		mockUpdateOrder.mockRejectedValue(new Error("Sanity connection timeout"));
+	it("returns 200 even when Convex update throws (do not crash)", async () => {
+		mockConvexQuery.mockResolvedValue(MOCK_ORDER);
+		mockConvexMutation.mockRejectedValue(new Error("Convex connection timeout"));
 
 		const req = makeRequest({
-			event: "shipment.created",
-			data: {
-				orderNumber: "LP-55555",
-				trackingNumber: "1Z999",
-				carrier: "USPS",
+			body: {
+				event: "shipment.created",
+				data: {
+					orderNumber: "LP-55555",
+					trackingNumber: "1Z999",
+					carrier: "USPS",
+				},
 			},
 		});
 

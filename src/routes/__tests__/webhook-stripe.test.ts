@@ -3,15 +3,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Module Mocks ─────────────────────────────────────────────────────────────
 
-const mockCreateSanityOrder = vi.fn();
-const mockUpdateSanityOrder = vi.fn();
+const mockConvexMutation = vi.fn();
 const mockCreateLumaOrder = vi.fn();
 const mockBuildLumaOrder = vi.fn();
 const mockVerifyWebhook = vi.fn();
 
-vi.mock("../../lib/server/sanity", () => ({
-	createSanityOrder: mockCreateSanityOrder,
-	updateSanityOrder: mockUpdateSanityOrder,
+// Intercept the ConvexHttpClient singleton. The webhook imports
+// `getConvex()` which returns the client; we replace `mutation()` so
+// every orders.create / orders.updateStatus call lands in our spy.
+vi.mock("../../lib/server/convexClient", () => ({
+	getConvex: () => ({
+		mutation: mockConvexMutation,
+	}),
 }));
 
 vi.mock("../../lib/server/lumaprints", () => ({
@@ -22,6 +25,15 @@ vi.mock("../../lib/server/lumaprints", () => ({
 vi.mock("../../lib/server/stripe", () => ({
 	verifyWebhook: mockVerifyWebhook,
 	stripe: {},
+}));
+
+vi.mock("$env/dynamic/private", () => ({
+	env: {
+		WEBHOOK_SECRET: "test-webhook-secret",
+		RESEND_API_KEY: "",
+		ADMIN_EMAIL: "admin@test.com",
+		FROM_EMAIL: "orders@test.com",
+	},
 }));
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -41,10 +53,12 @@ function makeCheckoutSession(overrides?: Partial<Stripe.Checkout.Session>) {
 	return {
 		id: "cs_test_session_123",
 		amount_total: 3500,
+		amount_subtotal: 3500,
 		customer_details: {
 			name: "Jane Doe",
 			email: "jane@example.com",
 		},
+		payment_intent: "pi_test_abc",
 		metadata: VALID_METADATA,
 		shipping_details: {
 			name: "Jane Doe",
@@ -81,6 +95,19 @@ function makeRequest(body: string, signature: string | null) {
 	};
 }
 
+/**
+ * Default `orders.create` response used by most tests — new order, not a
+ * retry, not yet submitted to LumaPrints.
+ */
+const FRESH_ORDER_RESULT = {
+	_id: "j97xxxx" as unknown, // Convex Id<"orders"> — opaque
+	orderNumber: "ORD-00042",
+	alreadyExisted: false as const,
+	lumaprintsOrderNumber: undefined,
+	status: "new" as const,
+	stripeFees: undefined,
+};
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe("POST /api/webhooks/stripe", () => {
@@ -92,10 +119,6 @@ describe("POST /api/webhooks/stripe", () => {
 
 		// Top-level vi.mock() calls above are hoisted by Vitest and stay
 		// active across resetModules() — they only need to be declared once.
-		// (Re-applying them here is a no-op: Vitest statically hoists all
-		//  vi.mock() calls in the file to the top of the module, so nested
-		//  calls become duplicate top-level registrations and Vitest 4
-		//  warns they'll become an error in the future.)
 		const mod = await import("../../routes/api/webhooks/stripe/+server");
 		POST = mod.POST as unknown as typeof POST;
 	});
@@ -117,67 +140,54 @@ describe("POST /api/webhooks/stripe", () => {
 		expect(data.error).toMatch(/signature/i);
 	});
 
-	it("creates a Sanity order on valid checkout.session.completed", async () => {
+	it("creates a Convex order on valid checkout.session.completed", async () => {
 		const session = makeCheckoutSession();
 		const event = makeStripeEvent("checkout.session.completed", session);
 
 		mockVerifyWebhook.mockResolvedValue(event);
-		mockCreateSanityOrder.mockResolvedValue({
-			_id: "sanity-order-abc",
-			stripeSessionId: session.id,
-			customerName: "Jane Doe",
-			customerEmail: "jane@example.com",
-			status: "processing",
-			paperName: "Archival Matte",
-			paperSize: "8×10",
-			amount: 35,
-			createdAt: new Date().toISOString(),
-		});
-		mockBuildLumaOrder.mockReturnValue({ externalId: "sanity-order-abc", orderItems: [] });
+		mockConvexMutation
+			.mockResolvedValueOnce(FRESH_ORDER_RESULT) // orders.create
+			.mockResolvedValueOnce(undefined); // orders.updateStatus (after LumaPrints)
+		mockBuildLumaOrder.mockReturnValue({ externalId: "ORD-00042", orderItems: [] });
 		mockCreateLumaOrder.mockResolvedValue({ orderNumber: "LP-99999", status: "pending" });
-		mockUpdateSanityOrder.mockResolvedValue(undefined);
 
 		const req = makeRequest(JSON.stringify({}), "valid-sig");
 		const response = await POST(req as never);
 
 		expect(response.status).toBe(200);
-		expect(mockCreateSanityOrder).toHaveBeenCalledWith(
-			expect.objectContaining({
-				stripeSessionId: session.id,
-				customerName: "Jane Doe",
-				customerEmail: "jane@example.com",
-			}),
-		);
+		// First mutation call is orders.create
+		const [createRef, createArgs] = mockConvexMutation.mock.calls[0];
+		expect(createRef).toBeDefined();
+		expect(createArgs).toMatchObject({
+			webhookSecret: "test-webhook-secret",
+			siteUrl: "zippymiggy.com",
+			stripeSessionId: session.id,
+			customerEmail: "jane@example.com",
+			fulfillmentType: "lumaprints",
+			total: 35,
+		});
 	});
 
-	it("submits to LumaPrints after creating Sanity order", async () => {
+	it("submits to LumaPrints and patches order with lumaprintsOrderNumber", async () => {
 		const session = makeCheckoutSession();
 		const event = makeStripeEvent("checkout.session.completed", session);
 
 		mockVerifyWebhook.mockResolvedValue(event);
-		mockCreateSanityOrder.mockResolvedValue({
-			_id: "sanity-order-lp",
-			stripeSessionId: session.id,
-			customerName: "Jane Doe",
-			customerEmail: "jane@example.com",
-			status: "processing",
-			paperName: "Archival Matte",
-			paperSize: "8×10",
-			amount: 35,
-			createdAt: new Date().toISOString(),
-		});
-		mockBuildLumaOrder.mockReturnValue({ externalId: "sanity-order-lp", orderItems: [] });
+		mockConvexMutation.mockResolvedValueOnce(FRESH_ORDER_RESULT).mockResolvedValueOnce(undefined);
+		mockBuildLumaOrder.mockReturnValue({ externalId: "ORD-00042", orderItems: [] });
 		mockCreateLumaOrder.mockResolvedValue({ orderNumber: "LP-77777", status: "pending" });
-		mockUpdateSanityOrder.mockResolvedValue(undefined);
 
 		const req = makeRequest("{}", "valid-sig");
 		await POST(req as never);
 
 		expect(mockCreateLumaOrder).toHaveBeenCalled();
-		expect(mockUpdateSanityOrder).toHaveBeenCalledWith(
-			"sanity-order-lp",
-			expect.objectContaining({ lumaprintsOrderNumber: "LP-77777", status: "submitted" }),
-		);
+		// Second mutation call is orders.updateStatus with the LumaPrints order #
+		const [, updateArgs] = mockConvexMutation.mock.calls[1];
+		expect(updateArgs).toMatchObject({
+			orderId: FRESH_ORDER_RESULT._id,
+			lumaprintsOrderNumber: "LP-77777",
+			status: "printing",
+		});
 	});
 
 	it("marks order as fulfillment_error when LumaPrints fails", async () => {
@@ -185,33 +195,46 @@ describe("POST /api/webhooks/stripe", () => {
 		const event = makeStripeEvent("checkout.session.completed", session);
 
 		mockVerifyWebhook.mockResolvedValue(event);
-		mockCreateSanityOrder.mockResolvedValue({
-			_id: "sanity-order-err",
-			stripeSessionId: session.id,
-			customerName: "Jane Doe",
-			customerEmail: "jane@example.com",
-			status: "processing",
-			paperName: "Archival Matte",
-			paperSize: "8×10",
-			amount: 35,
-			createdAt: new Date().toISOString(),
-		});
-		mockBuildLumaOrder.mockReturnValue({ externalId: "sanity-order-err", orderItems: [] });
+		mockConvexMutation
+			.mockResolvedValueOnce(FRESH_ORDER_RESULT) // create
+			.mockResolvedValueOnce(undefined); // updateStatus(fulfillment_error)
+		mockBuildLumaOrder.mockReturnValue({ externalId: "ORD-00042", orderItems: [] });
 		mockCreateLumaOrder.mockRejectedValue(new Error("LumaPrints API down"));
-		mockUpdateSanityOrder.mockResolvedValue(undefined);
 
 		const req = makeRequest("{}", "valid-sig");
 		const response = await POST(req as never);
 
-		// Should still return 200 — we don't want Stripe to retry
+		// Still returns 200 — we don't want Stripe to retry
 		expect(response.status).toBe(200);
-		expect(mockUpdateSanityOrder).toHaveBeenCalledWith(
-			"sanity-order-err",
-			expect.objectContaining({
-				status: "fulfillment_error",
-				fulfillmentError: "LumaPrints API down",
-			}),
-		);
+		const [, updateArgs] = mockConvexMutation.mock.calls[1];
+		expect(updateArgs).toMatchObject({
+			orderId: FRESH_ORDER_RESULT._id,
+			status: "fulfillment_error",
+			fulfillmentError: "LumaPrints API down",
+		});
+	});
+
+	it("skips LumaPrints submission on retry when order already has lumaprintsOrderNumber (C13)", async () => {
+		const session = makeCheckoutSession();
+		const event = makeStripeEvent("checkout.session.completed", session);
+
+		mockVerifyWebhook.mockResolvedValue(event);
+		// orders.create returns alreadyExisted=true with a LumaPrints number
+		// already set — a prior webhook submitted. Must NOT re-submit.
+		mockConvexMutation.mockResolvedValueOnce({
+			...FRESH_ORDER_RESULT,
+			alreadyExisted: true as const,
+			lumaprintsOrderNumber: "LP-PRIOR-12345",
+			status: "printing" as const,
+		});
+
+		const req = makeRequest("{}", "valid-sig");
+		const response = await POST(req as never);
+
+		expect(response.status).toBe(200);
+		expect(mockCreateLumaOrder).not.toHaveBeenCalled();
+		// No updateStatus call either (no new lumaprintsOrderNumber to record)
+		expect(mockConvexMutation).toHaveBeenCalledTimes(1);
 	});
 
 	it("returns 200 with received:true for non-checkout events", async () => {
