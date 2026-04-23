@@ -6,7 +6,12 @@ import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from "$env/static/private";
 import type { CheckoutMetadata } from "$lib/shop/types";
 
 export const stripe = new Stripe(STRIPE_SECRET_KEY, {
-	apiVersion: "2025-03-31.basil",
+	// Pinned to a tested API version. Stripe SDK v22 narrows `apiVersion`
+	// to its build-time default ("2026-02-25.clover"); at runtime Stripe
+	// accepts any still-supported version string, so pinning to the
+	// integration-tested version is safe. Cast works around the type
+	// narrowing without changing behavior.
+	apiVersion: "2025-03-31.basil" as Stripe.LatestApiVersion,
 });
 
 interface CreateCheckoutParams {
