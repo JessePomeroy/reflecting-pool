@@ -19,7 +19,13 @@ const config = {
 		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
 		adapter: adapter(),
 		alias: {
-			$convex: "./convex/_generated",
+			// Convex schema + generated types live in the angelsrest monorepo and
+			// are consumed here via @jessepomeroy/crm-api (linked via
+			// `link:../angelsrest/packages/crm-api` in package.json). SvelteKit
+			// aliases are resolved as filesystem paths, not package specifiers,
+			// so we point at node_modules/ directly — pnpm's link creates a
+			// symlink there that TS + Vite both follow.
+			$convex: "./node_modules/@jessepomeroy/crm-api/src",
 		},
 	},
 };
