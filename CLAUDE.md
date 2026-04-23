@@ -3,6 +3,49 @@
 Last updated: 2026-04-23 (prod domain = zippymiggy.com; Sanity scoped to
 CMS-only; orders migrating from Sanity → Convex)
 
+## Platform model
+
+reflecting-pool is one spoke of a platform-operator model. Jesse owns
+and maintains the platform; clients (Maggie here, future photographers
+later) consume it. The split dictates who owns which third-party
+account and blocks on whom for launch.
+
+**Operator-owned (Jesse's accounts across all client sites):**
+- **Vercel** — all spoke hosting, one team; each client gets a project.
+- **Cloudflare** — Worker + R2 for gallery image storage; one account
+  serves every site.
+- **Convex** — one codebase in `angelsrest`, multiple deployments (one
+  per spoke). Tenancy key is `platformClients.siteUrl`.
+- **Sentry, GitHub, Resend** — operator tooling. Resend verifies each
+  client's domain for outbound `from`, but the account is Jesse's.
+
+**Client-owned (Maggie's accounts, per-client):**
+- **Sanity** — each client has their own project/org. Client signs up,
+  invites Jesse as Administrator, hands over project ID + API token.
+  `platformClients.sanityProjectId` is where the ID lives on the
+  Convex side.
+- **Stripe** — each client has their own account (identity, bank,
+  payouts). Client hands over publishable/secret/webhook-signing keys.
+- **LumaPrints** — each client has their own supplier account (billing
+  card, store ID). Client hands over API key + secret + store ID.
+- **Domain** — each client owns their domain at a registrar. Client
+  points DNS at Vercel (or delegates nameservers to Jesse).
+
+**The client's two logins (the only interfaces she ever sees):**
+1. **Sanity Studio** for her project — she edits galleries + catalog.
+2. **`<her-domain>/admin`** — Better Auth gates via
+   `platformClients.adminEmails`; the admin dashboard package renders
+   orders, stats, inquiries, gallery management.
+
+She does NOT see Vercel, Cloudflare, Convex, Sentry, GitHub, or any of
+the operator-side infrastructure. If the operator walks away entirely,
+the client keeps Sanity + Stripe + LumaPrints + domain — the content +
+money + identity. Everything else is replaceable.
+
+Practical implication: H42a (Sanity un-mock) blocks on the client
+creating their Sanity project, not on the operator. Same pattern as
+Stripe / LumaPrints keys.
+
 ## Prod domain
 
 **`https://www.zippymiggy.com/`** is the production URL. Apex

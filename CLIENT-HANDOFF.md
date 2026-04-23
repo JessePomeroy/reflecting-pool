@@ -4,6 +4,65 @@
 
 ---
 
+## Platform-operator framing
+
+Jesse is the platform operator; Maggie is a client. The operator owns
+and maintains shared infrastructure across all client sites; the client
+owns only the business-identity services that legally or financially
+must be in her name.
+
+**Who creates what for each new client site:**
+
+| Service | Who creates | Who uses it day-to-day |
+|---|---|---|
+| Vercel project | Jesse | Jesse (deploys, logs, rollbacks) |
+| Cloudflare Worker + R2 | Jesse | Jesse (shared across all clients) |
+| Convex deployment | Jesse | Jesse (schema changes flow from angelsrest codebase) |
+| Sentry org/project | Jesse | Jesse (error triage) |
+| GitHub repo | Jesse | Jesse |
+| Resend account | Jesse | Jesse (verifies each client's domain as a sending domain) |
+| **Sanity project** | **Client** | Client (Studio) + Jesse (schema deploys) |
+| **Stripe account** | **Client** | Client (payouts) + Jesse (webhook keys) |
+| **LumaPrints account** | **Client** | Client (billing card) + Jesse (API keys) |
+| **Domain** | **Client** | Jesse (DNS → Vercel) |
+
+**What the client asks for from the operator:** nothing beyond her two
+logins (Sanity Studio + `<her-domain>/admin`).
+
+**What the operator asks for from the client** (on day 0, before launch):
+1. Her admin email (for Sanity Studio invite + `platformClients.adminEmails`).
+2. Her Sanity project ID + API token (after she creates the project).
+3. Her Stripe publishable/secret/webhook-signing keys.
+4. Her LumaPrints API key + API secret + store ID + webhook secret.
+5. Her domain registrar login (or she delegates nameservers to Jesse).
+6. Her preferred `from` address for transactional email
+   (e.g. `orders@<her-domain>`).
+
+**Operator checklist for a new client site** (all doable by Jesse alone
+once #1–6 above are in hand):
+- [ ] Fork `reflecting-pool` template; rename; point `package.json` at
+      new site.
+- [ ] Create new Convex deployment; `npx convex env set SITE_URL …` +
+      `WEBHOOK_SECRET` + `STRIPE_SECRET_KEY` (for the fee-capture action).
+- [ ] `ensureSiteAdmin` with client's admin email for the new `siteUrl`.
+- [ ] Update `adminConfig.siteUrl` in `src/lib/config/admin.ts`.
+- [ ] Extend `angelsrest/convex/auth.ts` `trustedOrigins` with the
+      new domain; redeploy Convex.
+- [ ] Create Vercel project; paste env vars; connect GitHub.
+- [ ] Deploy Sanity schemas to the client's Sanity project from your
+      Administrator role.
+- [ ] Deploy Sanity Studio (self-host or use `<project>.sanity.studio`).
+- [ ] Point DNS at Vercel; set apex → www redirect; verify Resend
+      sending domain.
+- [ ] Send client her two login URLs.
+
+The detailed service-by-service setup instructions below were originally
+written as a self-service checklist "for Maggie." Treat them as the
+operator's reference — most steps are the operator's; a few labeled
+sections below are what the client does.
+
+---
+
 ## For Maggie — launch sequence
 
 A concrete, ordered checklist to take reflecting-pool from the current
