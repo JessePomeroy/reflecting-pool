@@ -33,7 +33,7 @@ away, client keeps these):
 - Stripe — Connect Express account under Jesse's platform; photographer
   receives payouts directly, Jesse takes an application fee on print
   sales.
-- LumaPrints — own account (see discrepancy flag at bottom).
+- LumaPrints — own account (own API key + store ID).
 - Cal.com — own account.
 - Google OAuth — own Google Cloud project + credentials. Prevents
   Jesse's account being a SPOF for every client's "sign in with Google."
@@ -43,7 +43,8 @@ away, client keeps these):
 - Cloudflare — shared Worker + R2 for gallery storage.
 - GitHub — one account, repo per client.
 - Sentry — one org, **project per client** (quota isolation + routing).
-- Resend — one account, client domains verified (see discrepancy flag).
+- Resend — one account, client domains verified (DNS records on
+  client's registrar; From addresses match the client's brand).
 
 **The client's two logins (all they ever see):**
 1. Sanity Studio (their project) — edits galleries + catalog.
@@ -223,17 +224,3 @@ stay in sync.
 Non-audit commits: conventional commits (`fix`, `feat`, `chore`,
 `docs`, `refactor`) with scope where useful.
 
-## Reconcile before client #3
-
-Two contradictions between this file / current conversation and the
-existing `client-onboarding-workflow.md` — operator decision needed
-before the next client onboards:
-
-1. **LumaPrints ownership.** Onboarding doc: shared store ID 83765.
-   Recent conversation: per-client account. Which is the real model?
-2. **Resend ownership.** Onboarding doc: per-client. Recent research
-   + economics: one account, client domains verified, $20/mo covers
-   ~50 clients at typical volume. Pick one and update the runbook.
-
-Neither blocks Maggie's launch; both block templating the onboarding
-runbook cleanly.
