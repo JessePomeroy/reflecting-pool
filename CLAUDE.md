@@ -173,6 +173,11 @@ Non-negotiables (always ask before touching):
 
 ## Current state
 
+**Pick up here:** last session ended 2026-04-23; full debrief at
+`~/Documents/quilt/02_reference/projects/reflecting pool/
+session-2026-04-23-debrief.md`. Next action: Phase 0 of the Option A
+migration (backup + verify, no infrastructure changes).
+
 **In dev:** admin dashboard signs in, queries work, mutations via
 HTTP-proxy work. Five-layer Better Auth fix landed 2026-04-23.
 
