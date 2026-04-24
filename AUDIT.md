@@ -1132,3 +1132,55 @@ angelsrest:
   scripts/hash-password.mjs                 (new: scrypt hasher, no deps)
   convex/_generated/api.d.ts                (regenerated — drops stale _scratchEnv ref)
 ```
+
+---
+
+## Post-sweep action items (2026-04-23)
+
+Ported from the old `CLAUDE.md`'s "Session memory — 2026-04-23 audit
+sweep → Remaining priorities" section during the 2026-04-23 CLAUDE.md
+rewrite. Original items 4 and 5 were obsoleted by the Option A
+multi-tenancy decision (per-client Convex projects, not one shared
+deployment) — see the Option A migration spec in the vault at
+`02_reference/projects/reflecting pool/option-a-migration.md`
+(pending).
+
+### User actions (only Jesse can do these)
+
+1. **Rotate secrets (C11):** `GALLERY_ADMIN_SECRET`,
+   `AUTH_GOOGLE_SECRET`, `AUTH_SECRET`, `BETTER_AUTH_SECRET`. Shared
+   with angelsrest for `GALLERY_ADMIN_SECRET` — break the share, make
+   both per-repo.
+2. **Webhook secrets:** `WEBHOOK_SECRET` (Vercel + each Convex
+   deployment once per-spoke projects exist), `LUMAPRINTS_WEBHOOK_SECRET`
+   (Vercel).
+3. **GitHub branch protection** on `main` (H35).
+4. **DNS:** point `zippymiggy.com` at Vercel; add as production domain
+   in the Vercel project with apex → www redirect.
+
+### Code work (by priority)
+
+- **H42a — Sanity un-mock.** `fetchPrintableProducts`,
+  `fetchCollections`, `fetchCollectionWithPrints`, `fetchPrintProduct`
+  all return static flowers-01–35 data. Gated on Maggie's Sanity
+  project existing. Jesse is pre-creating the project; transfer admin
+  to Maggie at handoff.
+- **H42c — Inquiries module.** Port `convex/inquiries.ts` to angelsrest
+  so the admin inquiries page stops stubbing `inquiries: []` in
+  `src/routes/admin/inquiries/+page.server.ts`; drop the
+  `as unknown as AdminAPI` cast in `src/lib/config/admin.ts`.
+- **H4 — Stripe fee capture.** Port `convex/stripeFees.ts` (scheduled
+  action). Requires Node runtime + `STRIPE_SECRET_KEY` on each Convex
+  deployment.
+- **H39 / H38 / H37 — Infra polish.** `@sentry/sveltekit` wire-up,
+  adapter-vercel pin, Biome-Svelte re-enable.
+- **Option A migration (NEW, 2026-04-23).** Supersedes old priorities
+  4 + 5. Provision reflecting-pool's own Convex project (dev + prod),
+  set per-spoke `SITE_URL`, set per-spoke secrets, wire Stripe Connect
+  Express. Full spec pending at `~/Documents/quilt/02_reference/
+  projects/reflecting pool/option-a-migration.md`.
+
+### Polish
+
+Remaining MEDIUM (M2/M3/M5 etc.) + LOW items in this file. Timebox as
+available — none ship-blocking.

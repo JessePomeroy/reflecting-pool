@@ -1,297 +1,202 @@
-# CLAUDE.md — session memory for reflecting-pool
+# CLAUDE.md — reflecting-pool
 
-Last updated: 2026-04-23 (prod domain = zippymiggy.com; Sanity scoped to
-CMS-only; orders migrating from Sanity → Convex)
+Last updated: 2026-04-23
 
-## Platform model
+## What this is
 
-reflecting-pool is one spoke of a platform-operator model. Jesse owns
-and maintains the platform; clients (Maggie here, future photographers
-later) consume it. The split dictates who owns which third-party
-account and blocks on whom for launch.
+reflecting-pool is Margaret Helena's fine-art photography site (prod:
+**zippymiggy.com**). It plays two roles at once:
 
-**Operator-owned (Jesse's accounts across all client sites):**
-- **Vercel** — all spoke hosting, one team; each client gets a project.
-- **Cloudflare** — Worker + R2 for gallery image storage; one account
-  serves every site.
-- **Convex** — one codebase in `angelsrest`, multiple deployments (one
-  per spoke). Tenancy key is `platformClients.siteUrl`.
-- **Sentry, GitHub, Resend** — operator tooling. Resend verifies each
-  client's domain for outbound `from`, but the account is Jesse's.
+1. Maggie's bespoke site (first real client).
+2. The forking template for future client spokes (client #3+) — you fork
+   this repo, redesign the visual layer, keep the plumbing.
 
-**Client-owned (Maggie's accounts, per-client):**
-- **Sanity** — each client has their own project/org. Client signs up,
-  invites Jesse as Administrator, hands over project ID + API token.
-  `platformClients.sanityProjectId` is where the ID lives on the
-  Convex side.
-- **Stripe** — each client has their own account (identity, bank,
-  payouts). Client hands over publishable/secret/webhook-signing keys.
-- **LumaPrints** — each client has their own supplier account (billing
-  card, store ID). Client hands over API key + secret + store ID.
-- **Domain** — each client owns their domain at a registrar. Client
-  points DNS at Vercel (or delegates nameservers to Jesse).
+## Platform at a glance
 
-**The client's two logins (the only interfaces she ever sees):**
-1. **Sanity Studio** for her project — she edits galleries + catalog.
-2. **`<her-domain>/admin`** — Better Auth gates via
-   `platformClients.adminEmails`; the admin dashboard package renders
-   orders, stats, inquiries, gallery management.
+Jesse is the platform operator running a photographer-SaaS. Each client
+site is a spoke; **angelsrest** is both Jesse's own photography site AND
+the super-admin hub that aggregates across all spokes.
 
-She does NOT see Vercel, Cloudflare, Convex, Sentry, GitHub, or any of
-the operator-side infrastructure. If the operator walks away entirely,
-the client keeps Sanity + Stripe + LumaPrints + domain — the content +
-money + identity. Everything else is replaceable.
+**Deployment model: per-client Convex projects.**
+- One Convex project per client (dev deployment + prod deployment pair).
+- Schema + functions live in `angelsrest/convex/`; the same codebase
+  deploys to every project via per-client `CONVEX_DEPLOY_KEY`.
+- `platformClients.siteUrl` is the tenancy key inside each deployment
+  (effectively one row on spoke deployments; the full roster on
+  angelsrest's deployment).
+- Dev is currently one shared deployment (`acoustic-kiwi-347`) as a
+  Gap-1 consolidation convenience; prod is per-client.
 
-Practical implication: H42a (Sanity un-mock) blocks on the client
-creating their Sanity project, not on the operator. Same pattern as
-Stripe / LumaPrints keys.
+**Client-owned accounts** (client pays, owns identity; if Jesse walks
+away, client keeps these):
+- Sanity — own project, own Studio repo.
+- Stripe — Connect Express account under Jesse's platform; photographer
+  receives payouts directly, Jesse takes an application fee on print
+  sales.
+- LumaPrints — own account (see discrepancy flag at bottom).
+- Cal.com — own account.
+- Google OAuth — own Google Cloud project + credentials. Prevents
+  Jesse's account being a SPOF for every client's "sign in with Google."
 
-## Prod domain
+**Operator-owned accounts** (Jesse's, across all spokes):
+- Vercel — one team, project per client.
+- Cloudflare — shared Worker + R2 for gallery storage.
+- GitHub — one account, repo per client.
+- Sentry — one org, **project per client** (quota isolation + routing).
+- Resend — one account, client domains verified (see discrepancy flag).
 
-**`https://www.zippymiggy.com/`** is the production URL. Apex
-`https://zippymiggy.com` should redirect to the `www` host (configure at
-registrar / Vercel). Until DNS is live, treat the domain as a hard-coded
-future reference — do not deploy without it.
+**The client's two logins (all they ever see):**
+1. Sanity Studio (their project) — edits galleries + catalog.
+2. `<their-domain>/admin` — Better Auth gates via
+   `platformClients.adminEmails`. Basic tier = Dashboard + Orders +
+   Inquiries + Galleries. Subscription unlocks CRM + Board + Invoicing
+   + Quotes + Contracts + Emails + Messages.
 
-Config touch-points that depend on the domain:
-- `adminConfig.siteUrl` in `src/lib/config/admin.ts` → `"zippymiggy.com"`
-  (bare domain, no scheme, no www — the key `platformClients.siteUrl`
-  matches against).
-- `platformClients.siteUrl` in Convex (via `ensureSiteAdmin`):
-  `"zippymiggy.com"`.
-- Convex env `SITE_URL` on the `--prod` deployment:
-  `npx convex env set --prod SITE_URL https://www.zippymiggy.com`.
-- `trustedOrigins` in `angelsrest/convex/auth.ts` must enumerate both
-  `https://www.zippymiggy.com` and `https://zippymiggy.com` alongside the
-  angelsrest entries (single Convex codebase, multi-deploy — one list
-  covers both sites' origins).
-- Vercel env: `SITE_URL`, `PUBLIC_SITE_URL`.
+## Repo layout
 
-## Repo snapshot
+- Frontend: SvelteKit, this repo → `zippymiggy.com`.
+- Backend (Convex) schema + functions live in
+  `/Users/jessepomeroy/Documents/work/angelsrest/convex/`.
+  Types consumed here via `@jessepomeroy/crm-api` (linked for local dev,
+  published to GitHub Packages for prod).
+- Admin UI: `@jessepomeroy/admin` npm package — 60 components + server
+  handler factories + tier gating.
+- Sanity Studio: separate repo per client (not yet created for
+  reflecting-pool — pending H42a).
 
-- **reflecting-pool** is Margaret Helena's fine-art photography site
-  (prod: **zippymiggy.com**). SvelteKit + Convex + Better Auth + Sanity
-  (CMS only, currently mocked) + LumaPrints (print fulfillment) + Stripe
-  (checkout) + a Cloudflare Worker for gallery image storage.
-- **Admin UI** is consumed from `@jessepomeroy/admin` (a separate repo at
-  `/Users/jessepomeroy/Documents/work/admin-dashboard`). The admin package
-  ships components + server handlers only; it calls this repo's Convex
-  functions via a Proxy alias (`api.galleryDelivery` → `api.galleries`).
-- **Convex schema + functions live in angelsrest** (Gap 1 consolidation,
-  2026-04-23). This repo consumes generated API types via
-  `@jessepomeroy/crm-api` (linked via `link:../angelsrest/packages/crm-api`
-  for local dev; published to GitHub Packages for prod). The SvelteKit
-  `$convex` alias now points at that package. No more `convex/` folder
-  here, and `npx convex dev` is run from angelsrest, not here.
-- **angelsrest** at `/Users/jessepomeroy/Documents/work/angelsrest` is the
-  reference implementation. When in doubt, check angelsrest's equivalent
-  — most patterns here were ported wholesale.
+## Aesthetic (reflecting-pool specific)
 
-## Canonical docs
-
-**In the repo** (technical reference + tooling-consumed):
-- `AUDIT.md` — live audit findings + session reflection at the end.
-  Commit messages cite audit IDs from here.
-- `AGENTS.md` — dev workflow doc. Prefer over ad-hoc instructions.
-- `ARCHITECTURE.md` — animation/parallax architecture.
-- `LUMAPRINTS.md` — LumaPrints integration reference.
-- `SANITY-SCHEMA.md` — Sanity schema definitions (for H42a un-mock).
-
-**In the Obsidian vault**
-(`~/Documents/quilt/02_reference/projects/reflecting pool/`, moved
-2026-04-23):
-- `client-handoff.md` — pricing + launch sequence + client-training
-  content. Operator-facing notes, not repo tooling.
-- `testing-pipeline.md` — step-by-step before-launch QA checklist.
-- `admin-auth-stale.md` — old Auth.js-based admin-auth notes;
-  superseded by the Better Auth setup in the repo. Kept for history.
-
-## Aesthetic vocabulary
-
-- **Font**: `Cormorant` serif (Google Fonts, preloaded in
-  `+layout.svelte`). Use `var(--font-serif)`.
-- **Palette**: `--ink: #1a1f2e`, `--paper: #f0f4f8`. Always apply via
+- Font: `Cormorant` serif via Google Fonts, preloaded in
+  `+layout.svelte`. Use `var(--font-serif)`.
+- Palette: `--ink: #1a1f2e`, `--paper: #f0f4f8`. Apply via
   `rgba(var(--ink-rgb), X)` / `rgba(var(--paper-rgb), X)` so opacity
-  variations stay legible over the site gradient.
-- **Background**: global caustics video + ink-to-paper gradient in
+  variations stay legible over the gradient.
+- Background: global caustics video + ink-to-paper gradient in
   `+layout.svelte`. Don't double this on per-page backgrounds.
-- **Tone**: lowercase headings, letter-spacing 0.1–0.15em, weight 300,
+- Tone: lowercase headings, letter-spacing 0.1–0.15em, weight 300,
   muted opacity (0.4–0.8). Italic accents for secondary text.
-- **Buttons**: transparent background, 1px `rgba(paper, 0.3)` border,
+- Buttons: transparent background, 1px `rgba(paper, 0.3)` border,
   `min-height: 44px` (mobile a11y). Hover increases opacity; no fill.
-- **Reference pages**: `src/routes/about/+page.svelte`,
+- Reference pages: `src/routes/about/+page.svelte`,
   `src/routes/delivery/[token]/+page.svelte`.
+
+Other clients will have different aesthetics — this section is
+reflecting-pool's only.
 
 ## Key architectural facts
 
-0. **Convex lives in angelsrest, not here** — generated API types are
-   consumed via `@jessepomeroy/crm-api` (a thin re-export package at
-   `angelsrest/packages/crm-api`). For local dev both repos are checked
-   out side-by-side and the package is linked via
-   `link:../angelsrest/packages/crm-api` — schema edits in angelsrest are
-   immediately visible here (TS re-exports resolve through the symlink,
-   Vite transpiles on demand). For prod, `@jessepomeroy/crm-api` is
-   published to GitHub Packages by a workflow in angelsrest that
-   hash-diffs `convex/_generated/api.d.ts` on every main-branch push and
-   auto-bumps the patch version when it changes. First publish requires
-   manual intervention — see `angelsrest/packages/crm-api/README.md`.
-1. **Sanity = CMS only, orders = Convex.** `src/lib/server/sanity.ts`
-   handles gallery/print reads (`fetchPrintableProducts`,
-   `fetchCollections`, `fetchCollectionWithPrints`, `fetchPrintProduct`).
-   Those are still mocked until the Sanity project is live (audit H42a).
-   **Orders do NOT live in Sanity** — the Stripe + LumaPrints webhooks
-   write to Convex via `@jessepomeroy/crm-api` (`api.orders.create` /
-   `api.orders.updateStatus` / `api.orders.getByLumaprintsOrderNumber`),
-   same pattern as angelsrest. C13/C14 idempotency is already enforced
-   by the `by_stripeSessionId` index on the Convex orders table. The
-   legacy `*SanityOrder` functions were removed on the Sanity → Convex
-   migration (2026-04-23); if you see them in an old branch, that's
-   pre-migration code.
-2. **No `WEBHOOK_SECRET` in prod yet** — needs
-   `npx convex env set WEBHOOK_SECRET <value>` AND Vercel. The
-   `convex/orders.ts`, `convex/invoices.markPaid`, and
-   `convex/platform.updateSubscription` webhook paths fail closed until
-   this is set.
-3. **Convex is single-tenant per deployment** — `requireAuth` is
-   effectively equivalent to `requireSiteAdmin` today, but the helpers
-   are shaped for the multi-tenant future (admin-dashboard template
-   reuse). Don't remove `requireSiteAdmin` even when it looks redundant.
-4. **`galleries.updateImage` is intentionally unauthed** — the
-   customer-facing `/delivery/[token]` calls it to toggle `isFavorite`.
-   Tightening this requires routing through a token-authorized variant.
-5. **Admin auth = "HTTP-proxy for mutations, JWT on socket for queries"**
-   — matches angelsrest (2026-04-23). Browser Convex WebSocket is
-   authed via `/api/admin/token` (cookie → JWT), driven by
-   `setupAuth(() => ({ isAuthenticated: data.isAuthenticated, ... }))`
-   where `data.isAuthenticated` comes from `+layout.server.ts`'s
-   `requireAuthWithIdentity` call (NOT `authClient.useSession()` — that
-   re-introduces the pause bug in
+1. **Sanity = CMS only.** `src/lib/server/sanity.ts` reads gallery +
+   print catalog. Currently mocked until Maggie's Sanity project is
+   live (H42a).
+2. **Orders live in Convex, not Sanity.** Stripe + LumaPrints webhooks
+   call `api.orders.create` / `api.orders.updateStatus` /
+   `api.orders.getByLumaprintsOrderNumber` via `@jessepomeroy/crm-api`.
+   Idempotency via the `by_stripeSessionId` index — retries are safe.
+3. **Admin auth = "HTTP-proxy for mutations, JWT on socket for
+   queries."** Browser Convex WebSocket authed via `/api/admin/token`
+   (cookie → JWT). `setupAuth(() => ({ isAuthenticated:
+   data.isAuthenticated, ... }))` where `data.isAuthenticated` comes
+   from `+layout.server.ts`'s `requireAuthWithIdentity` (NOT
+   `authClient.useSession()` — that re-introduces the pause bug in
    `@mmailaender/convex-better-auth-svelte@0.7.3`). Mutations route
-   through `/api/admin/mutation/+server.ts`, a universal proxy that
-   forwards any `api.<mod>.<fn>` by name on a fresh `ConvexHttpClient`.
-   See `~/Documents/quilt/00_inbox/2026-04-23 PR candidate —
-   convex-better-auth-svelte pause bug.md` for the full design.
-6. **Admin identity on `platformClients`** — the
-   `platformClients.siteUrl` for this site is `"zippymiggy.com"`
-   (bare domain, no scheme; must match what `adminConfig.siteUrl`
-   sends). `adminEmails` currently contains `thinkingofview@gmail.com`
-   on dev + prod so Jesse can sign in during development.
-   **At handoff: swap in Maggie's admin email** via
-   `npx convex run platform:ensureSiteAdmin
-     '{"siteUrl":"zippymiggy.com","adminEmail":"<maggie-email>"}'`
-   on both dev and `--prod`. Keep Jesse's email in the list if ongoing
-   admin access is desired, or drop it via a second patch. See
-   `convex/platform.ts#ensureSiteAdmin` — it's idempotent and
-   append-only. **NB**: any `platformClients` rows still keyed to
-   `"reflecting-pool.com"` are pre-domain-decision stubs — re-run
-   `ensureSiteAdmin` with the new key or patch them directly.
+   through `/api/admin/mutation/+server.ts`. See the PR candidate in
+   `~/Documents/quilt/00_inbox/` for the full design.
+4. **Auth proxy uses `createSvelteKitHandler()`.** Hand-rolled fetch()
+   proxies break multi-Set-Cookie responses (known SvelteKit issue);
+   the canonical handler preserves each cookie via `getSetCookie()`.
+   Background in AUDIT.md's five-layer fix reflection.
+5. **JWKS auto-rotate is on** (`jwksRotateOnTokenGenerationError: true`
+   in `angelsrest/convex/auth.ts`). Self-heals
+   `ERR_JOSE_NOT_SUPPORTED` silently-swallowed failures during
+   algorithm migration. Safe to leave on permanently.
+6. **`galleries.updateImage` is intentionally unauthed** — the
+   customer-facing `/delivery/[token]` page calls it to toggle
+   `isFavorite`. Tightening requires a token-authorized variant.
+7. **Convex is single-tenant per deployment today** — `requireAuth`
+   effectively equals `requireSiteAdmin`. The helpers are shaped for
+   the multi-client-aware admin-package template; don't remove
+   `requireSiteAdmin` even when it looks redundant.
 
-## Session memory — 2026-04-23 audit sweep
+## Canonical docs
 
-- **Goal**: bring reflecting-pool up to angelsrest parity on the audit.
-- **Scope**: 43 of 89 items closed in one session. All 14 CRITICAL done
-  except C11 (user-only key rotation). Bulk of HIGH auth + perf + CI.
-- **Strategy**: port angelsrest wholesale rather than audit-item-by-item.
-- **Remaining priorities**:
-  1. User action: rotate `GALLERY_ADMIN_SECRET`, `AUTH_GOOGLE_SECRET`,
-     `AUTH_SECRET`, `BETTER_AUTH_SECRET` per C11.
-  2. User action: set `WEBHOOK_SECRET` (Vercel + Convex),
-     `LUMAPRINTS_WEBHOOK_SECRET` (Vercel).
-  3. User action: enable GitHub branch protection on `main` (H35).
-  4. User action: set prod Convex `SITE_URL` to the new domain
-     (currently still set to `https://angelsrest.online` on
-     `loyal-swan-967` — carried over from the angelsrest template).
-     Run `npx convex env set --prod SITE_URL https://www.zippymiggy.com`.
-     Dev is correctly set to `http://localhost:5173`. Until this lands,
-     Better Auth's OAuth callback and `trustedOrigins` on prod redirect
-     and compare against the wrong host.
-  5. User action: extend `angelsrest/convex/auth.ts` `trustedOrigins` to
-     include `https://www.zippymiggy.com` and `https://zippymiggy.com`
-     alongside the angelsrest entries, then redeploy both Convex
-     deployments (`npx convex deploy` from angelsrest for each).
-  6. User action: point `zippymiggy.com` DNS at Vercel and add it as a
-     production domain in the Vercel project (with apex → www redirect).
-  7. Code: port `convex/stripeFees.ts` for H4 (fee capture scheduled
-     action). Requires Node runtime + STRIPE_SECRET_KEY on Convex.
-  8. Code (H42 split):
-     - **H42a** — un-mock Sanity CMS reads (`fetchPrintableProducts`,
-       `fetchCollections`, `fetchCollectionWithPrints`,
-       `fetchPrintProduct`) once the Sanity project is created and the
-       `gallery` schema is deployed.
-     - **H42b** — (**in progress 2026-04-23**) rewrite Stripe +
-       LumaPrints webhooks to write orders to Convex via crm-api instead
-       of the `*SanityOrder` stubs. Changes to `orders.create`,
-       `orders.updateStatus`, new `orders.getByLumaprintsOrderNumber`.
-     - **H42c** — port `convex/inquiries.ts` to angelsrest so the admin
-       inquiries page stops stubbing `inquiries: []` in
-       `src/routes/admin/inquiries/+page.server.ts`; drop the
-       `as unknown as AdminAPI` cast in `src/lib/config/admin.ts`.
-  9. Code: `@sentry/sveltekit` wire-up (H39), adapter-vercel pin (H38),
-     Biome-Svelte re-enable (H37).
-  10. Polish: remaining MEDIUM (M2/M3/M5 etc.) and LOW items.
+**In-repo** (technical + tooling-consumed):
+- `AUDIT.md` — live audit (44 items open). Commits cite audit IDs.
+  Session reflections at the bottom include the five-layer Better Auth
+  fix (2026-04-23).
+- `AGENTS.md` — dev workflow for this repo.
+- `ARCHITECTURE.md` — animation/parallax architecture.
+- `LUMAPRINTS.md` — LumaPrints integration reference.
+- `SANITY-SCHEMA.md` — schema definitions for H42a un-mock.
 
-## Session memory — 2026-04-23 Better Auth five-layer fix
+**Obsidian vault** (generalized, operator-facing):
+- `02_reference/agentic-engineering/Our Agentic Workflow.md` — Jesse's
+  blueprint for agent interactions. Follow this when spawning
+  sub-agents.
+- `02_reference/projects/photographer_crm/client-onboarding-workflow.md`
+  — canonical 9-phase client onboarding runbook (Phase 0 scoping →
+  Phase 9 handoff). Use for every new client.
+- `02_reference/projects/reflecting pool/client-handoff.md` — pricing +
+  launch sequence + client-training content specific to Maggie.
+- `02_reference/projects/reflecting pool/testing-pipeline.md` —
+  before-launch QA checklist.
 
-After `/admin` 401'd on a signed-in user, five compounding causes in
-the Better Auth → Convex handshake. All fixed; closes AUDIT H1.
+## Working with Claude
 
-1. **Set-Cookie collapse in hand-rolled auth proxy.** The old
-   `src/routes/api/auth/[...all]/+server.ts` built response headers
-   via `new Headers(res.headers)`, which joins repeated `Set-Cookie`
-   lines with a comma — browsers only keep the first cookie. Session
-   cookie survived, `better-auth.convex_jwt` was lost, so
-   `getToken(cookies)` returned null and `requireAuthWithIdentity`
-   401'd. **Fix:** swap to the one-liner `createSvelteKitHandler()`
-   from `@mmailaender/convex-better-auth-svelte/sveltekit` — official
-   canonical pattern (see the package's SvelteKit framework guide).
-   This is a known SvelteKit issue (sveltejs/kit#3460, #4840, #13947)
-   — `response.headers.getSetCookie()` is the escape, but
-   `createSvelteKitHandler` already uses it.
-2. **Stale JWKS alg mismatch silently swallowed.** The convex plugin's
-   sign-in after-hook has a try/catch that eats
-   `ERR_JOSE_NOT_SUPPORTED`. A JWKS row generated under a prior
-   algorithm (e.g. EdDSA before the 0.10 → RS256 migration) trips this
-   on every sign-in; browser sees "success" with no JWT cookie set.
-   **Fix:** `jwksRotateOnTokenGenerationError: true` on the convex
-   plugin in `angelsrest/convex/auth.ts`. Per the
-   `convex-better-auth` 0.10 migration guide, this flag is a
-   migration-safety net; "can be disabled later if desired" but no
-   urgency. Leave on.
-3. **Pre-flag JWKS rows don't self-clean.** The rotate flag only
-   triggers on a *new* generation error; existing poisoned rows keep
-   failing. **Fix:** one-shot `npx convex run
-   devPasswordReset:rotateJwks` in angelsrest wipes every JWKS row so
-   the next sign-in regenerates. `internalMutation`, dev-only.
-4. **Dev password reset without Resend.** No email provider wired on
-   dev Convex, so Better Auth's reset-email flow dead-ends. **Fix:**
-   `node angelsrest/scripts/hash-password.mjs <pw>` prints a scrypt
-   hash; pipe into `npx convex run
-   devPasswordReset:setCredentialPasswordHash
-     '{"userId":"<bauth user _id>","newHash":"<paste>"}'`. Both are
-   dev-only internal tools; the script has no network/deps and the
-   mutation is `internalMutation` (not callable from browsers).
-5. **SvelteKit cookie staleness after sign-in.** `+layout.server.ts`
-   runs with the pre-sign-in cookie; a fresh JWT set by an in-page
-   sign-in action isn't visible until the next full doc load.
-   Symptom: admin 401s immediately after a successful sign-in, works
-   on Cmd+Shift+R. Known SvelteKit quirk (any POST-then-stay-on-page
-   flow). Not baked into the sign-in form deliberately (one-time
-   quirk; clients only see this on first-ever sign-in or post-
-   password-reset).
+Autonomy dial (Jesse's preferences, 2026-04-23):
 
-**Future-client implications:**
-- Layers 1+2 live in the template now. New clients inherit the fixes
-  automatically — no re-debugging. The `createSvelteKitHandler`
-  one-liner and the `jwksRotateOnTokenGenerationError` flag are both
-  in the spoke-template path.
-- Layers 3+4 are dev-only operator tools in angelsrest. Each new
-  client spoke will eventually need `rotateJwks` during setup (the
-  shared angelsrest Convex deployment may still be running an old
-  key). The password-reset utility will be useful anytime a dev
-  forgets their dev password.
-- Layer 5 — the hard-reload quirk — is inherent to SvelteKit's
-  server-load caching and will affect any client's admin dashboard
-  on first sign-in. Document in client onboarding, not in code.
+| Action | Default |
+|---|---|
+| Reads, git status/log | Free |
+| Run tests, typecheck, lint | Free |
+| Install / remove deps | **Ask** |
+| Commit code changes | **Ask** |
+| Commit doc changes | **Ask** |
+| Push to remote, open PRs | **Ask** |
+| Spawn sub-agents for research | Default-on |
+| Parallel tool calls | Default-on |
+| Propose + execute refactor without review | Sometimes — collaborative |
+
+Style: concise over comprehensive. Brutal honesty on tradeoffs. Todo
+lists when work is multi-step. Sub-agent prompts follow the blueprint
+pattern in `Our Agentic Workflow.md` (`[READ]` / `[AGENT]` / `[DET]` /
+`[REPORT]` steps, explicit scope constraints, never push to main).
+
+Non-negotiables (always ask before touching):
+- Public-facing aesthetic (`Cormorant`, ink/paper palette, lowercase
+  tone).
+- Audit IDs — never renumber closed ones, only append.
+- Anything in `convex/_generated/` — regenerate via CLI, don't hand-edit.
+- Copy/text content destined for Sanity.
+- Env var names + shapes.
+- Session memory / reflections — append, never delete.
+
+## Current state
+
+**In dev:** admin dashboard signs in, queries work, mutations via
+HTTP-proxy work. Five-layer Better Auth fix landed 2026-04-23.
+
+**In prod:** angelsrest.online is live with plain Stripe (not Connect).
+reflecting-pool prod not yet provisioned (no dedicated Convex project;
+`loyal-swan-967` is angelsrest's, not to be reused).
+
+**Blocked on Maggie:** Sanity project creation (H42a). Jesse is
+pre-creating the project under his account and will transfer admin to
+Maggie at handoff.
+
+**Option A migration pending.** reflecting-pool prod needs its own
+Convex project before launch. Stripe Connect Express needs wiring
+before client #2 takes real orders. Spec for this work: see
+`~/Documents/quilt/02_reference/projects/reflecting pool/option-a-
+migration.md` (to be written after this CLAUDE.md lands).
+
+**User actions pending** (only Jesse can do these):
+1. Rotate secrets per C11 (`GALLERY_ADMIN_SECRET`,
+   `AUTH_GOOGLE_SECRET`, `AUTH_SECRET`, `BETTER_AUTH_SECRET`).
+2. Set `WEBHOOK_SECRET` + `LUMAPRINTS_WEBHOOK_SECRET` on Vercel +
+   each Convex deployment.
+3. GitHub branch protection on `main` (H35).
+4. `zippymiggy.com` DNS → Vercel; add as production domain with apex
+   → www redirect.
 
 ## Useful commands
 
@@ -302,17 +207,33 @@ pnpm tsc --noEmit         # TS-only typecheck (faster than svelte-check)
 pnpm lint                 # biome check .
 pnpm test                 # vitest run
 
-# Convex tooling has moved to angelsrest (Gap 1 consolidation). To
-# regenerate types after a schema change, run from angelsrest:
-#   cd ../angelsrest && npx convex dev
-# The change flows back here through the linked @jessepomeroy/crm-api
+# Convex tooling lives in angelsrest. Regenerate types after a schema
+# change:
+cd ../angelsrest && npx convex dev
+# Change flows back here through the linked @jessepomeroy/crm-api
 # package — no install needed.
 ```
 
 ## Commit style
 
-Audit-related commits follow the pattern:
-`audit <tier>: <short description> (C1/C2/..., H3/H4/...)`
+Audit-related commits: `audit <tier>: <short description> (C1/C2/...,
+H3/H4/...)`. Reference closed audit IDs so `AUDIT.md` + commit history
+stay in sync.
 
-Reference the audit IDs closed so `AUDIT.md` + commit history stay in
-sync.
+Non-audit commits: conventional commits (`fix`, `feat`, `chore`,
+`docs`, `refactor`) with scope where useful.
+
+## Reconcile before client #3
+
+Two contradictions between this file / current conversation and the
+existing `client-onboarding-workflow.md` — operator decision needed
+before the next client onboards:
+
+1. **LumaPrints ownership.** Onboarding doc: shared store ID 83765.
+   Recent conversation: per-client account. Which is the real model?
+2. **Resend ownership.** Onboarding doc: per-client. Recent research
+   + economics: one account, client domains verified, $20/mo covers
+   ~50 clients at typical volume. Pick one and update the runbook.
+
+Neither blocks Maggie's launch; both block templating the onboarding
+runbook cleanly.
