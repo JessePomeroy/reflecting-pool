@@ -1,6 +1,6 @@
 # CLAUDE.md — reflecting-pool
 
-Last updated: 2026-04-23
+Last updated: 2026-04-25
 
 ## What this is
 
@@ -24,8 +24,11 @@ the super-admin hub that aggregates across all spokes.
 - `platformClients.siteUrl` is the tenancy key inside each deployment
   (effectively one row on spoke deployments; the full roster on
   angelsrest's deployment).
-- Dev is currently one shared deployment (`acoustic-kiwi-347`) as a
-  Gap-1 consolidation convenience; prod is per-client.
+- Dev was one shared deployment (`acoustic-kiwi-347`) during Gap 1;
+  per-client dev landed 2026-04-24 (reflecting-pool dev now
+  `confident-marlin-715`). Prod is per-client
+  (reflecting-pool prod: `brazen-capybara-35`, not yet wired on
+  Vercel — Phase 2 of the Option A migration).
 
 **Client-owned accounts** (client pays, owns identity; if Jesse walks
 away, client keeps these):
@@ -173,27 +176,36 @@ Non-negotiables (always ask before touching):
 
 ## Current state
 
-**Pick up here:** last session ended 2026-04-23; full debrief at
+**Pick up here:** last session ended 2026-04-24; full debrief at
 `~/Documents/quilt/02_reference/projects/reflecting pool/
-session-2026-04-23-debrief.md`. Next action: Phase 0 of the Option A
-migration (backup + verify, no infrastructure changes).
+session-2026-04-24-debrief.md`. Next action: Phase 2 of the Option A
+migration (rewire Vercel env + dev user seed). Sequenced in
+`~/Documents/quilt/02_reference/projects/photographer_crm/
+migration-execution-order.md` as Day 1.
 
 **In dev:** admin dashboard signs in, queries work, mutations via
 HTTP-proxy work. Five-layer Better Auth fix landed 2026-04-23.
+reflecting-pool dev Convex is now `confident-marlin-715` (per-client),
+though `.env.local` still points at `acoustic-kiwi-347` until Phase 2.
 
 **In prod:** angelsrest.online is live with plain Stripe (not Connect).
-reflecting-pool prod not yet provisioned (no dedicated Convex project;
-`loyal-swan-967` is angelsrest's, not to be reused).
+reflecting-pool prod Convex provisioned 2026-04-24 as
+`brazen-capybara-35` with `SITE_URL=https://www.zippymiggy.com` and
+the `platformClients` row seeded. Not yet wired on Vercel (Phase 2);
+DNS for `zippymiggy.com` still pending.
 
 **Blocked on Maggie:** Sanity project creation (H42a). Jesse is
 pre-creating the project under his account and will transfer admin to
-Maggie at handoff.
+Maggie at handoff. Also `LUMAPRINTS_*` prod creds (her account);
+smoke-test with Jesse's test-store values in the meantime.
 
-**Option A migration pending.** reflecting-pool prod needs its own
-Convex project before launch. Stripe Connect Express needs wiring
-before client #2 takes real orders. Spec for this work: see
-`~/Documents/quilt/02_reference/projects/reflecting pool/option-a-
-migration.md` (to be written after this CLAUDE.md lands).
+**Option A migration in progress.** Phases 0 + 1 complete as of
+2026-04-24 (new Convex project with dev + prod deployments, prod
+`platformClients` seeded via the new `platform:seedClient`
+internalMutation). Phase 2 (rewire) is next. Stripe Connect Express
+(D3) still separately pending before client #2 takes real orders.
+Spec: `~/Documents/quilt/02_reference/projects/reflecting pool/option-a-
+migration.md`.
 
 **User actions pending** (only Jesse can do these):
 1. Rotate secrets per C11 (`GALLERY_ADMIN_SECRET`,
