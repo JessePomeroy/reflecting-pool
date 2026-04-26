@@ -1,6 +1,6 @@
 # CLAUDE.md — reflecting-pool
 
-Last updated: 2026-04-25
+Last updated: 2026-04-25 (later)
 
 ## What this is
 
@@ -176,17 +176,19 @@ Non-negotiables (always ask before touching):
 
 ## Current state
 
-**Pick up here:** last session ended 2026-04-24; full debrief at
+**Pick up here:** last session ended 2026-04-25; full debrief at
 `~/Documents/quilt/02_reference/projects/reflecting pool/
-session-2026-04-24-debrief.md`. Next action: Phase 2 of the Option A
-migration (rewire Vercel env + dev user seed). Sequenced in
-`~/Documents/quilt/02_reference/projects/photographer_crm/
-migration-execution-order.md` as Day 1.
+session-2026-04-25-debrief.md`. Next action: Day 3 of
+`migration-execution-order.md` — crm-api first publish (Gap 2). Path 1
+of Phase 2 (Convex-side rewire) landed 2026-04-25; Day 2 (Option A
+Phases 3 + 5 — `scripts/deploy-all.sh`, `deploy-spokes.yml` CI
+workflow, and `trustedOrigins` simplification) also landed 2026-04-25.
+Phase 2's Vercel cutover is folded into Day 5 of the execution order.
 
 **In dev:** admin dashboard signs in, queries work, mutations via
 HTTP-proxy work. Five-layer Better Auth fix landed 2026-04-23.
-reflecting-pool dev Convex is now `confident-marlin-715` (per-client),
-though `.env.local` still points at `acoustic-kiwi-347` until Phase 2.
+reflecting-pool dev Convex is now `confident-marlin-715` (per-client);
+`.env.local` was rewired to it on 2026-04-25.
 
 **In prod:** angelsrest.online is live with plain Stripe (not Connect).
 reflecting-pool prod Convex provisioned 2026-04-24 as
@@ -199,13 +201,14 @@ pre-creating the project under his account and will transfer admin to
 Maggie at handoff. Also `LUMAPRINTS_*` prod creds (her account);
 smoke-test with Jesse's test-store values in the meantime.
 
-**Option A migration in progress.** Phases 0 + 1 complete as of
-2026-04-24 (new Convex project with dev + prod deployments, prod
-`platformClients` seeded via the new `platform:seedClient`
-internalMutation). Phase 2 (rewire) is next. Stripe Connect Express
-(D3) still separately pending before client #2 takes real orders.
-Spec: `~/Documents/quilt/02_reference/projects/reflecting pool/option-a-
-migration.md`.
+**Option A migration in progress.** Phases 0–1, Phase 2 Convex-side
+(Path 1), Phase 3 (`scripts/deploy-all.sh` + `deploy-spokes.yml`), and
+Phase 5 (`trustedOrigins` derived from `SITE_URL`) all complete as of
+2026-04-25. Phase 4 (aggregation) is deferred per spec. Phase 2
+Vercel-side cutover is sequenced into Day 5 alongside Admin Phase 4.
+Stripe Connect Express (D3) still separately pending before client #2
+takes real orders. Spec: `~/Documents/quilt/02_reference/projects/
+reflecting pool/option-a-migration.md`.
 
 **User actions pending** (only Jesse can do these):
 1. Rotate secrets per C11 (`GALLERY_ADMIN_SECRET`,
