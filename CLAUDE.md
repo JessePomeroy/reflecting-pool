@@ -244,3 +244,7 @@ stay in sync.
 Non-audit commits: conventional commits (`fix`, `feat`, `chore`,
 `docs`, `refactor`) with scope where useful.
 
+Do not add `Co-Authored-By: Claude` (or any AI assistant) trailers to
+commit messages. Authorship lives in `git log --author`; the tool used
+to write the diff is not part of the commit's identity.
+
