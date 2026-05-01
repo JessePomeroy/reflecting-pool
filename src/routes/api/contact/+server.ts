@@ -10,19 +10,34 @@ import type { RequestHandler } from "./$types";
 // See sanity.ts and lumaprints.ts for the rationale on $env/dynamic/private:
 // per-tenant Sanity / Resend credentials may not be set yet during onboarding;
 // dynamic import defers the failure from build to request time.
+//
+// Both Resend and Sanity client constructors throw on missing config, so
+// they're lazy-initialized to keep the build green when env is empty. The
+// route handler only runs at request time, so first-use construction is
+// fine.
 
 // Configurable recipient — set CONTACT_EMAIL in env, else fall back to a placeholder
 const RECIPIENT_EMAIL = "hello@margarethelena.com";
 
-const resend = new Resend(env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+function resend(): Resend {
+	if (!_resend) _resend = new Resend(env.RESEND_API_KEY);
+	return _resend;
+}
 
-const sanity = createClient({
-	projectId: env.SANITY_PROJECT_ID,
-	dataset: env.SANITY_DATASET,
-	token: env.SANITY_API_TOKEN,
-	apiVersion: "2024-01-01",
-	useCdn: false,
-});
+let _sanity: ReturnType<typeof createClient> | null = null;
+function sanity(): ReturnType<typeof createClient> {
+	if (!_sanity) {
+		_sanity = createClient({
+			projectId: env.SANITY_PROJECT_ID,
+			dataset: env.SANITY_DATASET,
+			token: env.SANITY_API_TOKEN,
+			apiVersion: "2024-01-01",
+			useCdn: false,
+		});
+	}
+	return _sanity;
+}
 
 interface ContactPayload {
 	name: string;
@@ -91,7 +106,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	// Run email + Sanity in parallel; don't let one failure block the other
 	const [emailResult, sanityResult] = await Promise.allSettled([
 		// Send email via Resend
-		resend.emails.send({
+		resend().emails.send({
 			from: "margaret helena · contact <onboarding@resend.dev>",
 			to: [RECIPIENT_EMAIL],
 			replyTo: email,
@@ -109,7 +124,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 		}),
 
 		// Create inquiry document in Sanity
-		sanity.create({
+		sanity().create({
 			_type: "inquiry",
 			name,
 			email,

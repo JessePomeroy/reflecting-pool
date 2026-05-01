@@ -20,14 +20,26 @@ import { V2_SIZES } from "$lib/shop/v2Catalog";
 // defers the missing-secret failure from build to request time so the rest
 // of the site can deploy. The Sanity-backed routes (galleries, contact form)
 // will 500 until real values are pushed.
-export const sanityClient = createClient({
-	projectId: env.SANITY_PROJECT_ID,
-	dataset: env.SANITY_DATASET,
-	token: env.SANITY_API_TOKEN,
-	apiVersion: "2024-01-01",
-	// CDN on — gallery reads are public and tolerate the short stale window.
-	useCdn: true,
-});
+//
+// Lazy-init is required: the @sanity/client constructor throws
+// "Configuration must contain `projectId`" if projectId is undefined,
+// which would crash SvelteKit's prerender step at build time. By
+// constructing on first use, we guarantee the build succeeds even
+// when the env is empty.
+let _sanityClient: ReturnType<typeof createClient> | null = null;
+export function sanityClient() {
+	if (!_sanityClient) {
+		_sanityClient = createClient({
+			projectId: env.SANITY_PROJECT_ID,
+			dataset: env.SANITY_DATASET,
+			token: env.SANITY_API_TOKEN,
+			apiVersion: "2024-01-01",
+			// CDN on — gallery reads are public and tolerate the short stale window.
+			useCdn: true,
+		});
+	}
+	return _sanityClient;
+}
 
 // ─── GROQ Queries ───────────────────────────────────────────
 
