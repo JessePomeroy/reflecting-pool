@@ -10,6 +10,7 @@ export default defineConfig({
 		globals: true,
 		alias: {
 			"$env/static/private": path.resolve("./src/__mocks__/env-private.ts"),
+			"$env/dynamic/private": path.resolve("./src/__mocks__/env-private-dynamic.ts"),
 			"$env/static/public": path.resolve("./src/__mocks__/env-public.ts"),
 			"$app/environment": path.resolve("./src/__mocks__/app-environment.ts"),
 		},

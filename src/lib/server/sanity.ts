@@ -10,14 +10,20 @@
 // project is created and the `gallery` schema is deployed.
 
 import { createClient } from "@sanity/client";
-import { SANITY_API_TOKEN, SANITY_DATASET, SANITY_PROJECT_ID } from "$env/static/private";
+import { env } from "$env/dynamic/private";
 import type { PrintCollection, PrintProduct } from "$lib/shop/types";
 import { V2_SIZES } from "$lib/shop/v2Catalog";
 
+// Per-client Sanity tenancy is currently undecided (platform-owned vs
+// client-owned, see angelsrest CLAUDE.md). Until a tenant's project is
+// provisioned, Vercel won't have these vars set; using $env/dynamic/private
+// defers the missing-secret failure from build to request time so the rest
+// of the site can deploy. The Sanity-backed routes (galleries, contact form)
+// will 500 until real values are pushed.
 export const sanityClient = createClient({
-	projectId: SANITY_PROJECT_ID,
-	dataset: SANITY_DATASET,
-	token: SANITY_API_TOKEN,
+	projectId: env.SANITY_PROJECT_ID,
+	dataset: env.SANITY_DATASET,
+	token: env.SANITY_API_TOKEN,
 	apiVersion: "2024-01-01",
 	// CDN on — gallery reads are public and tolerate the short stale window.
 	useCdn: true,

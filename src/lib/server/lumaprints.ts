@@ -1,12 +1,7 @@
 // LumaPrints API client — server-only
 // See LUMAPRINTS.md for full spec and known issues
 
-import {
-	LUMAPRINTS_API_KEY,
-	LUMAPRINTS_API_SECRET,
-	LUMAPRINTS_STORE_ID,
-	LUMAPRINTS_USE_SANDBOX,
-} from "$env/static/private";
+import { env } from "$env/dynamic/private";
 import { prepareSanityUrlForPrint } from "$lib/shop/lumaprintsUrls";
 import type {
 	LumaPrintsOrder,
@@ -16,21 +11,30 @@ import type {
 	Recipient,
 } from "$lib/shop/types";
 
+// Per-tenant LumaPrints credentials live in Vercel env. Until a client is
+// fully onboarded, those vars may be unset; using $env/dynamic/private
+// defers the missing-secret failure from build to request time. Print/order
+// routes will 500 until real values are configured. See sanity.ts for the
+// matching note.
+
 // Sandbox switch is driven by an explicit LUMAPRINTS_USE_SANDBOX env var
 // instead of `import.meta.env.DEV`. The Vite DEV flag is true only for
 // `pnpm dev` and leaves Vercel preview deployments pointing at production
 // LumaPrints — a silent footgun for any PR touching checkout. An explicit
 // var lets each environment (local / preview / production) be configured
 // independently. See LUMAPRINTS.md for the recommended Vercel config.
+//
+// Computed at module init — fine for serverless: cold-start happens after
+// env is fully populated, and the value is stable thereafter.
 const BASE_URL =
-	LUMAPRINTS_USE_SANDBOX === "true"
+	env.LUMAPRINTS_USE_SANDBOX === "true"
 		? "https://us.api-sandbox.lumaprints.com"
 		: "https://us.api.lumaprints.com";
 
 function getHeaders(): HeadersInit {
 	return {
 		"Content-Type": "application/json",
-		Authorization: `Basic ${btoa(`${LUMAPRINTS_API_KEY}:${LUMAPRINTS_API_SECRET}`)}`,
+		Authorization: `Basic ${btoa(`${env.LUMAPRINTS_API_KEY}:${env.LUMAPRINTS_API_SECRET}`)}`,
 	};
 }
 
@@ -122,7 +126,7 @@ export async function getShippingPrice(
 		method: "POST",
 		headers: getHeaders(),
 		body: JSON.stringify({
-			storeId: Number(LUMAPRINTS_STORE_ID),
+			storeId: Number(env.LUMAPRINTS_STORE_ID),
 			shippingMethod: "default",
 			recipient: destination,
 			orderItems: items,
@@ -144,7 +148,7 @@ export function buildLumaPrintsOrder(
 ): LumaPrintsOrder {
 	return {
 		externalId,
-		storeId: Number(LUMAPRINTS_STORE_ID),
+		storeId: Number(env.LUMAPRINTS_STORE_ID),
 		shippingMethod: "default",
 		recipient: {
 			firstName: recipient.firstName,

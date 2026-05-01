@@ -1,26 +1,25 @@
 import { createClient } from "@sanity/client";
 import { json } from "@sveltejs/kit";
 import { Resend } from "resend";
-import {
-	RESEND_API_KEY,
-	SANITY_API_TOKEN,
-	SANITY_DATASET,
-	SANITY_PROJECT_ID,
-} from "$env/static/private";
+import { env } from "$env/dynamic/private";
 import { PUBLIC_SITE_URL } from "$env/static/public";
 import { escapeHtml } from "$lib/server/html";
 import { rateLimit } from "$lib/server/rate-limit";
 import type { RequestHandler } from "./$types";
 
+// See sanity.ts and lumaprints.ts for the rationale on $env/dynamic/private:
+// per-tenant Sanity / Resend credentials may not be set yet during onboarding;
+// dynamic import defers the failure from build to request time.
+
 // Configurable recipient — set CONTACT_EMAIL in env, else fall back to a placeholder
 const RECIPIENT_EMAIL = "hello@margarethelena.com";
 
-const resend = new Resend(RESEND_API_KEY);
+const resend = new Resend(env.RESEND_API_KEY);
 
 const sanity = createClient({
-	projectId: SANITY_PROJECT_ID,
-	dataset: SANITY_DATASET,
-	token: SANITY_API_TOKEN,
+	projectId: env.SANITY_PROJECT_ID,
+	dataset: env.SANITY_DATASET,
+	token: env.SANITY_API_TOKEN,
 	apiVersion: "2024-01-01",
 	useCdn: false,
 });
