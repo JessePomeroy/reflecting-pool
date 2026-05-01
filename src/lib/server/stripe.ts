@@ -2,10 +2,16 @@
 // Creates checkout sessions and verifies webhooks
 
 import Stripe from "stripe";
-import { STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from "$env/static/private";
+import { env } from "$env/dynamic/private";
 import type { CheckoutMetadata } from "$lib/shop/types";
 
-export const stripe = new Stripe(STRIPE_SECRET_KEY, {
+// Stripe Connect Express migration is on the roadmap; once that lands the
+// keys move to platform-level vars wired the same way. Until then, accessing
+// these via `$env/dynamic/private` defers a missing-secret failure from
+// build-time (where SvelteKit's static import would harden it) to request
+// time on the few routes that actually invoke Stripe (checkout + webhook).
+// That trade is intentional — see commit message and angelsrest CLAUDE.md.
+export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
 	// Pinned to a tested API version. Stripe SDK v22 narrows `apiVersion`
 	// to its build-time default ("2026-02-25.clover"); at runtime Stripe
 	// accepts any still-supported version string, so pinning to the
@@ -65,5 +71,5 @@ export async function createCheckoutSession(
 
 /** Verify a Stripe webhook signature and parse the event */
 export async function verifyWebhook(body: string, signature: string): Promise<Stripe.Event> {
-	return stripe.webhooks.constructEvent(body, signature, STRIPE_WEBHOOK_SECRET);
+	return stripe.webhooks.constructEvent(body, signature, env.STRIPE_WEBHOOK_SECRET);
 }
