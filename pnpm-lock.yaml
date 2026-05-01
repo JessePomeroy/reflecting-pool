@@ -16,11 +16,11 @@ importers:
         specifier: ^0.11.5
         version: 0.11.5(@standard-schema/spec@1.1.0)(better-auth@1.6.8(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react@19.2.5)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))))(convex@1.36.0(react@19.2.5))(react@19.2.5)(typescript@5.9.3)
       '@jessepomeroy/admin':
-        specifier: link:../admin-dashboard
-        version: link:../admin-dashboard
+        specifier: ^1.1.1
+        version: 1.1.1(@mmailaender/convex-svelte@0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.3.6))(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(isomorphic-dompurify@3.11.0(@noble/hashes@2.2.0))(resend@6.12.2)(svelte-dnd-action@0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))
       '@jessepomeroy/crm-api':
-        specifier: link:../angelsrest/packages/crm-api
-        version: link:../angelsrest/packages/crm-api
+        specifier: ^1.0.0
+        version: 1.0.0(convex@1.36.0(react@19.2.5))
       '@mmailaender/convex-better-auth-svelte':
         specifier: ^0.7.3
         version: 0.7.3(ca9726c8c90c5da93624f25c5ce1f6b6)
@@ -637,6 +637,22 @@ packages:
       '@noble/hashes':
         optional: true
 
+  '@jessepomeroy/admin@1.1.1':
+    resolution: {integrity: sha512-wlaqPoIzIA/Nxb7H0265dk1eHrmQ/5Uv9Xh9e64tdEcmfqrv9KC0ZvQDDSzpQjGUlFOm4s8ZzQ1h4Snw6zrJsw==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/admin/1.1.1/85f86702031e6313586abb7267e8bd1e3577d758}
+    peerDependencies:
+      '@mmailaender/convex-svelte': ^0.18.0
+      '@sveltejs/kit': ^2.0.0
+      convex: ^1.30.0
+      isomorphic-dompurify: ^3.0.0
+      resend: ^6.0.0
+      svelte: ^5.0.0
+      svelte-dnd-action: ^0.9.0
+
+  '@jessepomeroy/crm-api@1.0.0':
+    resolution: {integrity: sha512-lIwTRyKBCCSWu3RyBmxzH4dR5ZN7BErN6vNT9IBq1dmdE6LyJe3kFSkjLULovPD2XNmLm4lEDa8+FPWsR3WM+A==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/crm-api/1.0.0/0947c817b380c6555112ce87f4d6de25e4240534}
+    peerDependencies:
+      convex: ^1.30.0
+
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
 
@@ -1250,6 +1266,9 @@ packages:
   dom-accessibility-api@0.6.3:
     resolution: {integrity: sha512-7ZgogeTnjuHbo+ct10G9Ffp0mif17idi0IyWNVA/wcwcm7NPOD/WEHVP3n7n3MhXqxoIYm8d6MuZohYWIZ4T3w==}
 
+  dompurify@3.4.2:
+    resolution: {integrity: sha512-lHeS9SA/IKeIFFyYciHBr2n0v1VMPlSj843HdLOwjb2OxNwdq9Xykxqhk+FE42MzAdHvInbAolSE4mhahPpjXA==}
+
   emoji-regex@10.6.0:
     resolution: {integrity: sha512-toUI84YS5YmxW219erniWD0CIVOo46xGKColeNQRgOzDorgBi1v4D71/OFzgD9GO2UGKIv1C3Sp8DAn0+j5w7A==}
 
@@ -1364,6 +1383,10 @@ packages:
     resolution: {integrity: sha512-XVm7LOeLpTW4jV19QSH38vkswxoLud8sQ57YwJVTPWdiaI9I8keEhGFpBlslyVsgdQy4Opg8QOLb8YRgsyZiQg==}
     engines: {node: '>=10'}
 
+  isomorphic-dompurify@3.11.0:
+    resolution: {integrity: sha512-il0sNhLnfawc6vKoMqnZX1JXzEzw0pP3DZWg7mM7VJNJ8cq6DCxeAjEcfjTazyBF8dkUn+rBsBPS5NQs4ZaI3g==}
+    engines: {node: ^20.19.0 || ^22.13.0 || >=24.0.0}
+
   jose@6.2.2:
     resolution: {integrity: sha512-d7kPDd34KO/YnzaDOlikGpOurfF0ByC2sEV4cANCtdqLlTfBlw2p14O/5d/zv40gJPbIQxfES3nSx1/oYNyuZQ==}
 
@@ -1372,6 +1395,15 @@ packages:
 
   jsdom@29.0.2:
     resolution: {integrity: sha512-9VnGEBosc/ZpwyOsJBCQ/3I5p7Q5ngOY14a9bf5btenAORmZfDse1ZEheMiWcJ3h81+Fv7HmJFdS0szo/waF2w==}
+    engines: {node: ^20.19.0 || ^22.13.0 || >=24.0.0}
+    peerDependencies:
+      canvas: ^3.0.0
+    peerDependenciesMeta:
+      canvas:
+        optional: true
+
+  jsdom@29.1.1:
+    resolution: {integrity: sha512-ECi4Fi2f7BdJtUKTflYRTiaMxIB0O6zfR1fX0GXpUrf6flp8QIYn1UT20YQqdSOfk2dfkCwS8LAFoJDEppNK5Q==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24.0.0}
     peerDependencies:
       canvas: ^3.0.0
@@ -1644,6 +1676,11 @@ packages:
     peerDependencies:
       svelte: ^4.0.0 || ^5.0.0-next.0
       typescript: '>=5.0.0'
+
+  svelte-dnd-action@0.9.69:
+    resolution: {integrity: sha512-NAmSOH7htJoYraTQvr+q5whlIuVoq88vEuHr4NcFgscDRUxfWPPxgie2OoxepBCQCikrXZV4pqV86aun60wVyw==}
+    peerDependencies:
+      svelte: '>=3.23.0 || ^5.0.0-next.0'
 
   svelte@5.55.4:
     resolution: {integrity: sha512-q8DFohk6vUswSng95IZb9nzWJnbINZsK7OiM1snAa3qCjJBL0ZQpvMyAaVXjUukdM75J/m8UE8xwqat8Ors/zQ==}
@@ -2198,6 +2235,20 @@ snapshots:
     optionalDependencies:
       '@noble/hashes': 2.2.0
 
+  '@jessepomeroy/admin@1.1.1(@mmailaender/convex-svelte@0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.3.6))(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(isomorphic-dompurify@3.11.0(@noble/hashes@2.2.0))(resend@6.12.2)(svelte-dnd-action@0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))':
+    dependencies:
+      '@mmailaender/convex-svelte': 0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.3.6)
+      '@sveltejs/kit': 2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))
+      convex: 1.36.0(react@19.2.5)
+      isomorphic-dompurify: 3.11.0(@noble/hashes@2.2.0)
+      resend: 6.12.2
+      svelte: 5.55.4(@typescript-eslint/types@8.58.0)
+      svelte-dnd-action: 0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0))
+
+  '@jessepomeroy/crm-api@1.0.0(convex@1.36.0(react@19.2.5))':
+    dependencies:
+      convex: 1.36.0(react@19.2.5)
+
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -2661,6 +2712,10 @@ snapshots:
 
   dom-accessibility-api@0.6.3: {}
 
+  dompurify@3.4.2:
+    optionalDependencies:
+      '@types/trusted-types': 2.0.7
+
   emoji-regex@10.6.0: {}
 
   entities@8.0.0: {}
@@ -2793,11 +2848,45 @@ snapshots:
 
   is-retry-allowed@2.2.0: {}
 
+  isomorphic-dompurify@3.11.0(@noble/hashes@2.2.0):
+    dependencies:
+      dompurify: 3.4.2
+      jsdom: 29.1.1(@noble/hashes@2.2.0)
+    transitivePeerDependencies:
+      - '@noble/hashes'
+      - canvas
+
   jose@6.2.2: {}
 
   js-tokens@4.0.0: {}
 
   jsdom@29.0.2(@noble/hashes@2.2.0):
+    dependencies:
+      '@asamuzakjp/css-color': 5.1.11
+      '@asamuzakjp/dom-selector': 7.1.1
+      '@bramus/specificity': 2.4.2
+      '@csstools/css-syntax-patches-for-csstree': 1.1.3(css-tree@3.2.1)
+      '@exodus/bytes': 1.15.0(@noble/hashes@2.2.0)
+      css-tree: 3.2.1
+      data-urls: 7.0.0(@noble/hashes@2.2.0)
+      decimal.js: 10.6.0
+      html-encoding-sniffer: 6.0.0(@noble/hashes@2.2.0)
+      is-potential-custom-element-name: 1.0.1
+      lru-cache: 11.3.5
+      parse5: 8.0.1
+      saxes: 6.0.0
+      symbol-tree: 3.2.4
+      tough-cookie: 6.0.1
+      undici: 7.25.0
+      w3c-xmlserializer: 5.0.0
+      webidl-conversions: 8.0.1
+      whatwg-mimetype: 5.0.0
+      whatwg-url: 16.0.1(@noble/hashes@2.2.0)
+      xml-name-validator: 5.0.0
+    transitivePeerDependencies:
+      - '@noble/hashes'
+
+  jsdom@29.1.1(@noble/hashes@2.2.0):
     dependencies:
       '@asamuzakjp/css-color': 5.1.11
       '@asamuzakjp/dom-selector': 7.1.1
@@ -3080,6 +3169,10 @@ snapshots:
       typescript: 5.9.3
     transitivePeerDependencies:
       - picomatch
+
+  svelte-dnd-action@0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0)):
+    dependencies:
+      svelte: 5.55.4(@typescript-eslint/types@8.58.0)
 
   svelte@5.55.4(@typescript-eslint/types@8.58.0):
     dependencies:

@@ -11,7 +11,7 @@ export const stripe = new Stripe(STRIPE_SECRET_KEY, {
 	// accepts any still-supported version string, so pinning to the
 	// integration-tested version is safe. Cast works around the type
 	// narrowing without changing behavior.
-	apiVersion: "2025-03-31.basil" as Stripe.LatestApiVersion,
+	apiVersion: "2025-03-31.basil" as typeof Stripe.API_VERSION,
 });
 
 interface CreateCheckoutParams {
