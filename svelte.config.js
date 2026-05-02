@@ -1,5 +1,5 @@
 import { relative, sep } from "node:path";
-import adapter from "@sveltejs/adapter-auto";
+import adapter from "@sveltejs/adapter-vercel";
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -14,9 +14,10 @@ const config = {
 		},
 	},
 	kit: {
-		// adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
-		// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
-		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
+		// Pinned to adapter-vercel because reflecting-pool deploys to Vercel and
+		// because instrumentation.server.ts (Sentry init) requires an adapter
+		// that explicitly declares server-side instrumentation support — which
+		// adapter-auto cannot guarantee at build time.
 		adapter: adapter(),
 		alias: {
 			// Convex schema + generated types live in the angelsrest monorepo and

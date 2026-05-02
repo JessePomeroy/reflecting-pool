@@ -19,7 +19,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.4.13",
-		"@sveltejs/adapter-auto": "^7.0.1",
+		"@sveltejs/adapter-vercel": "^6.3.3",
 		"@sveltejs/kit": "^2.57.1",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"@testing-library/jest-dom": "^6.9.1",
@@ -53,6 +53,7 @@
 		"@mmailaender/convex-better-auth-svelte": "^0.7.3",
 		"@mmailaender/convex-svelte": "^0.18.0",
 		"@sanity/client": "^7.21.0",
+		"@sentry/sveltekit": "^10.51.0",
 		"@vercel/analytics": "^2.0.1",
 		"better-auth": "^1.6.8",
 		"convex": "^1.36.0",
