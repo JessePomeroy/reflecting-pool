@@ -130,7 +130,7 @@ const calConfig = "{'layout':'month_view'}";
 				<ContactForm />
 			</div>
 
-			<div class="booking-section">
+			<div class="booking-section" id="book">
 				<h2 class="section-heading">book a session</h2>
 				<p class="booking-intro">
 					portrait sessions, editorial work, and botanical commissions. let's make something together.

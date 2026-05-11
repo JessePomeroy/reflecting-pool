@@ -2,10 +2,10 @@
 let menuOpen = $state(false);
 
 const links = [
-	{ label: "photography", href: "#" },
-	{ label: "shop", href: "#" },
-	{ label: "about", href: "#" },
-	{ label: "book", href: "#" },
+	{ label: "photography", href: "/" },
+	{ label: "shop", href: "/shop" },
+	{ label: "about", href: "/about" },
+	{ label: "book", href: "/about#book" },
 ];
 
 function toggleMenu() {
