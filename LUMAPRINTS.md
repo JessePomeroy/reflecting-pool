@@ -398,7 +398,8 @@ PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
 
 SANITY_PROJECT_ID=...
 SANITY_DATASET=production
-SANITY_API_TOKEN=...  # write access for webhooks
+SANITY_API_READ_TOKEN=...      # optional read token for CMS content
+SANITY_API_PREVIEW_TOKEN=...   # optional token for future draft previews
 ```
 
 ### Production vs sandbox routing

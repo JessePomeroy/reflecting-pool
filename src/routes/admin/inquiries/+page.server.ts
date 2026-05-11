@@ -8,10 +8,9 @@ export const load: PageServerLoad = async ({ parent }): Promise<{ inquiries: Inq
 	const { isAuthenticated } = await parent();
 	if (!isAuthenticated) return { inquiries: [] };
 
-	// Reflecting-pool's inquiries live in Sanity (currently mocked — see audit
-	// H42). Until Sanity is un-mocked and a real query is wired up, hand back
-	// an empty list so `<InquiriesPage>` renders without type errors. When
-	// H42 lands, mirror angelsrest's pattern: port `convex/inquiries.ts` and
-	// call `api.inquiries.list` here instead.
+	// Reflecting-pool inquiries belong in Convex, not Sanity. Until H42c ports
+	// the inquiries module into the shared CRM API, hand back an empty list so
+	// `<InquiriesPage>` renders without type errors. When H42c lands, mirror
+	// angelsrest's pattern and call `api.inquiries.list` here.
 	return { inquiries: [] };
 };

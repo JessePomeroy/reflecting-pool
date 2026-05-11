@@ -2,7 +2,7 @@
 
 ## Overview
 
-CMS for a photography portfolio. The client (photographer) needs to manage their galleries, bio, print shop, and booking inquiries — all from a clean, professional Sanity Studio dashboard.
+CMS for a photography portfolio. The client (photographer) needs to manage their galleries, bio, print shop, booking copy, and site settings from a clean, professional Sanity Studio dashboard.
 
 Studio will be a separate repo: `reflecting-pool-studio`
 
@@ -247,41 +247,9 @@ Available print sizes for the shop.
 }
 ```
 
-### 8. `inquiry` (read-only, created by form submissions)
+### 8. Inquiries
 
-```ts
-{
-  name: 'inquiry',
-  type: 'document',
-  title: 'Inquiry',
-  icon: InboxIcon,
-  readOnly: true,
-  fields: [
-    { name: 'name', type: 'string', title: 'Name' },
-    { name: 'email', type: 'string', title: 'Email' },
-    { name: 'phone', type: 'string', title: 'Phone' },
-    { name: 'sessionType', type: 'string', title: 'Session Type' },
-    { name: 'message', type: 'text', title: 'Message' },
-    { name: 'preferredDate', type: 'date', title: 'Preferred Date' },
-    { name: 'status', type: 'string', title: 'Status',
-      options: { list: ['new', 'contacted', 'booked', 'completed', 'cancelled'] },
-      initialValue: 'new' },
-    { name: 'notes', type: 'text', title: 'Internal Notes',
-      description: 'Private notes (not shown to client)' },
-    { name: 'submittedAt', type: 'datetime', title: 'Submitted' }
-  ],
-  orderings: [
-    { title: 'Newest First', name: 'newest', by: [{ field: 'submittedAt', direction: 'desc' }] }
-  ],
-  preview: {
-    select: { name: 'name', type: 'sessionType', status: 'status', date: 'submittedAt' },
-    prepare: ({ name, type, status, date }) => ({
-      title: name,
-      subtitle: `${type || 'General'} · ${status} · ${new Date(date).toLocaleDateString()}`
-    })
-  }
-}
-```
+Inquiries are **not** Sanity documents. Contact form submissions should send email immediately and, once H42c lands, persist to Convex through the shared CRM inquiries module. Sanity remains CMS-only for site content and booking copy/settings.
 
 ---
 
@@ -338,7 +306,7 @@ A clean overview when the studio loads:
 
 ### Dashboard Widgets
 1. **Stats cards** — Gallery count, total photos, new inquiries (badge with count)
-2. **Recent inquiries** — Last 5, with status indicators, click to open
+2. **Recent inquiries** — Last 5 from Convex, with status indicators, click to open
 3. **Quick actions** — Create gallery, view live site, shop settings
 4. **Site preview** — Small thumbnail/link of the live site
 
@@ -397,5 +365,5 @@ A clean overview when the studio loads:
 - **Singletons** (siteSettings, aboutPage, shopSettings, contactPage) should use the singleton document pattern — one document, no create/delete
 - **Image optimization**: Use Sanity's image CDN with `?w=500&auto=format` for gallery thumbnails
 - **LQIP**: Low-quality image placeholders from Sanity metadata for loading states
-- **Inquiry form** submits via API route → creates Sanity document + sends email notification
+- **Inquiry form** submits via API route → sends email notification now; H42c will also persist to Convex inquiries
 - **Stripe integration** for print shop is future work — schema is ready for it

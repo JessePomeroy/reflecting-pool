@@ -550,10 +550,11 @@ shipping portal/delivery routes, the findings below need to close.
   flowers-01–35 sample data. Before the first real visitor can see real
   prints:
   - Create the Sanity project; set `SANITY_PROJECT_ID`, `SANITY_DATASET`,
-    `SANITY_API_TOKEN` on Vercel.
-  - Define `gallery` + `image` schemas (no `order` schema — orders live
-    in Convex per H42b). Reference `SANITY-SCHEMA.md` for field names;
-    drop the `order` section of that doc when un-mocking.
+    and optional `SANITY_API_READ_TOKEN` / `SANITY_API_PREVIEW_TOKEN` on
+    Vercel.
+  - Define `gallery` + `image` schemas (no `order` or `inquiry` schemas —
+    orders live in Convex per H42b, inquiries live in Convex per H42c).
+    Reference `SANITY-SCHEMA.md` for field names.
   - Un-mock each read function; verify `sanityClient.fetch` signatures
     against the existing GROQ queries in the file (already written,
     commented out).

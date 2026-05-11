@@ -92,10 +92,12 @@ reflecting-pool's only.
 1. **Sanity = CMS only.** `src/lib/server/sanity.ts` reads gallery +
    print catalog. Currently mocked until Maggie's Sanity project is
    live (H42a).
-2. **Orders live in Convex, not Sanity.** Stripe + LumaPrints webhooks
+2. **Orders and inquiries live in Convex, not Sanity.** Stripe + LumaPrints webhooks
    call `api.orders.create` / `api.orders.updateStatus` /
    `api.orders.getByLumaprintsOrderNumber` via `@jessepomeroy/crm-api`.
-   Idempotency via the `by_stripeSessionId` index — retries are safe.
+   Contact submissions currently send Resend email only; H42c will persist
+   them to Convex inquiries. Idempotency via the `by_stripeSessionId` index
+   — retries are safe.
 3. **Admin auth = "HTTP-proxy for mutations, JWT on socket for
    queries."** Browser Convex WebSocket authed via `/api/admin/token`
    (cookie → JWT). `setupAuth(() => ({ isAuthenticated:
@@ -247,4 +249,3 @@ Non-audit commits: conventional commits (`fix`, `feat`, `chore`,
 Do not add `Co-Authored-By: Claude` (or any AI assistant) trailers to
 commit messages. Authorship lives in `git log --author`; the tool used
 to write the diff is not part of the commit's identity.
-

@@ -18,8 +18,8 @@ import { V2_SIZES } from "$lib/shop/v2Catalog";
 // client-owned, see angelsrest CLAUDE.md). Until a tenant's project is
 // provisioned, Vercel won't have these vars set; using $env/dynamic/private
 // defers the missing-secret failure from build to request time so the rest
-// of the site can deploy. The Sanity-backed routes (galleries, contact form)
-// will 500 until real values are pushed.
+// of the site can deploy. Sanity-backed content routes will 500 until real
+// values are pushed.
 //
 // Lazy-init is required: the @sanity/client constructor throws
 // "Configuration must contain `projectId`" if projectId is undefined,
@@ -32,7 +32,7 @@ export function sanityClient() {
 		_sanityClient = createClient({
 			projectId: env.SANITY_PROJECT_ID,
 			dataset: env.SANITY_DATASET,
-			token: env.SANITY_API_TOKEN,
+			token: env.SANITY_API_READ_TOKEN || env.SANITY_API_TOKEN,
 			apiVersion: "2024-01-01",
 			// CDN on — gallery reads are public and tolerate the short stale window.
 			useCdn: true,

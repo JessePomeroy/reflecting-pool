@@ -5,15 +5,15 @@ import { api } from "$convex/api";
 // Use a Proxy — never spread `api` (it's a Proxy with no own enumerable props).
 //
 // `AdminAPI` (from the admin package) enumerates every namespace a full-tier
-// admin can use, including `inquiries`. Reflecting-pool has no Convex
-// `inquiries` module — inquiries are (currently) Sanity-mocked — so
-// `typeof api` omits that key. The underlying `api` Proxy DOES return a
-// live reference for any property access at runtime (that's how `anyApi`
-// works), so the cast below is sound at the call sites that actually use
-// it; any missing module would throw at invocation time, not at access.
-// Cast through `unknown` to satisfy the AdminAPI shape without falsely
-// claiming we ship those modules. See audit H42 on un-mocking Sanity — at
-// that point, port angelsrest's `convex/inquiries.ts` and drop this cast.
+// admin can use, including `inquiries`. Reflecting-pool has not ported the
+// Convex `inquiries` module yet, so `typeof api` omits that key. The
+// underlying `api` Proxy DOES return a live reference for any property access
+// at runtime (that's how `anyApi` works), so the cast below is sound at the
+// call sites that actually use it; any missing module would throw at
+// invocation time, not at access. Cast through `unknown` to satisfy the
+// AdminAPI shape without falsely claiming we ship those modules. See audit
+// H42c; when that lands, port angelsrest's `convex/inquiries.ts` and drop
+// this cast.
 const apiWithAliases = new Proxy(api, {
 	get(target, prop, receiver) {
 		if (prop === "galleryDelivery") return target.galleries;

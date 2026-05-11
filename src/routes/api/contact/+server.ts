@@ -1,4 +1,3 @@
-import { createClient } from "@sanity/client";
 import { json } from "@sveltejs/kit";
 import { Resend } from "resend";
 import { env } from "$env/dynamic/private";
@@ -7,14 +6,9 @@ import { escapeHtml } from "$lib/server/html";
 import { rateLimit } from "$lib/server/rate-limit";
 import type { RequestHandler } from "./$types";
 
-// See sanity.ts and lumaprints.ts for the rationale on $env/dynamic/private:
-// per-tenant Sanity / Resend credentials may not be set yet during onboarding;
-// dynamic import defers the failure from build to request time.
-//
-// Both Resend and Sanity client constructors throw on missing config, so
-// they're lazy-initialized to keep the build green when env is empty. The
-// route handler only runs at request time, so first-use construction is
-// fine.
+// Resend is lazy-initialized to keep builds green while per-tenant email
+// credentials are still being wired during onboarding. The handler only runs
+// at request time, so first-use construction is fine.
 
 // Configurable recipient — set CONTACT_EMAIL in env, else fall back to a placeholder
 const RECIPIENT_EMAIL = "hello@margarethelena.com";
@@ -23,20 +17,6 @@ let _resend: Resend | null = null;
 function resend(): Resend {
 	if (!_resend) _resend = new Resend(env.RESEND_API_KEY);
 	return _resend;
-}
-
-let _sanity: ReturnType<typeof createClient> | null = null;
-function sanity(): ReturnType<typeof createClient> {
-	if (!_sanity) {
-		_sanity = createClient({
-			projectId: env.SANITY_PROJECT_ID,
-			dataset: env.SANITY_DATASET,
-			token: env.SANITY_API_TOKEN,
-			apiVersion: "2024-01-01",
-			useCdn: false,
-		});
-	}
-	return _sanity;
 }
 
 interface ContactPayload {
@@ -103,10 +83,8 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	const { name, email, subject, message } = validation.data;
 	const submittedAt = new Date().toISOString();
 
-	// Run email + Sanity in parallel; don't let one failure block the other
-	const [emailResult, sanityResult] = await Promise.allSettled([
-		// Send email via Resend
-		resend().emails.send({
+	try {
+		await resend().emails.send({
 			from: "margaret helena · contact <onboarding@resend.dev>",
 			to: [RECIPIENT_EMAIL],
 			replyTo: email,
@@ -121,30 +99,15 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 					<p style="font-size: 0.8rem; color: rgba(26,31,46,0.4);">received ${escapeHtml(submittedAt)} via ${escapeHtml(PUBLIC_SITE_URL ?? "margarethelena.com")}</p>
 				</div>
 			`,
-		}),
-
-		// Create inquiry document in Sanity
-		sanity().create({
-			_type: "inquiry",
-			name,
-			email,
-			sessionType: subject,
-			message,
-			status: "new",
-			submittedAt,
-		}),
-	]);
-
-	// Log failures but don't surface Sanity errors to user (email is enough)
-	if (emailResult.status === "rejected") {
-		console.error("[contact] email send failed:", emailResult.reason);
+		});
+	} catch (err) {
+		console.error("[contact] email send failed:", err);
 		return json({ error: "could not send message — please try again" }, { status: 500 });
 	}
 
-	if (sanityResult.status === "rejected") {
-		console.error("[contact] sanity create failed:", sanityResult.reason);
-		// Non-fatal — email was sent, just log it
-	}
+	// TODO(H42c): also persist this payload to Convex inquiries once the
+	// inquiries module is ported into the shared CRM API. Sanity remains
+	// CMS-only and should not receive contact submissions.
 
 	return json({ ok: true }, { status: 200 });
 };
