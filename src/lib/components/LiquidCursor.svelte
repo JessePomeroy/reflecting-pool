@@ -56,16 +56,20 @@ let isHovering = $state(false);
 
 onMount(() => {
 	if (!browser) return;
+	let cleanup: (() => void) | undefined;
+	let disposed = false;
 
-	// Only skip on actual touch screens and reduced motion
+	// Only skip when there is no mouse/trackpad-class pointer and reduced motion
 	// Removed isLowEnd check — even 4-core machines handle this fine at half res
-	const isTrueTouchScreen = window.matchMedia("(pointer: coarse)").matches;
-	if (isTrueTouchScreen) return;
+	const hasFinePointer = window.matchMedia("(any-pointer: fine)").matches;
+	if (!hasFinePointer) return;
 	if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
 	// Dynamic import keeps Three.js out of the SSR bundle
 	import("three")
 		.then((THREE) => {
+			if (disposed) return;
+
 			const W = window.innerWidth;
 			const H = window.innerHeight;
 
@@ -151,10 +155,14 @@ onMount(() => {
 			refs.velocityVec = velocityVec;
 			refs.resolutionVec = resolutionVec;
 			enabled = true;
+			document.body.classList.add("liquid-cursor-enabled");
 
 			// Cleanup on unmount
-			return () => {
+			cleanup = () => {
 				window.removeEventListener("resize", handleResize);
+				window.removeEventListener("mouseover", onMouseMove);
+				window.removeEventListener("mouseout", onMouseMove);
+				document.body.classList.remove("liquid-cursor-enabled");
 				quad.geometry.dispose();
 				material.dispose();
 				renderer.dispose();
@@ -165,6 +173,11 @@ onMount(() => {
 		.catch((err) => {
 			if (import.meta.env.DEV) console.error("[LiquidCursor] Failed to load Three.js:", err);
 		});
+
+	return () => {
+		disposed = true;
+		cleanup?.();
+	};
 });
 
 // ── Render effect — fires every time ParallaxProvider ticks ────────────────
@@ -266,5 +279,9 @@ $effect(() => {
 		z-index: 9999;
 		pointer-events: none;
 		/* Canvas internal buffer is half resolution; CSS displays at full size */
+	}
+
+	:global(body.liquid-cursor-enabled) {
+		cursor: none;
 	}
 </style>

@@ -219,10 +219,16 @@ let finalOffsets = $derived.by(() => {
 });
 
 // ── Ripple push (shared physics) ──────────────────────────────────
-const ripple = createRippleSystem(clusters.length);
-let rippleOutput = $state.raw<Array<{ x: number; y: number }>>(
-	clusters.map(() => ({ x: 0, y: 0 })),
-);
+function getInitialClusterCount() {
+	return clusters.length;
+}
+
+function getInitialRippleOutput() {
+	return clusters.map(() => ({ x: 0, y: 0 }));
+}
+
+const ripple = createRippleSystem(getInitialClusterCount());
+let rippleOutput = $state.raw<Array<{ x: number; y: number }>>(getInitialRippleOutput());
 
 onMount(() => {
 	if (!browser) return;

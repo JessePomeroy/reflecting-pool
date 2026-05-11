@@ -7,6 +7,7 @@
  */
 
 import * as Sentry from "@sentry/sveltekit";
+import type { HandleClientError } from "@sveltejs/kit";
 import { env } from "$env/dynamic/public";
 
 Sentry.init({
@@ -19,10 +20,9 @@ Sentry.init({
 });
 
 const sentryHandleError = Sentry.handleErrorWithSentry();
+const handleClientErrorWithSentry = sentryHandleError as HandleClientError;
 
-export const handleError: typeof sentryHandleError = (
-	input: Parameters<typeof sentryHandleError>[0],
-) => {
+export const handleError: HandleClientError = (input) => {
 	const msg = input.error instanceof Error ? input.error.message : "";
 	if (msg.includes("Failed to fetch dynamically imported module")) {
 		// After a deploy, old chunk hashes no longer exist on the server.
@@ -30,6 +30,5 @@ export const handleError: typeof sentryHandleError = (
 		window.location.reload();
 		return;
 	}
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Sentry types expect server RequestEvent, but client passes NavigationEvent
-	return sentryHandleError(input as any);
+	return handleClientErrorWithSentry(input);
 };

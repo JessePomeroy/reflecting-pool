@@ -9,13 +9,13 @@ describe("V2_PAPERS", () => {
 	it("includes Archival Matte with subcategory ID 103001", () => {
 		const paper = V2_PAPERS.find((p) => p.name === "Archival Matte");
 		expect(paper).toBeDefined();
-		expect(paper!.subcategoryId).toBe(103001);
+		expect(paper?.subcategoryId).toBe(103001);
 	});
 
 	it("includes Glossy with subcategory ID 103007", () => {
 		const paper = V2_PAPERS.find((p) => p.name === "Glossy");
 		expect(paper).toBeDefined();
-		expect(paper!.subcategoryId).toBe(103007);
+		expect(paper?.subcategoryId).toBe(103007);
 	});
 
 	it("all papers have slug, name, subcategoryId, and description", () => {
@@ -38,8 +38,8 @@ describe("V2_SIZES", () => {
 	it("includes 8x10 size", () => {
 		const size = V2_SIZES.find((s) => s.slug === "8x10");
 		expect(size).toBeDefined();
-		expect(size!.width).toBe(8);
-		expect(size!.height).toBe(10);
+		expect(size?.width).toBe(8);
+		expect(size?.height).toBe(10);
 	});
 
 	it("all sizes have slug, label, width, and height", () => {
@@ -57,7 +57,7 @@ describe("getPaper", () => {
 	it("returns paper by slug", () => {
 		const paper = getPaper("archival-matte");
 		expect(paper).toBeDefined();
-		expect(paper!.name).toBe("Archival Matte");
+		expect(paper?.name).toBe("Archival Matte");
 	});
 
 	it("returns undefined for unknown slug", () => {
@@ -67,7 +67,7 @@ describe("getPaper", () => {
 	it("returns synthetic entry for canvas slugs", () => {
 		const paper = getPaper("canvas-black-0.75");
 		expect(paper).toBeDefined();
-		expect(paper!.subcategoryId).toBe(0);
+		expect(paper?.subcategoryId).toBe(0);
 	});
 });
 
@@ -75,8 +75,8 @@ describe("getSize", () => {
 	it("returns size by slug", () => {
 		const size = getSize("8x10");
 		expect(size).toBeDefined();
-		expect(size!.width).toBe(8);
-		expect(size!.height).toBe(10);
+		expect(size?.width).toBe(8);
+		expect(size?.height).toBe(10);
 	});
 
 	it("returns undefined for unknown slug", () => {

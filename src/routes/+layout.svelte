@@ -76,7 +76,7 @@ inject({ mode: dev ? "development" : "production" });
 
 	:global(body) {
 		position: relative;
-		cursor: none;
+		cursor: auto;
 	}
 
 	/* Caustics video background */
@@ -104,20 +104,6 @@ inject({ mode: dev ? "development" : "production" });
 			rgba(200, 207, 216, 0.25) 100%
 		);
 		pointer-events: none;
-	}
-
-	/* Restore default cursor on touch devices (no custom cursor needed) */
-	@media (pointer: coarse) {
-		:global(body) {
-			cursor: auto;
-		}
-	}
-
-	/* Restore default cursor when user prefers reduced motion */
-	@media (prefers-reduced-motion: reduce) {
-		:global(body) {
-			cursor: auto;
-		}
 	}
 
 	/* Scrollbar styling */

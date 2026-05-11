@@ -88,8 +88,10 @@ describe("getMargin", () => {
 		for (const paper of papers) {
 			for (const s of sizes) {
 				const margin = getMargin(paper, s);
-				expect(margin).not.toBeNull();
-				expect(margin!).toBeGreaterThan(0);
+				if (margin === null) {
+					throw new Error(`Missing margin for ${paper} ${s.label}`);
+				}
+				expect(margin).toBeGreaterThan(0);
 			}
 		}
 	});

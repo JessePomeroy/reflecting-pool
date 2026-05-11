@@ -15,6 +15,7 @@ const device = detectDevice();
 let isTouch = $state(device.isTouch);
 let isMobile = $state(device.isMobile);
 let isLowEnd = $state(device.isLowEnd);
+let hasFinePointer = $state(device.hasFinePointer);
 
 // Raw input (written by event handlers)
 let rawX = 0;
@@ -110,6 +111,7 @@ onMount(() => {
 		isTouch = d.isTouch;
 		isMobile = d.isMobile;
 		isLowEnd = d.isLowEnd;
+		hasFinePointer = d.hasFinePointer;
 	}
 
 	// THE single rAF loop for the entire app
@@ -133,7 +135,7 @@ onMount(() => {
 	}
 
 	// Attach listeners
-	if (!isTouch) {
+	if (hasFinePointer) {
 		window.addEventListener("mousemove", handleMouseMove, { passive: true });
 	}
 

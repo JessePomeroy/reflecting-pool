@@ -17,7 +17,11 @@ let { src, currentIndex, images, onclose }: Props = $props();
 // open time, so the bug didn't manifest — but any future parent-driven
 // navigation would overwrite the user's paging. Initialize once from the
 // prop and let the component own its paging thereafter.
-let index = $state(currentIndex);
+function getInitialIndex() {
+	return currentIndex;
+}
+
+let index = $state(getInitialIndex());
 let visible = $state(false);
 let currentSrc = $derived(images[index]?.src ?? src);
 
