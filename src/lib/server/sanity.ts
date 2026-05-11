@@ -32,7 +32,7 @@ export function sanityClient() {
 		_sanityClient = createClient({
 			projectId: env.SANITY_PROJECT_ID,
 			dataset: env.SANITY_DATASET,
-			token: env.SANITY_API_READ_TOKEN || env.SANITY_API_TOKEN,
+			token: env.SANITY_API_READ_TOKEN,
 			apiVersion: "2024-01-01",
 			// CDN on — gallery reads are public and tolerate the short stale window.
 			useCdn: true,

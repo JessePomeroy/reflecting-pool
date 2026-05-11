@@ -12,6 +12,5 @@ export const SANITY_PROJECT_ID = "test-project";
 export const SANITY_DATASET = "test";
 export const SANITY_API_READ_TOKEN = "test-read-token";
 export const SANITY_API_PREVIEW_TOKEN = "test-preview-token";
-export const SANITY_API_TOKEN = "test-token";
 export const RESEND_API_KEY = "test-resend";
 export const ADMIN_EMAIL = "admin@test.com";

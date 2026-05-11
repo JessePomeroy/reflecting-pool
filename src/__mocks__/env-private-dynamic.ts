@@ -16,7 +16,6 @@ export const env = {
 	SANITY_DATASET: "test",
 	SANITY_API_READ_TOKEN: "test-read-token",
 	SANITY_API_PREVIEW_TOKEN: "test-preview-token",
-	SANITY_API_TOKEN: "test-token",
 	RESEND_API_KEY: "test-resend",
 	ADMIN_EMAIL: "admin@test.com",
 	GALLERY_ADMIN_SECRET: "test-gallery-admin",
