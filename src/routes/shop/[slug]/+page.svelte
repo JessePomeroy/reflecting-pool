@@ -167,10 +167,17 @@ async function handleCheckout() {
 
 <style>
 	.product-page {
+		--shop-text: rgba(var(--paper-rgb), 0.9);
+		--shop-body: rgba(var(--paper-rgb), 0.76);
+		--shop-muted: rgba(var(--paper-rgb), 0.58);
+		--shop-faint: rgba(var(--paper-rgb), 0.38);
+		--shop-panel-bg: rgba(var(--paper-rgb), 0.08);
+		--shop-panel-bg-active: rgba(var(--paper-rgb), 0.14);
 		min-height: 100vh;
 		padding: 2rem;
 		max-width: 1100px;
 		margin: 0 auto;
+		text-shadow: 0 1px 14px rgba(var(--ink-rgb), 0.2);
 	}
 
 	.breadcrumb {
@@ -184,25 +191,25 @@ async function handleCheckout() {
 	.breadcrumb a {
 		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(var(--ink-rgb), 0.5);
+		color: var(--shop-muted);
 		text-decoration: none;
 		letter-spacing: 0.05em;
 		transition: color 0.3s ease;
 	}
 
 	.breadcrumb a:hover {
-		color: rgba(var(--ink-rgb), 0.8);
+		color: var(--shop-text);
 	}
 
 	.breadcrumb .sep {
-		color: rgba(var(--ink-rgb), 0.3);
+		color: var(--shop-faint);
 		font-size: 0.85rem;
 	}
 
 	.breadcrumb .current {
 		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(var(--ink-rgb), 0.7);
+		color: var(--shop-body);
 		letter-spacing: 0.05em;
 	}
 
@@ -216,7 +223,7 @@ async function handleCheckout() {
 	.product-image-wrapper {
 		aspect-ratio: 4 / 5;
 		overflow: hidden;
-		background: rgba(var(--ink-rgb), 0.05);
+		background: rgba(var(--paper-rgb), 0.1);
 		border-radius: 2px;
 	}
 
@@ -229,7 +236,7 @@ async function handleCheckout() {
 	.product-gallery {
 		font-family: var(--font-serif);
 		font-size: 0.85rem;
-		color: rgba(var(--ink-rgb), 0.4);
+		color: var(--shop-muted);
 		letter-spacing: 0.08em;
 		text-transform: lowercase;
 		margin-bottom: 0.5rem;
@@ -239,14 +246,14 @@ async function handleCheckout() {
 		font-family: var(--font-serif);
 		font-weight: 400;
 		font-size: 2rem;
-		color: var(--ink);
+		color: var(--shop-text);
 		margin-bottom: 0.5rem;
 	}
 
 	.product-caption {
 		font-family: var(--font-serif);
 		font-size: 1rem;
-		color: rgba(var(--ink-rgb), 0.5);
+		color: var(--shop-body);
 		font-style: italic;
 		margin-bottom: 2rem;
 		line-height: 1.5;
@@ -260,7 +267,7 @@ async function handleCheckout() {
 		display: block;
 		font-family: var(--font-serif);
 		font-size: 0.85rem;
-		color: rgba(var(--ink-rgb), 0.5);
+		color: var(--shop-muted);
 		letter-spacing: 0.1em;
 		text-transform: lowercase;
 		margin-bottom: 0.75rem;
@@ -278,33 +285,33 @@ async function handleCheckout() {
 		flex-direction: column;
 		align-items: flex-start;
 		padding: 0.75rem 1rem;
-		border: 1px solid rgba(var(--ink-rgb), 0.15);
+		border: 1px solid var(--shop-faint);
 		border-radius: 2px;
-		background: transparent;
+		background: rgba(var(--ink-rgb), 0.08);
 		cursor: pointer;
 		transition: all 0.3s ease;
 		text-align: left;
 	}
 
 	.paper-btn:hover {
-		border-color: rgba(var(--ink-rgb), 0.3);
+		border-color: var(--shop-muted);
 	}
 
 	.paper-btn.active {
-		border-color: var(--ink);
-		background: rgba(var(--ink-rgb), 0.03);
+		border-color: var(--shop-text);
+		background: var(--shop-panel-bg-active);
 	}
 
 	.paper-name {
 		font-family: var(--font-serif);
 		font-size: 1rem;
-		color: var(--ink);
+		color: var(--shop-text);
 	}
 
 	.paper-desc {
 		font-family: var(--font-serif);
 		font-size: 0.8rem;
-		color: rgba(var(--ink-rgb), 0.4);
+		color: var(--shop-muted);
 		margin-top: 0.15rem;
 	}
 
@@ -319,46 +326,46 @@ async function handleCheckout() {
 		flex-direction: column;
 		align-items: center;
 		padding: 0.6rem 0.5rem;
-		border: 1px solid rgba(var(--ink-rgb), 0.15);
+		border: 1px solid var(--shop-faint);
 		border-radius: 2px;
-		background: transparent;
+		background: rgba(var(--ink-rgb), 0.08);
 		cursor: pointer;
 		transition: all 0.3s ease;
 	}
 
 	.size-btn:hover {
-		border-color: rgba(var(--ink-rgb), 0.3);
+		border-color: var(--shop-muted);
 	}
 
 	.size-btn.active {
-		border-color: var(--ink);
-		background: rgba(var(--ink-rgb), 0.03);
+		border-color: var(--shop-text);
+		background: var(--shop-panel-bg-active);
 	}
 
 	.size-label {
 		font-family: var(--font-serif);
 		font-size: 0.95rem;
-		color: var(--ink);
+		color: var(--shop-text);
 	}
 
 	.size-price {
 		font-family: var(--font-serif);
 		font-size: 0.75rem;
-		color: rgba(var(--ink-rgb), 0.4);
+		color: var(--shop-muted);
 		margin-top: 0.15rem;
 	}
 
 	.purchase-section {
 		margin-top: 2rem;
 		padding-top: 1.5rem;
-		border-top: 1px solid rgba(var(--ink-rgb), 0.1);
+		border-top: 1px solid var(--shop-faint);
 	}
 
 	.current-price {
 		font-family: var(--font-serif);
 		font-size: 1.8rem;
 		font-weight: 300;
-		color: var(--ink);
+		color: var(--shop-text);
 		margin-bottom: 1rem;
 	}
 
@@ -389,7 +396,7 @@ async function handleCheckout() {
 	.shipping-note {
 		font-family: var(--font-serif);
 		font-size: 0.8rem;
-		color: rgba(var(--ink-rgb), 0.4);
+		color: var(--shop-muted);
 		text-align: center;
 		margin-top: 0.75rem;
 		line-height: 1.4;
@@ -399,7 +406,7 @@ async function handleCheckout() {
 		font-family: var(--font-serif);
 		font-size: 0.85rem;
 		font-style: italic;
-		color: rgba(var(--ink-rgb), 0.72);
+		color: var(--shop-body);
 		text-align: center;
 		margin-top: 0.75rem;
 		letter-spacing: 0.03em;

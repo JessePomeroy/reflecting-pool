@@ -2,6 +2,9 @@
 import { inject } from "@vercel/analytics";
 import type { Snippet } from "svelte";
 import { dev } from "$app/environment";
+import { page } from "$app/state";
+import LiquidCursor from "$lib/components/LiquidCursor.svelte";
+import ParallaxProvider from "$lib/components/ParallaxProvider.svelte";
 
 interface Props {
 	children: Snippet;
@@ -10,6 +13,10 @@ interface Props {
 let { children }: Props = $props();
 
 inject({ mode: dev ? "development" : "production" });
+
+const isPublicRoute = $derived(
+	!page.url.pathname.startsWith("/admin") && !page.url.pathname.startsWith("/delivery"),
+);
 </script>
 
 <svelte:head>
@@ -39,7 +46,14 @@ inject({ mode: dev ? "development" : "production" });
 	src="/videos/caustics.mp4"
 ></video>
 <div class="caustics-overlay"></div>
-{@render children()}
+{#if isPublicRoute}
+	<ParallaxProvider>
+		{@render children()}
+		<LiquidCursor />
+	</ParallaxProvider>
+{:else}
+	{@render children()}
+{/if}
 
 <style>
 	/* Design tokens — use rgb triplets so the same channels can be reused

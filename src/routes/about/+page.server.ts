@@ -7,6 +7,7 @@ export interface AboutData {
 	portrait: string;
 	bio: string;
 	artistStatement: string;
+	sections: { title: string; items: string[] }[];
 	highlights: { label: string; value: string }[];
 	socialLinks: { platform: string; url: string }[];
 	seo: {
@@ -25,22 +26,51 @@ export const load: PageServerLoad = async () => {
 	const data: AboutData = {
 		heading: "about",
 		portrait: "/images/flower-01.jpg",
-		bio: `margaret helena is a photographer based in the midwest, drawn to the quiet and overlooked — the wildflower at the roadside, the petal catching afternoon light, the garden just before rain. her work lives in that liminal space between document and dream.
+		bio: `Margaret Helena / Maggie Mac / zippymiggy
 
-she works primarily with natural light and film, favoring intimacy over spectacle. each image is an invitation to slow down.`,
-		artistStatement: `photography, for me, is a practice of attention. i return to flowers again and again because they insist on their own fragility — they are always in the process of becoming, or fading, or both at once. to photograph them is to hold still for a moment in a world that rarely does.
+Chicago-raised creative working across documentation, direction, music, and performance.`,
+		artistStatement: `Building In Between — a space for artists to gather where image, sound, and memory meet.`,
+		sections: [
+			{
+				title: "background",
+				items: [
+					"Chicago-raised creative working across documentation, direction, music, and performance",
+					"BA in Journalism + minor in Media Art, University of Wisconsin-Whitewater",
+					"Former volleyball setter — a role that continues to shape how I approach collaboration, timing, and visual awareness",
+				],
+			},
+			{
+				title: "experience",
+				items: [
+					"Off the Record Press — concert photography",
+					"Steven Piper — commercial photography internship",
+					"Maggie Mac LLC — freelance photography and videography",
+					"SGK Inc. + Chicago-based photographers — freelance photo/production assistant",
+					"Heaven Gallery (Wicker Park) — gallery intern",
+				],
+			},
+			{
+				title: "practice",
+				items: ["Photography, direction, and music", "Modeling, acting, and singing"],
+			},
+			{
+				title: "current",
+				items: [
+					"Building In Between — a space for artists to gather where image, sound, and memory meet",
+				],
+			},
+		],
 
-i am interested in beauty that is earned, not performed. in the particular rather than the general. in what the light does when it thinks no one is watching.`,
 		highlights: [
 			{ label: "based in", value: "chicago, illinois" },
-			{ label: "medium", value: "film · digital" },
-			{ label: "available for", value: "portrait sessions · editorial · botanical" },
-			{ label: "prints", value: "archival fine art on museum-quality paper" },
+			{ label: "practice", value: "photography · direction · music" },
+			{ label: "performance", value: "modeling · acting · singing" },
+			{ label: "available for", value: "photo · video · production support" },
 		],
 		socialLinks: [{ platform: "instagram", url: "https://instagram.com/margarethelena" }],
 		seo: {
 			description:
-				"margaret helena — photographer based in chicago. fine art floral photography, portrait sessions, and archival prints.",
+				"margaret helena — chicago-raised creative working across photography, direction, music, modeling, acting, and performance.",
 			ogImage: "/images/flower-03.jpg",
 		},
 	};

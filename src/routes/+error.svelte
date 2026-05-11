@@ -25,7 +25,7 @@ import { page } from "$app/state";
 				{page.error?.message ?? 'an unexpected error occurred.'}
 			{/if}
 		</p>
-		<a href="/" class="home-link">← back to gallery</a>
+		<a href="/" class="home-link">← home</a>
 	</div>
 </div>
 

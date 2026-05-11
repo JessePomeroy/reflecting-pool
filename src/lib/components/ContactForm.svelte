@@ -133,7 +133,7 @@ function reset() {
 		font-family: var(--font-serif);
 		font-size: 0.8rem;
 		letter-spacing: 0.1em;
-		color: rgba(var(--ink-rgb), 0.5);
+		color: var(--contact-label-color, rgba(var(--ink-rgb), 0.5));
 		text-transform: lowercase;
 	}
 
@@ -141,9 +141,9 @@ function reset() {
 	textarea {
 		font-family: var(--font-serif);
 		font-size: 1rem;
-		color: var(--ink);
-		background: rgba(255, 255, 255, 0.35);
-		border: 1px solid rgba(var(--ink-rgb), 0.15);
+		color: var(--contact-input-text, var(--ink));
+		background: var(--contact-input-bg, rgba(255, 255, 255, 0.35));
+		border: 1px solid var(--contact-input-border, rgba(var(--ink-rgb), 0.15));
 		border-radius: 2px;
 		padding: 0.65rem 0.85rem;
 		width: 100%;
@@ -158,14 +158,14 @@ function reset() {
 
 	input::placeholder,
 	textarea::placeholder {
-		color: rgba(var(--ink-rgb), 0.3);
+		color: var(--contact-placeholder-color, rgba(var(--ink-rgb), 0.3));
 		font-style: italic;
 	}
 
 	input:focus,
 	textarea:focus {
-		border-color: rgba(var(--ink-rgb), 0.35);
-		background: rgba(255, 255, 255, 0.55);
+		border-color: var(--contact-input-border-focus, rgba(var(--ink-rgb), 0.35));
+		background: var(--contact-input-bg-focus, rgba(255, 255, 255, 0.55));
 	}
 
 	input:disabled,
@@ -180,8 +180,8 @@ function reset() {
 		font-weight: 400;
 		letter-spacing: 0.15em;
 		text-transform: lowercase;
-		color: rgba(var(--paper-rgb), 0.9);
-		background: var(--ink);
+		color: var(--contact-submit-text, rgba(var(--paper-rgb), 0.9));
+		background: var(--contact-submit-bg, var(--ink));
 		border: none;
 		border-radius: 2px;
 		padding: 0.8rem 1.75rem;
@@ -194,7 +194,7 @@ function reset() {
 	}
 
 	.submit-btn:hover:not(:disabled) {
-		background: rgba(var(--ink-rgb), 0.8);
+		background: var(--contact-submit-bg-hover, rgba(var(--ink-rgb), 0.8));
 	}
 
 	.submit-btn:disabled {
@@ -205,7 +205,7 @@ function reset() {
 	.error-message {
 		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: #8b3a3a;
+		color: var(--contact-error-color, #8b3a3a);
 		font-style: italic;
 	}
 
@@ -220,7 +220,7 @@ function reset() {
 		font-family: var(--font-serif);
 		font-size: 1.1rem;
 		font-style: italic;
-		color: rgba(var(--ink-rgb), 0.7);
+		color: var(--contact-success-color, rgba(var(--ink-rgb), 0.7));
 	}
 
 	.reset-btn {
@@ -228,7 +228,7 @@ function reset() {
 		font-size: 0.8rem;
 		letter-spacing: 0.1em;
 		text-transform: lowercase;
-		color: rgba(var(--ink-rgb), 0.45);
+		color: var(--contact-reset-color, rgba(var(--ink-rgb), 0.45));
 		background: none;
 		border: none;
 		cursor: pointer;
@@ -239,6 +239,6 @@ function reset() {
 	}
 
 	.reset-btn:hover {
-		color: rgba(var(--ink-rgb), 0.7);
+		color: var(--contact-reset-color-hover, rgba(var(--ink-rgb), 0.7));
 	}
 </style>

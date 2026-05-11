@@ -58,7 +58,7 @@ const calConfig = "{'layout':'month_view'}";
 
 <div class="about-page">
 	<header class="page-header">
-		<a href="/" class="back-link">← back to gallery</a>
+		<a href="/" class="back-link">← home</a>
 		<h1>{data.about.heading}</h1>
 	</header>
 
@@ -91,7 +91,7 @@ const calConfig = "{'layout':'month_view'}";
 
 		<!-- Column 2: Bio -->
 		<main class="bio-col">
-			<h2 class="artist-name">margaret helena</h2>
+			<h2 class="artist-name">margaret helena / maggie mac / zippymiggy</h2>
 
 			<div class="bio-text">
 				{#each data.about.bio.split('\n\n') as paragraph}
@@ -99,13 +99,17 @@ const calConfig = "{'layout':'month_view'}";
 				{/each}
 			</div>
 
-			<div class="statement-block">
-				<h3 class="statement-label">artist statement</h3>
-				<div class="statement-text">
-					{#each data.about.artistStatement.split('\n\n') as paragraph}
-						<p>{paragraph}</p>
-					{/each}
-				</div>
+			<div class="about-sections" id="modeling-acting">
+				{#each data.about.sections as section}
+					<section class="about-section">
+						<h3>{section.title}</h3>
+						<ul>
+							{#each section.items as item}
+								<li>{item}</li>
+							{/each}
+						</ul>
+					</section>
+				{/each}
 			</div>
 
 			{#if data.about.highlights.length > 0}
@@ -149,10 +153,25 @@ const calConfig = "{'layout':'month_view'}";
 
 <style>
 	.about-page {
+		--about-text: rgba(var(--paper-rgb), 0.9);
+		--about-body: rgba(var(--paper-rgb), 0.76);
+		--about-muted: rgba(var(--paper-rgb), 0.58);
+		--about-faint: rgba(var(--paper-rgb), 0.34);
+		--contact-label-color: rgba(var(--paper-rgb), 0.62);
+		--contact-input-text: rgba(var(--ink-rgb), 0.96);
+		--contact-input-bg: rgba(var(--paper-rgb), 0.72);
+		--contact-input-bg-focus: rgba(var(--paper-rgb), 0.86);
+		--contact-input-border: rgba(var(--paper-rgb), 0.24);
+		--contact-input-border-focus: rgba(var(--paper-rgb), 0.52);
+		--contact-placeholder-color: rgba(var(--ink-rgb), 0.45);
+		--contact-submit-bg: rgba(var(--ink-rgb), 0.92);
+		--contact-submit-bg-hover: rgba(var(--ink-rgb), 1);
+		--contact-submit-text: rgba(var(--paper-rgb), 0.94);
 		min-height: 100vh;
 		padding: 2rem;
 		max-width: 1200px;
 		margin: 0 auto;
+		text-shadow: 0 1px 14px rgba(var(--ink-rgb), 0.18);
 	}
 
 	/* ─── Header ─────────────────────────────────────────────── */
@@ -164,7 +183,7 @@ const calConfig = "{'layout':'month_view'}";
 
 	.back-link {
 		display: inline-block;
-		color: rgba(var(--ink-rgb), 0.5);
+		color: var(--about-muted);
 		text-decoration: none;
 		font-size: 0.9rem;
 		letter-spacing: 0.05em;
@@ -173,14 +192,14 @@ const calConfig = "{'layout':'month_view'}";
 	}
 
 	.back-link:hover {
-		color: rgba(var(--ink-rgb), 0.8);
+		color: var(--about-text);
 	}
 
 	h1 {
 		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: 3rem;
-		color: var(--ink);
+		color: var(--about-text);
 		letter-spacing: 0.15em;
 		text-transform: lowercase;
 	}
@@ -220,16 +239,16 @@ const calConfig = "{'layout':'month_view'}";
 		font-size: 0.8rem;
 		letter-spacing: 0.1em;
 		text-transform: lowercase;
-		color: rgba(var(--ink-rgb), 0.45);
+		color: var(--about-muted);
 		text-decoration: none;
 		transition: color 0.25s ease;
-		border-bottom: 1px solid rgba(var(--ink-rgb), 0.2);
+		border-bottom: 1px solid var(--about-faint);
 		padding-bottom: 1px;
 	}
 
 	.social-link:hover {
-		color: rgba(var(--ink-rgb), 0.75);
-		border-bottom-color: rgba(var(--ink-rgb), 0.5);
+		color: var(--about-text);
+		border-bottom-color: var(--about-muted);
 	}
 
 	/* ─── Bio Column ─────────────────────────────────────────── */
@@ -237,7 +256,7 @@ const calConfig = "{'layout':'month_view'}";
 		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: 2rem;
-		color: var(--ink);
+		color: var(--about-text);
 		letter-spacing: 0.12em;
 		text-transform: lowercase;
 		margin-bottom: 1.5rem;
@@ -251,37 +270,40 @@ const calConfig = "{'layout':'month_view'}";
 	}
 
 	.bio-text p,
-	.statement-text p {
+	.about-section li {
 		font-family: var(--font-serif);
 		font-size: 1.05rem;
 		line-height: 1.75;
-		color: rgba(var(--ink-rgb), 0.7);
+		color: var(--about-body);
 	}
 
-	.statement-block {
-		margin-bottom: 2.5rem;
-		padding-left: 1.25rem;
-		border-left: 1px solid rgba(var(--ink-rgb), 0.15);
-	}
-
-	.statement-label {
-		font-family: var(--font-serif);
-		font-weight: 300;
-		font-size: 0.75rem;
-		letter-spacing: 0.15em;
-		text-transform: lowercase;
-		color: rgba(var(--ink-rgb), 0.4);
-		margin-bottom: 0.75rem;
-	}
-
-	.statement-text {
+	.about-sections {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
+		gap: 1.7rem;
+		margin-bottom: 2.5rem;
 	}
 
-	.statement-text p {
-		font-style: italic;
+	.about-section h3 {
+		font-family: var(--font-serif);
+		font-weight: 300;
+		font-size: 0.85rem;
+		letter-spacing: 0.14em;
+		text-transform: lowercase;
+		color: var(--about-muted);
+		margin-bottom: 0.65rem;
+	}
+
+	.about-section ul {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin: 0;
+		padding-left: 1.1rem;
+	}
+
+	.about-section li::marker {
+		color: var(--about-faint);
 	}
 
 	/* Highlights */
@@ -302,14 +324,14 @@ const calConfig = "{'layout':'month_view'}";
 		font-size: 0.75rem;
 		letter-spacing: 0.1em;
 		text-transform: lowercase;
-		color: rgba(var(--ink-rgb), 0.4);
+		color: var(--about-muted);
 		padding-top: 0.1rem;
 	}
 
 	dd {
 		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(var(--ink-rgb), 0.65);
+		color: var(--about-body);
 		margin: 0;
 	}
 
@@ -331,7 +353,7 @@ const calConfig = "{'layout':'month_view'}";
 		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: 1.4rem;
-		color: var(--ink);
+		color: var(--about-text);
 		letter-spacing: 0.1em;
 		text-transform: lowercase;
 	}
@@ -341,7 +363,7 @@ const calConfig = "{'layout':'month_view'}";
 		font-family: var(--font-serif);
 		font-size: 0.95rem;
 		line-height: 1.6;
-		color: rgba(var(--ink-rgb), 0.55);
+		color: var(--about-body);
 		margin-bottom: 0.5rem;
 	}
 
@@ -352,9 +374,9 @@ const calConfig = "{'layout':'month_view'}";
 		font-weight: 400;
 		letter-spacing: 0.15em;
 		text-transform: lowercase;
-		color: var(--ink);
+		color: var(--about-text);
 		background: transparent;
-		border: 1px solid rgba(var(--ink-rgb), 0.3);
+		border: 1px solid var(--about-muted);
 		border-radius: 2px;
 		padding: 0.8rem 1.75rem;
 		cursor: pointer;
@@ -367,9 +389,9 @@ const calConfig = "{'layout':'month_view'}";
 	}
 
 	.booking-btn:hover {
-		background: var(--ink);
-		color: rgba(var(--paper-rgb), 0.9);
-		border-color: var(--ink);
+		background: rgba(var(--paper-rgb), 0.9);
+		color: rgba(var(--ink-rgb), 0.94);
+		border-color: rgba(var(--paper-rgb), 0.9);
 	}
 
 	/* ─── Responsive ─────────────────────────────────────────── */

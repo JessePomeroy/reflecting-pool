@@ -18,11 +18,16 @@
 
 <style>
 	.cancelled-page {
+		--shop-text: rgba(var(--paper-rgb), 0.9);
+		--shop-body: rgba(var(--paper-rgb), 0.76);
+		--shop-muted: rgba(var(--paper-rgb), 0.58);
+		--shop-faint: rgba(var(--paper-rgb), 0.38);
 		min-height: 100vh;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		padding: 2rem;
+		text-shadow: 0 1px 14px rgba(var(--ink-rgb), 0.2);
 	}
 
 	.cancelled-content {
@@ -34,7 +39,7 @@
 		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: 2rem;
-		color: var(--ink);
+		color: var(--shop-text);
 		letter-spacing: 0.12em;
 		text-transform: lowercase;
 		margin-bottom: 1rem;
@@ -43,7 +48,7 @@
 	.cancelled-message {
 		font-family: var(--font-serif);
 		font-size: 1.05rem;
-		color: rgba(var(--ink-rgb), 0.6);
+		color: var(--shop-body);
 		line-height: 1.6;
 		margin-bottom: 2rem;
 	}
@@ -72,13 +77,13 @@
 	}
 
 	.action-link.secondary {
-		color: rgba(var(--ink-rgb), 0.6);
+		color: var(--shop-body);
 		background: transparent;
-		border: 1px solid rgba(var(--ink-rgb), 0.2);
+		border: 1px solid var(--shop-faint);
 	}
 
 	.action-link.secondary:hover {
-		border-color: rgba(var(--ink-rgb), 0.4);
-		color: var(--ink);
+		border-color: var(--shop-muted);
+		color: var(--shop-text);
 	}
 </style>

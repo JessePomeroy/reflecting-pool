@@ -14,7 +14,7 @@ const startingPrice = getStartingPrice();
 
 <div class="shop-page">
 	<header class="shop-header">
-		<a href="/" class="back-link">← back to gallery</a>
+		<a href="/" class="back-link">← home</a>
 		<h1>prints</h1>
 		<p class="shop-intro">
 			Fine art photography prints on museum-quality paper. Each print is made to order and
@@ -85,10 +85,15 @@ const startingPrice = getStartingPrice();
 
 <style>
 	.shop-page {
+		--shop-text: rgba(var(--paper-rgb), 0.9);
+		--shop-body: rgba(var(--paper-rgb), 0.76);
+		--shop-muted: rgba(var(--paper-rgb), 0.58);
+		--shop-faint: rgba(var(--paper-rgb), 0.38);
 		min-height: 100vh;
 		padding: 2rem;
 		max-width: 1200px;
 		margin: 0 auto;
+		text-shadow: 0 1px 14px rgba(var(--ink-rgb), 0.2);
 	}
 
 	.shop-header {
@@ -99,7 +104,7 @@ const startingPrice = getStartingPrice();
 
 	.back-link {
 		display: inline-block;
-		color: rgba(var(--ink-rgb), 0.5);
+		color: var(--shop-muted);
 		text-decoration: none;
 		font-size: 0.9rem;
 		letter-spacing: 0.05em;
@@ -108,14 +113,14 @@ const startingPrice = getStartingPrice();
 	}
 
 	.back-link:hover {
-		color: rgba(var(--ink-rgb), 0.8);
+		color: var(--shop-text);
 	}
 
 	h1 {
 		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: 3rem;
-		color: var(--ink);
+		color: var(--shop-text);
 		letter-spacing: 0.15em;
 		text-transform: lowercase;
 		margin-bottom: 1rem;
@@ -124,7 +129,7 @@ const startingPrice = getStartingPrice();
 	.shop-intro {
 		font-family: var(--font-serif);
 		font-size: 1.1rem;
-		color: rgba(var(--ink-rgb), 0.6);
+		color: var(--shop-body);
 		max-width: 500px;
 		margin: 0 auto 0.5rem;
 		line-height: 1.6;
@@ -133,7 +138,7 @@ const startingPrice = getStartingPrice();
 	.starting-price {
 		font-family: var(--font-serif);
 		font-size: 0.95rem;
-		color: rgba(var(--ink-rgb), 0.4);
+		color: var(--shop-muted);
 		letter-spacing: 0.05em;
 	}
 
@@ -142,7 +147,7 @@ const startingPrice = getStartingPrice();
 		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: 1.4rem;
-		color: rgba(var(--ink-rgb), 0.5);
+		color: var(--shop-muted);
 		letter-spacing: 0.12em;
 		text-transform: lowercase;
 		margin-bottom: 1.5rem;
@@ -174,7 +179,7 @@ const startingPrice = getStartingPrice();
 		position: relative;
 		aspect-ratio: 3 / 4;
 		overflow: hidden;
-		background: rgba(var(--ink-rgb), 0.05);
+		background: rgba(var(--paper-rgb), 0.1);
 		border-radius: 2px;
 	}
 
@@ -242,7 +247,7 @@ const startingPrice = getStartingPrice();
 	.print-image-wrapper {
 		aspect-ratio: 4 / 5;
 		overflow: hidden;
-		background: rgba(var(--ink-rgb), 0.05);
+		background: rgba(var(--paper-rgb), 0.1);
 		border-radius: 2px;
 	}
 
@@ -265,14 +270,14 @@ const startingPrice = getStartingPrice();
 		font-family: var(--font-serif);
 		font-weight: 400;
 		font-size: 1.1rem;
-		color: var(--ink);
+		color: var(--shop-text);
 		margin-bottom: 0.2rem;
 	}
 
 	.print-gallery {
 		font-family: var(--font-serif);
 		font-size: 0.8rem;
-		color: rgba(var(--ink-rgb), 0.4);
+		color: var(--shop-muted);
 		letter-spacing: 0.05em;
 		text-transform: lowercase;
 		margin-bottom: 0.2rem;
@@ -281,13 +286,13 @@ const startingPrice = getStartingPrice();
 	.print-price {
 		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(var(--ink-rgb), 0.6);
+		color: var(--shop-body);
 	}
 
 	.empty-state {
 		text-align: center;
 		padding: 4rem 2rem;
-		color: rgba(var(--ink-rgb), 0.5);
+		color: var(--shop-muted);
 		font-style: italic;
 	}
 

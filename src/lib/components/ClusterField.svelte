@@ -49,6 +49,7 @@ let prefersReducedMotion = $state(false);
 // collision solver to push overlapping clusters apart.
 let footprintW = $state(220);
 let footprintH = $state(199);
+let introReady = $state(false);
 
 // Compute cluster footprint in px matching the CSS clamps in .cluster-images
 // + .cluster-title. Keep in sync with the style block below.
@@ -105,7 +106,30 @@ onMount(() => {
 
 	// Check for reduced motion preference
 	prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+	if (prefersReducedMotion) {
+		introReady = true;
+	} else {
+		requestAnimationFrame(() => {
+			introReady = true;
+		});
+	}
 });
+
+function getIntroOffset(pos: { x: number; y: number }) {
+	const distances = [
+		{ edge: "left", value: pos.x },
+		{ edge: "right", value: 100 - pos.x },
+		{ edge: "top", value: pos.y },
+		{ edge: "bottom", value: 100 - pos.y },
+	];
+	const nearest = distances.reduce((a, b) => (b.value < a.value ? b : a));
+
+	if (nearest.edge === "left") return { x: "calc(-100vw - 260px)", y: "0px" };
+	if (nearest.edge === "right") return { x: "calc(100vw + 260px)", y: "0px" };
+	if (nearest.edge === "top") return { x: "0px", y: "calc(-100vh - 240px)" };
+	return { x: "0px", y: "calc(100vh + 240px)" };
+}
 
 // Wander is driven by the parallax tick
 let wanderComputed = $derived.by(() => {
@@ -262,6 +286,7 @@ function handleClusterClick(cluster: GalleryCluster) {
         {@const depth = clusterDepths[i] ?? 0.5}
         {@const offset = finalOffsets[i] ?? { x: 0, y: 0 }}
         {#if pos}
+            {@const introOffset = getIntroOffset(pos)}
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
@@ -271,6 +296,9 @@ function handleClusterClick(cluster: GalleryCluster) {
                 style:top="{pos.y}%"
                 style:--cx="{offset.x}px"
                 style:--cy="{offset.y}px"
+                style:--intro-x={introReady ? '0px' : introOffset.x}
+                style:--intro-y={introReady ? '0px' : introOffset.y}
+                style:--intro-opacity={introReady ? 1 : 0}
                 style:--dismiss-x="{(pos.x - dismissOriginX) * 3}vw"
                 style:--dismiss-y="{(pos.y - dismissOriginY) * 3}vh"
                 style:z-index={Math.round(depth * 10)}
@@ -312,12 +340,15 @@ function handleClusterClick(cluster: GalleryCluster) {
     .cluster {
         position: absolute;
         transform: translate(
-            calc(-50% + var(--cx, 0px)),
-            calc(-50% + var(--cy, 0px))
+            calc(-50% + var(--cx, 0px) + var(--intro-x, 0px)),
+            calc(-50% + var(--cy, 0px) + var(--intro-y, 0px))
         );
+        opacity: var(--intro-opacity, 1);
         cursor: pointer;
         pointer-events: auto;
-        transition: opacity 600ms ease;
+        transition:
+            transform 1200ms cubic-bezier(0.16, 1, 0.3, 1),
+            opacity 900ms ease;
     }
 
     .cluster.dismiss {

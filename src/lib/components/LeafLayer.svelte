@@ -232,4 +232,10 @@ function getLeafParallaxY(depth: number): number {
 			animation: none;
 		}
 	}
+
+	@media (max-width: 767px) {
+		.floating-leaf img {
+			width: clamp(76px, 22vw, 128px);
+		}
+	}
 </style>

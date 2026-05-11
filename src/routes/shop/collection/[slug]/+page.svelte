@@ -66,10 +66,15 @@ const startingPrice = getStartingPrice();
 
 <style>
 	.collection-page {
+		--shop-text: rgba(var(--paper-rgb), 0.9);
+		--shop-body: rgba(var(--paper-rgb), 0.76);
+		--shop-muted: rgba(var(--paper-rgb), 0.58);
+		--shop-faint: rgba(var(--paper-rgb), 0.38);
 		min-height: 100vh;
 		padding: 2rem;
 		max-width: 1200px;
 		margin: 0 auto;
+		text-shadow: 0 1px 14px rgba(var(--ink-rgb), 0.2);
 	}
 
 	/* Breadcrumb */
@@ -84,25 +89,25 @@ const startingPrice = getStartingPrice();
 	.breadcrumb a {
 		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(var(--ink-rgb), 0.5);
+		color: var(--shop-muted);
 		text-decoration: none;
 		letter-spacing: 0.05em;
 		transition: color 0.3s ease;
 	}
 
 	.breadcrumb a:hover {
-		color: rgba(var(--ink-rgb), 0.8);
+		color: var(--shop-text);
 	}
 
 	.breadcrumb .sep {
-		color: rgba(var(--ink-rgb), 0.3);
+		color: var(--shop-faint);
 		font-size: 0.85rem;
 	}
 
 	.breadcrumb .current {
 		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(var(--ink-rgb), 0.7);
+		color: var(--shop-body);
 		letter-spacing: 0.05em;
 	}
 
@@ -116,7 +121,7 @@ const startingPrice = getStartingPrice();
 		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: 2.5rem;
-		color: var(--ink);
+		color: var(--shop-text);
 		letter-spacing: 0.12em;
 		text-transform: lowercase;
 		margin-bottom: 0.75rem;
@@ -125,7 +130,7 @@ const startingPrice = getStartingPrice();
 	.collection-desc {
 		font-family: var(--font-serif);
 		font-size: 1.05rem;
-		color: rgba(var(--ink-rgb), 0.55);
+		color: var(--shop-body);
 		max-width: 520px;
 		margin: 0 auto 0.5rem;
 		line-height: 1.6;
@@ -135,7 +140,7 @@ const startingPrice = getStartingPrice();
 	.collection-count {
 		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(var(--ink-rgb), 0.4);
+		color: var(--shop-muted);
 		letter-spacing: 0.05em;
 	}
 
@@ -160,7 +165,7 @@ const startingPrice = getStartingPrice();
 	.print-image-wrapper {
 		aspect-ratio: 4 / 5;
 		overflow: hidden;
-		background: rgba(var(--ink-rgb), 0.05);
+		background: rgba(var(--paper-rgb), 0.1);
 		border-radius: 2px;
 	}
 
@@ -183,20 +188,20 @@ const startingPrice = getStartingPrice();
 		font-family: var(--font-serif);
 		font-weight: 400;
 		font-size: 1.1rem;
-		color: var(--ink);
+		color: var(--shop-text);
 		margin-bottom: 0.2rem;
 	}
 
 	.print-price {
 		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(var(--ink-rgb), 0.6);
+		color: var(--shop-body);
 	}
 
 	.empty-state {
 		text-align: center;
 		padding: 4rem 2rem;
-		color: rgba(var(--ink-rgb), 0.5);
+		color: var(--shop-muted);
 		font-style: italic;
 	}
 
@@ -210,14 +215,14 @@ const startingPrice = getStartingPrice();
 	.back-link {
 		font-family: var(--font-serif);
 		font-size: 0.9rem;
-		color: rgba(var(--ink-rgb), 0.5);
+		color: var(--shop-muted);
 		text-decoration: none;
 		letter-spacing: 0.05em;
 		transition: color 0.3s ease;
 	}
 
 	.back-link:hover {
-		color: rgba(var(--ink-rgb), 0.8);
+		color: var(--shop-text);
 	}
 
 	/* Responsive */

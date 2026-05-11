@@ -25,18 +25,23 @@ const sessionId = $derived(page.url.searchParams.get("session_id"));
 		{/if}
 		<div class="success-actions">
 			<a href="/shop" class="action-link">continue browsing</a>
-			<a href="/" class="action-link secondary">back to gallery</a>
+			<a href="/" class="action-link secondary">home</a>
 		</div>
 	</div>
 </div>
 
 <style>
 	.success-page {
+		--shop-text: rgba(var(--paper-rgb), 0.9);
+		--shop-body: rgba(var(--paper-rgb), 0.76);
+		--shop-muted: rgba(var(--paper-rgb), 0.58);
+		--shop-faint: rgba(var(--paper-rgb), 0.38);
 		min-height: 100vh;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		padding: 2rem;
+		text-shadow: 0 1px 14px rgba(var(--ink-rgb), 0.2);
 	}
 
 	.success-content {
@@ -46,7 +51,7 @@ const sessionId = $derived(page.url.searchParams.get("session_id"));
 
 	.success-icon {
 		font-size: 2.5rem;
-		color: var(--ink);
+		color: var(--shop-text);
 		margin-bottom: 1.5rem;
 		opacity: 0.6;
 	}
@@ -55,7 +60,7 @@ const sessionId = $derived(page.url.searchParams.get("session_id"));
 		font-family: var(--font-serif);
 		font-weight: 300;
 		font-size: 2.5rem;
-		color: var(--ink);
+		color: var(--shop-text);
 		letter-spacing: 0.15em;
 		text-transform: lowercase;
 		margin-bottom: 1.5rem;
@@ -64,7 +69,7 @@ const sessionId = $derived(page.url.searchParams.get("session_id"));
 	.success-message {
 		font-family: var(--font-serif);
 		font-size: 1.1rem;
-		color: rgba(var(--ink-rgb), 0.7);
+		color: var(--shop-body);
 		line-height: 1.6;
 		margin-bottom: 1rem;
 	}
@@ -72,7 +77,7 @@ const sessionId = $derived(page.url.searchParams.get("session_id"));
 	.success-detail {
 		font-family: var(--font-serif);
 		font-size: 0.95rem;
-		color: rgba(var(--ink-rgb), 0.5);
+		color: var(--shop-muted);
 		line-height: 1.5;
 		margin-bottom: 1.5rem;
 	}
@@ -80,7 +85,7 @@ const sessionId = $derived(page.url.searchParams.get("session_id"));
 	.order-ref {
 		font-family: var(--font-serif);
 		font-size: 0.8rem;
-		color: rgba(var(--ink-rgb), 0.3);
+		color: var(--shop-faint);
 		letter-spacing: 0.05em;
 		margin-bottom: 2rem;
 	}
@@ -110,13 +115,13 @@ const sessionId = $derived(page.url.searchParams.get("session_id"));
 	}
 
 	.action-link.secondary {
-		color: rgba(var(--ink-rgb), 0.6);
+		color: var(--shop-body);
 		background: transparent;
-		border: 1px solid rgba(var(--ink-rgb), 0.2);
+		border: 1px solid var(--shop-faint);
 	}
 
 	.action-link.secondary:hover {
-		border-color: rgba(var(--ink-rgb), 0.4);
-		color: var(--ink);
+		border-color: var(--shop-muted);
+		color: var(--shop-text);
 	}
 </style>

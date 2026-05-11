@@ -11,15 +11,18 @@ import { page } from "$app/state";
 
 <style>
 	.error-page {
+		--shop-text: rgba(var(--paper-rgb), 0.9);
+		--shop-body: rgba(var(--paper-rgb), 0.76);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
 		min-height: 60vh;
 		font-family: var(--font-serif);
-		color: var(--ink);
+		color: var(--shop-text);
 		text-align: center;
 		gap: 1rem;
+		text-shadow: 0 1px 14px rgba(var(--ink-rgb), 0.2);
 	}
 
 	h1 {
@@ -28,11 +31,11 @@ import { page } from "$app/state";
 	}
 
 	p {
-		color: #6b7280;
+		color: var(--shop-body);
 	}
 
 	a {
-		color: var(--ink);
+		color: var(--shop-text);
 		text-decoration: underline;
 	}
 </style>
