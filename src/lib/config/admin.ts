@@ -31,6 +31,7 @@ export const adminConfig: AdminConfig = {
 	fromEmail: "Reflecting Pool <noreply@zippymiggy.com>",
 	isCreator: false,
 	api: apiWithAliases,
+	authCallbackURL: "/admin",
 	galleryWorkerUrl: "https://gallery-worker.thinkingofview.workers.dev",
 	// Route mutations through the SvelteKit proxy at /api/admin/mutation
 	// instead of the Convex WebSocket. The browser socket is intentionally
