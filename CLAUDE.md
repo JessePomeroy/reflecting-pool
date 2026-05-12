@@ -17,18 +17,15 @@ Jesse is the platform operator running a photographer-SaaS. Each client
 site is a spoke; **angelsrest** is both Jesse's own photography site AND
 the super-admin hub that aggregates across all spokes.
 
-**Deployment model: per-client Convex projects.**
-- One Convex project per client (dev deployment + prod deployment pair).
-- Schema + functions live in `angelsrest/convex/`; the same codebase
-  deploys to every project via per-client `CONVEX_DEPLOY_KEY`.
-- `platformClients.siteUrl` is the tenancy key inside each deployment
-  (effectively one row on spoke deployments; the full roster on
-  angelsrest's deployment).
-- Dev was one shared deployment (`acoustic-kiwi-347`) during Gap 1;
-  per-client dev landed 2026-04-24 (reflecting-pool dev now
-  `confident-marlin-715`). Prod is per-client
-  (reflecting-pool prod: `brazen-capybara-35`, not yet wired on
-  Vercel — Phase 2 of the Option A migration).
+**Deployment model: shared Convex.**
+- One shared Convex deployment per environment stores operational data
+  for every spoke. Every tenant-owned record is scoped by `siteUrl`.
+- Convex schema + functions live in
+  `angelsrest/packages/crm-api/convex/`.
+- Spokes consume generated API types through `@jessepomeroy/crm-api`;
+  Reflecting Pool must not have its own `convex/` folder.
+- Shared tenancy is hardened through `requireSiteAdmin(ctx, siteUrl)`
+  and creator/platform operations use creator-role authorization.
 
 **Client-owned accounts** (client pays, owns identity; if Jesse walks
 away, client keeps these):
@@ -118,10 +115,10 @@ reflecting-pool's only.
 6. **`galleries.updateImage` is intentionally unauthed** — the
    customer-facing `/delivery/[token]` page calls it to toggle
    `isFavorite`. Tightening requires a token-authorized variant.
-7. **Convex is single-tenant per deployment today** — `requireAuth`
-   effectively equals `requireSiteAdmin`. The helpers are shaped for
-   the multi-client-aware admin-package template; don't remove
-   `requireSiteAdmin` even when it looks redundant.
+7. **Convex is shared and tenant-scoped by `siteUrl`** —
+   `requireAuth` is never enough for tenant data. Use
+   `requireSiteAdmin(ctx, siteUrl)` for tenant-scoped reads/writes and
+   creator-role checks for platform-wide operations.
 
 ## Canonical docs
 
@@ -178,45 +175,31 @@ Non-negotiables (always ask before touching):
 
 ## Current state
 
-**Pick up here:** last session ended 2026-04-25; full debrief at
-`~/Documents/quilt/02_reference/projects/reflecting pool/
-session-2026-04-25-debrief.md`. Next action: Day 3 of
-`migration-execution-order.md` — crm-api first publish (Gap 2). Path 1
-of Phase 2 (Convex-side rewire) landed 2026-04-25; Day 2 (Option A
-Phases 3 + 5 — `scripts/deploy-all.sh`, `deploy-spokes.yml` CI
-workflow, and `trustedOrigins` simplification) also landed 2026-04-25.
-Phase 2's Vercel cutover is folded into Day 5 of the execution order.
+**Pick up here:** shared Convex is current. Continue from
+`~/Documents/quilt/03_creating/angelsrest/
+multi-tenant-hardening-2026-04-23.md`, starting with Gap 2 tenant
+isolation and creator-role hardening.
 
 **In dev:** admin dashboard signs in, queries work, mutations via
 HTTP-proxy work. Five-layer Better Auth fix landed 2026-04-23.
-reflecting-pool dev Convex is now `confident-marlin-715` (per-client);
-`.env.local` was rewired to it on 2026-04-25.
 
 **In prod:** angelsrest.online is live with plain Stripe (not Connect).
-reflecting-pool prod Convex provisioned 2026-04-24 as
-`brazen-capybara-35` with `SITE_URL=https://www.zippymiggy.com` and
-the `platformClients` row seeded. Not yet wired on Vercel (Phase 2);
-DNS for `zippymiggy.com` still pending.
+Reflecting Pool uses the shared Convex deployment through
+`@jessepomeroy/crm-api`; DNS for `zippymiggy.com` still pending.
 
 **Blocked on Maggie:** Sanity project creation (H42a). Jesse is
 pre-creating the project under his account and will transfer admin to
 Maggie at handoff. Also `LUMAPRINTS_*` prod creds (her account);
 smoke-test with Jesse's test-store values in the meantime.
 
-**Option A migration in progress.** Phases 0–1, Phase 2 Convex-side
-(Path 1), Phase 3 (`scripts/deploy-all.sh` + `deploy-spokes.yml`), and
-Phase 5 (`trustedOrigins` derived from `SITE_URL`) all complete as of
-2026-04-25. Phase 4 (aggregation) is deferred per spec. Phase 2
-Vercel-side cutover is sequenced into Day 5 alongside Admin Phase 4.
-Stripe Connect Express (D3) still separately pending before client #2
-takes real orders. Spec: `~/Documents/quilt/02_reference/projects/
-reflecting pool/option-a-migration.md`.
+Stripe Connect Express still separately pending before client #2 takes
+real orders.
 
 **User actions pending** (only Jesse can do these):
 1. Rotate secrets per C11 (`GALLERY_ADMIN_SECRET`,
    `AUTH_GOOGLE_SECRET`, `AUTH_SECRET`, `BETTER_AUTH_SECRET`).
 2. Set `WEBHOOK_SECRET` + `LUMAPRINTS_WEBHOOK_SECRET` on Vercel +
-   each Convex deployment.
+   the shared Convex deployment.
 3. GitHub branch protection on `main` (H35).
 4. `zippymiggy.com` DNS → Vercel; add as production domain with apex
    → www redirect.
