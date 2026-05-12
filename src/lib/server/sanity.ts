@@ -11,6 +11,7 @@
 
 import { createClient } from "@sanity/client";
 import { env } from "$env/dynamic/private";
+import { env as publicEnv } from "$env/dynamic/public";
 import type { PrintCollection, PrintProduct } from "$lib/shop/types";
 import { V2_SIZES } from "$lib/shop/v2Catalog";
 
@@ -27,12 +28,15 @@ import { V2_SIZES } from "$lib/shop/v2Catalog";
 // constructing on first use, we guarantee the build succeeds even
 // when the env is empty.
 let _sanityClient: ReturnType<typeof createClient> | null = null;
+const sanityProjectId = env.SANITY_PROJECT_ID || publicEnv.PUBLIC_SANITY_PROJECT_ID;
+const sanityDataset = env.SANITY_DATASET || publicEnv.PUBLIC_SANITY_DATASET;
+
 export function sanityClient() {
 	if (!_sanityClient) {
 		_sanityClient = createClient({
-			projectId: env.SANITY_PROJECT_ID,
-			dataset: env.SANITY_DATASET,
-			token: env.SANITY_API_READ_TOKEN,
+			projectId: sanityProjectId,
+			dataset: sanityDataset,
+			token: env.SANITY_API_READ_TOKEN || undefined,
 			apiVersion: "2024-01-01",
 			// CDN on — gallery reads are public and tolerate the short stale window.
 			useCdn: true,
@@ -41,7 +45,104 @@ export function sanityClient() {
 	return _sanityClient;
 }
 
+function hasSanityConfig() {
+	return Boolean(sanityProjectId && sanityDataset);
+}
+
+async function fetchOrFallback<T>(query: string, fallback: T, params?: Record<string, unknown>) {
+	if (!hasSanityConfig()) return fallback;
+
+	try {
+		const result = await sanityClient().fetch<T | null>(query, params ?? {});
+		return result ?? fallback;
+	} catch (err) {
+		console.error("[sanity] Falling back after fetch failed:", err);
+		return fallback;
+	}
+}
+
 // ─── GROQ Queries ───────────────────────────────────────────
+
+export interface HomepageContent {
+	practiceLine: string;
+	quote: {
+		text: string;
+		attribution: string;
+	};
+	navLinks: { label: string; href: string }[];
+	seo: {
+		description: string;
+		ogImage?: string;
+	};
+}
+
+export interface AboutContent {
+	heading: string;
+	portrait: string;
+	bio: string;
+	artistStatement: string;
+	sections: { title: string; items: string[] }[];
+	highlights: { label: string; value: string }[];
+	socialLinks: { platform: string; url: string }[];
+	seo: {
+		description: string;
+		ogImage: string;
+	};
+}
+
+const HOMEPAGE_QUERY = `
+*[_type == "homepage"][0] {
+  practiceLine,
+  quote {
+    text,
+    attribution
+  },
+  navLinks[] {
+    label,
+    href
+  },
+  "seo": {
+    "description": seo.description,
+    "ogImage": seo.ogImage.asset->url
+  }
+}
+`;
+
+const ABOUT_QUERY = `
+{
+  "about": *[_type == "about"][0] {
+    heading,
+    name,
+    title,
+    "portrait": portrait.asset->url,
+    shortBio,
+    plainBio,
+    sections[] {
+      title,
+      items
+    },
+    highlights[] {
+      label,
+      value
+    },
+    social {
+      instagram,
+      twitter,
+      email
+    },
+    "seo": {
+      "description": seo.description,
+      "ogImage": seo.ogImage.asset->url
+    }
+  },
+  "settings": *[_type == "siteSettings"][0] {
+    socialLinks[] {
+      platform,
+      url
+    }
+  }
+}
+`;
 
 const _PRINTABLE_IMAGES_QUERY = `
 *[_type == "gallery" && isVisible == true] {
@@ -99,6 +200,75 @@ const _COLLECTION_WITH_PRINTS_QUERY = `
 `;
 
 // ─── Data Fetchers ──────────────────────────────────────────
+
+export async function fetchHomepageContent(): Promise<HomepageContent> {
+	const content = await fetchOrFallback<Partial<HomepageContent>>(
+		HOMEPAGE_QUERY,
+		getFallbackHomepageContent(),
+	);
+
+	const fallback = getFallbackHomepageContent();
+	return {
+		practiceLine: content.practiceLine || fallback.practiceLine,
+		quote: {
+			text: content.quote?.text || fallback.quote.text,
+			attribution: content.quote?.attribution || fallback.quote.attribution,
+		},
+		navLinks: content.navLinks?.length ? content.navLinks : fallback.navLinks,
+		seo: {
+			description: content.seo?.description || fallback.seo.description,
+			ogImage: content.seo?.ogImage || fallback.seo.ogImage,
+		},
+	};
+}
+
+export async function fetchAboutContent(): Promise<AboutContent> {
+	const result = await fetchOrFallback<{
+		about?: {
+			heading?: string;
+			name?: string;
+			title?: string;
+			portrait?: string;
+			shortBio?: string;
+			plainBio?: string;
+			sections?: { title?: string; items?: string[] }[];
+			highlights?: { label?: string; value?: string }[];
+			social?: { instagram?: string; twitter?: string; email?: string };
+			seo?: { description?: string; ogImage?: string };
+		};
+		settings?: { socialLinks?: { platform?: string; url?: string }[] };
+	}>(ABOUT_QUERY, {});
+
+	const fallback = getFallbackAboutContent();
+	const about = result.about;
+	const socialLinks = result.settings?.socialLinks?.filter(isCompleteLink) ?? [];
+	const legacySocialLinks = [
+		about?.social?.instagram ? { platform: "instagram", url: about.social.instagram } : null,
+		about?.social?.twitter ? { platform: "twitter", url: about.social.twitter } : null,
+		about?.social?.email ? { platform: "email", url: `mailto:${about.social.email}` } : null,
+	].filter(isCompleteLink);
+
+	return {
+		heading: about?.heading || fallback.heading,
+		portrait: about?.portrait || fallback.portrait,
+		bio:
+			about?.plainBio ||
+			[about?.name, about?.shortBio].filter(Boolean).join("\n\n") ||
+			fallback.bio,
+		artistStatement: fallback.artistStatement,
+		sections: normalizeSections(about?.sections) ?? fallback.sections,
+		highlights: normalizeHighlights(about?.highlights) ?? fallback.highlights,
+		socialLinks: socialLinks.length
+			? socialLinks
+			: legacySocialLinks.length
+				? legacySocialLinks
+				: fallback.socialLinks,
+		seo: {
+			description: about?.seo?.description || fallback.seo.description,
+			ogImage: about?.seo?.ogImage || fallback.seo.ogImage,
+		},
+	};
+}
 
 /**
  * Fetch all printable images across all galleries.
@@ -219,6 +389,108 @@ function getMockCollections(): PrintCollection[] {
 			printCount: 8,
 		},
 	];
+}
+
+function getFallbackHomepageContent(): HomepageContent {
+	return {
+		practiceLine:
+			"Exploring light, movement, and sound as a photographer, director, model, and musician.",
+		quote: {
+			text: "The camera does not know what it takes; it captures materials with which you reconstruct, not so much what you saw as what you thought you saw. Hence the best photography is aware, mindful, of illusion and uses illusion, permitting and encouraging it - especially unconscious and powerful illusions that are not usually admitted on the scene.",
+			attribution: "Thomas Merton",
+		},
+		navLinks: [
+			{ label: "about", href: "/about" },
+			{ label: "modeling & acting", href: "/about#modeling-acting" },
+			{ label: "photography", href: "/gallery" },
+			{ label: "booking", href: "/about#book" },
+			{ label: "shop prints", href: "/shop" },
+		],
+		seo: {
+			description:
+				"Margaret Helena photography, portfolio galleries, booking, and fine art prints.",
+		},
+	};
+}
+
+function getFallbackAboutContent(): AboutContent {
+	return {
+		heading: "about",
+		portrait: "/images/flower-01.jpg",
+		bio: "",
+		artistStatement:
+			"Building In Between — a space for artists to gather where image, sound, and memory meet.",
+		sections: [
+			{
+				title: "background",
+				items: [
+					"Chicago-raised creative working across documentation, direction, music, and performance",
+					"BA in Journalism + minor in Media Art, University of Wisconsin-Whitewater",
+					"Former volleyball setter — a role that continues to shape how I approach collaboration, timing, and visual awareness",
+				],
+			},
+			{
+				title: "experience",
+				items: [
+					"Off the Record Press — concert photography",
+					"Steven Piper — commercial photography internship",
+					"Maggie Mac LLC — freelance photography and videography",
+					"SGK Inc. + Chicago-based photographers — freelance photo/production assistant",
+					"Heaven Gallery (Wicker Park) — gallery intern",
+				],
+			},
+			{
+				title: "practice",
+				items: ["Photography, direction, and music", "Modeling, acting, and singing"],
+			},
+			{
+				title: "current",
+				items: [
+					"Building In Between — a space for artists to gather where image, sound, and memory meet",
+				],
+			},
+		],
+		highlights: [
+			{ label: "based in", value: "chicago, illinois" },
+			{ label: "practice", value: "photography · direction · music" },
+			{ label: "performance", value: "modeling · acting · singing" },
+			{ label: "available for", value: "photo · video · production support" },
+		],
+		socialLinks: [{ platform: "instagram", url: "https://instagram.com/margarethelena" }],
+		seo: {
+			description:
+				"margaret helena — chicago-raised creative working across photography, direction, music, modeling, acting, and performance.",
+			ogImage: "/images/flower-03.jpg",
+		},
+	};
+}
+
+function isCompleteLink(
+	link: { platform?: string; url?: string } | null | undefined,
+): link is { platform: string; url: string } {
+	return Boolean(link?.platform && link.url);
+}
+
+function normalizeSections(sections?: { title?: string; items?: string[] }[]) {
+	const normalized = sections
+		?.map((section) => ({
+			title: section.title ?? "",
+			items: section.items?.filter(Boolean) ?? [],
+		}))
+		.filter((section) => section.title && section.items.length);
+
+	return normalized?.length ? normalized : null;
+}
+
+function normalizeHighlights(highlights?: { label?: string; value?: string }[]) {
+	const normalized = highlights
+		?.map((highlight) => ({
+			label: highlight.label ?? "",
+			value: highlight.value ?? "",
+		}))
+		.filter((highlight) => highlight.label && highlight.value);
+
+	return normalized?.length ? normalized : null;
 }
 
 const DEFAULT_SIZES = V2_SIZES.map((s) => ({ width: s.width, height: s.height, label: s.label }));

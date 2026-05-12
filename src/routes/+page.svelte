@@ -3,25 +3,20 @@ import LeafLayer from "$lib/components/LeafLayer.svelte";
 import Navigation from "$lib/components/Navigation.svelte";
 import StrokeTitle from "$lib/components/StrokeTitle.svelte";
 import WaterSurface from "$lib/components/WaterSurface.svelte";
+import type { PageData } from "./$types";
 
-const ctas = [
-	{ label: "about", href: "/about" },
-	{ label: "modeling & acting", href: "/about#modeling-acting" },
-	{ label: "photography", href: "/gallery" },
-	{ label: "booking", href: "/about#book" },
-	{ label: "shop prints", href: "/shop" },
-];
-
-const mertonQuote =
-	"The camera does not know what it takes; it captures materials with which you reconstruct, not so much what you saw as what you thought you saw. Hence the best photography is aware, mindful, of illusion and uses illusion, permitting and encouraging it - especially unconscious and powerful illusions that are not usually admitted on the scene.";
+let { data }: { data: PageData } = $props();
 </script>
 
 <svelte:head>
 	<title>margaret helena · photography</title>
 	<meta
 		name="description"
-		content="Margaret Helena photography, portfolio galleries, booking, and fine art prints."
+		content={data.homepage.seo.description}
 	/>
+	{#if data.homepage.seo.ogImage}
+		<meta property="og:image" content={data.homepage.seo.ogImage} />
+	{/if}
 </svelte:head>
 
 <WaterSurface />
@@ -38,19 +33,17 @@ const mertonQuote =
 <main class="splash" aria-labelledby="site-title">
 	<section class="splash-content">
 		<nav class="splash-nav" aria-label="Primary">
-			{#each ctas as cta}
+			{#each data.homepage.navLinks as cta}
 				<a href={cta.href}>{cta.label}</a>
 			{/each}
 		</nav>
 
 		<div class="splash-copy">
-			<p class="practice-line">
-				Exploring light, movement, and sound as a photographer, director, model, and musician.
-			</p>
+			<p class="practice-line">{data.homepage.practiceLine}</p>
 
 			<figure class="quote-block">
-				<blockquote>{mertonQuote}</blockquote>
-				<figcaption>Thomas Merton</figcaption>
+				<blockquote>{data.homepage.quote.text}</blockquote>
+				<figcaption>{data.homepage.quote.attribution}</figcaption>
 			</figure>
 		</div>
 	</section>

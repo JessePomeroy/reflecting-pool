@@ -93,11 +93,13 @@ const calConfig = "{'layout':'month_view'}";
 		<main class="bio-col">
 			<h2 class="artist-name">margaret helena / maggie mac / zippymiggy</h2>
 
-			<div class="bio-text">
-				{#each data.about.bio.split('\n\n') as paragraph}
-					<p>{paragraph}</p>
-				{/each}
-			</div>
+			{#if data.about.bio.trim()}
+				<div class="bio-text">
+					{#each data.about.bio.split('\n\n').filter(Boolean) as paragraph}
+						<p>{paragraph}</p>
+					{/each}
+				</div>
+			{/if}
 
 			<div class="about-sections" id="modeling-acting">
 				{#each data.about.sections as section}
