@@ -33,6 +33,9 @@ export const adminConfig: AdminConfig = {
 	api: apiWithAliases,
 	authCallbackURL: "/admin",
 	galleryWorkerUrl: "https://gallery-worker.thinkingofview.workers.dev",
+	boardProjectTypes: [
+		{ label: "photography", values: ["wedding", "portrait", "family", "commercial", "event"] },
+	],
 	// Route mutations through the SvelteKit proxy at /api/admin/mutation
 	// instead of the Convex WebSocket. The browser socket is intentionally
 	// unauthenticated (see admin/+layout.svelte) to avoid the pause bug in
