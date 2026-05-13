@@ -16,8 +16,8 @@ importers:
         specifier: ^0.12.2
         version: 0.12.2(@standard-schema/spec@1.1.0)(better-auth@1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react@19.2.5)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))))(convex@1.36.0(react@19.2.5))(react@19.2.5)(typescript@5.9.3)
       '@jessepomeroy/admin':
-        specifier: ^1.1.3
-        version: 1.1.3(@mmailaender/convex-svelte@0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3))(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(isomorphic-dompurify@3.11.0(@noble/hashes@2.2.0))(resend@6.12.2)(svelte-dnd-action@0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))
+        specifier: ^1.1.4
+        version: 1.1.4(@mmailaender/convex-svelte@0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3))(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(isomorphic-dompurify@3.11.0(@noble/hashes@2.2.0))(resend@6.12.2)(svelte-dnd-action@0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))
       '@jessepomeroy/crm-api':
         specifier: ^1.0.0
         version: 1.0.0(convex@1.36.0(react@19.2.5))
@@ -365,6 +365,14 @@ packages:
 
   '@csstools/css-syntax-patches-for-csstree@1.1.3':
     resolution: {integrity: sha512-SH60bMfrRCJF3morcdk57WklujF4Jr/EsQUzqkarfHXEFcAR1gg7fS/chAE922Sehgzc1/+Tz5H3Ypa1HiEKrg==}
+    peerDependencies:
+      css-tree: ^3.2.1
+    peerDependenciesMeta:
+      css-tree:
+        optional: true
+
+  '@csstools/css-syntax-patches-for-csstree@1.1.4':
+    resolution: {integrity: sha512-wgsqt92b7C7tQhIdPNxj0n9zuUbQlvAuI1exyzeNrOKOi62SD7ren8zqszmpVREjAOqg8cD2FqYhQfAuKjk4sw==}
     peerDependencies:
       css-tree: ^3.2.1
     peerDependenciesMeta:
@@ -864,8 +872,8 @@ packages:
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
     engines: {node: '>=18.0.0'}
 
-  '@jessepomeroy/admin@1.1.3':
-    resolution: {integrity: sha512-xWpnE92cJkh2Z9nmTeZFXnKLnRZi4MBDdOAYYrspybRx0k/hgW503rU1KELjWZhMWA0l2IdwXjIWtiSZy/HXPQ==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/admin/1.1.3/73ad7f6765d93301920e3c21eb039f06a49cd4f2}
+  '@jessepomeroy/admin@1.1.4':
+    resolution: {integrity: sha512-XSytf4NsNLo9TXouZgzO0TCGS9/s979XoF589hPfQHlYzBwxhMg0lAvUhvBx8hMsJFyFK5V/qH9O21DJBw0N6Q==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/admin/1.1.4/415cf06dc4d4dd850195a78c9b4e447f2addaaf0}
     peerDependencies:
       '@mmailaender/convex-svelte': ^0.18.0
       '@sveltejs/kit': ^2.0.0
@@ -1944,8 +1952,8 @@ packages:
   dom-accessibility-api@0.6.3:
     resolution: {integrity: sha512-7ZgogeTnjuHbo+ct10G9Ffp0mif17idi0IyWNVA/wcwcm7NPOD/WEHVP3n7n3MhXqxoIYm8d6MuZohYWIZ4T3w==}
 
-  dompurify@3.4.2:
-    resolution: {integrity: sha512-lHeS9SA/IKeIFFyYciHBr2n0v1VMPlSj843HdLOwjb2OxNwdq9Xykxqhk+FE42MzAdHvInbAolSE4mhahPpjXA==}
+  dompurify@3.4.3:
+    resolution: {integrity: sha512-VVwJidIJcp1hpg2OMXML3ZVRPYSZiq4aX7qBh83BSIpOaRDqI+qxhXjjIWnpzkOXhmp0L81lnoME1mnCc9H48A==}
 
   dotenv@16.6.1:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
@@ -3085,6 +3093,10 @@ snapshots:
     optionalDependencies:
       css-tree: 3.2.1
 
+  '@csstools/css-syntax-patches-for-csstree@1.1.4(css-tree@3.2.1)':
+    optionalDependencies:
+      css-tree: 3.2.1
+
   '@csstools/css-tokenizer@4.0.0': {}
 
   '@dimforge/rapier3d-compat@0.12.0': {}
@@ -3341,7 +3353,7 @@ snapshots:
     dependencies:
       minipass: 7.1.3
 
-  '@jessepomeroy/admin@1.1.3(@mmailaender/convex-svelte@0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3))(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(isomorphic-dompurify@3.11.0(@noble/hashes@2.2.0))(resend@6.12.2)(svelte-dnd-action@0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))':
+  '@jessepomeroy/admin@1.1.4(@mmailaender/convex-svelte@0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3))(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(isomorphic-dompurify@3.11.0(@noble/hashes@2.2.0))(resend@6.12.2)(svelte-dnd-action@0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))':
     dependencies:
       '@mmailaender/convex-svelte': 0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3)
       '@sveltejs/kit': 2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))
@@ -4380,7 +4392,7 @@ snapshots:
 
   dom-accessibility-api@0.6.3: {}
 
-  dompurify@3.4.2:
+  dompurify@3.4.3:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 
@@ -4608,7 +4620,7 @@ snapshots:
 
   isomorphic-dompurify@3.11.0(@noble/hashes@2.2.0):
     dependencies:
-      dompurify: 3.4.2
+      dompurify: 3.4.3
       jsdom: 29.1.1(@noble/hashes@2.2.0)
     transitivePeerDependencies:
       - '@noble/hashes'
@@ -4649,7 +4661,7 @@ snapshots:
       '@asamuzakjp/css-color': 5.1.11
       '@asamuzakjp/dom-selector': 7.1.1
       '@bramus/specificity': 2.4.2
-      '@csstools/css-syntax-patches-for-csstree': 1.1.3(css-tree@3.2.1)
+      '@csstools/css-syntax-patches-for-csstree': 1.1.4(css-tree@3.2.1)
       '@exodus/bytes': 1.15.0(@noble/hashes@2.2.0)
       css-tree: 3.2.1
       data-urls: 7.0.0(@noble/hashes@2.2.0)
