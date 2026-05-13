@@ -644,7 +644,7 @@ function getFallbackAboutContent(): AboutContent {
 			{ label: "performance", value: "modeling · acting · singing" },
 			{ label: "available for", value: "photo · video · production support" },
 		],
-		socialLinks: [{ platform: "instagram", url: "https://instagram.com/margarethelena" }],
+		socialLinks: [{ platform: "instagram", url: "https://www.instagram.com/zippymiggy/" }],
 		seo: {
 			description:
 				"margaret helena — chicago-raised creative working across photography, direction, music, modeling, acting, and performance.",
