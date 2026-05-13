@@ -3,7 +3,7 @@ let menuOpen = $state(false);
 
 const links = [
 	{ label: "about", href: "/about" },
-	{ label: "modeling & acting", href: "/about#modeling-acting" },
+	{ label: "modeling & acting", href: "/modeling" },
 	{ label: "photography", href: "/gallery" },
 	{ label: "booking", href: "/about#book" },
 	{ label: "shop prints", href: "/shop" },
