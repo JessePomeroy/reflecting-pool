@@ -6,75 +6,17 @@
 // `src/routes/api/webhooks/stripe/+server.ts`). See CLAUDE.md §"Key
 // architectural facts" #1 for the split.
 //
-// TODO (H42a): Replace mock data with real Sanity queries once the
-// project is created and the `gallery` schema is deployed.
+// TODO (H42a): Replace mock print/shop data with real Sanity queries once
+// Maggie's print catalog is fully represented in Studio.
 
-import { createClient } from "@sanity/client";
-import { env } from "$env/dynamic/private";
-import { env as publicEnv } from "$env/dynamic/public";
+import { fetchSanityOrFallback, hasSanityConfig, sanityClient } from "$lib/server/sanityClient";
 import type { PrintCollection, PrintProduct } from "$lib/shop/types";
 import { V2_SIZES } from "$lib/shop/v2Catalog";
 
-// Per-client Sanity tenancy is currently undecided (platform-owned vs
-// client-owned, see angelsrest CLAUDE.md). Until a tenant's project is
-// provisioned, Vercel won't have these vars set; using $env/dynamic/private
-// defers the missing-secret failure from build to request time so the rest
-// of the site can deploy. Sanity-backed content routes will 500 until real
-// values are pushed.
-//
-// Lazy-init is required: the @sanity/client constructor throws
-// "Configuration must contain `projectId`" if projectId is undefined,
-// which would crash SvelteKit's prerender step at build time. By
-// constructing on first use, we guarantee the build succeeds even
-// when the env is empty.
-let _sanityClient: ReturnType<typeof createClient> | null = null;
-const sanityProjectId = env.SANITY_PROJECT_ID || publicEnv.PUBLIC_SANITY_PROJECT_ID;
-const sanityDataset = env.SANITY_DATASET || publicEnv.PUBLIC_SANITY_DATASET;
-
-export function sanityClient() {
-	if (!_sanityClient) {
-		_sanityClient = createClient({
-			projectId: sanityProjectId,
-			dataset: sanityDataset,
-			token: env.SANITY_API_READ_TOKEN || undefined,
-			apiVersion: "2024-01-01",
-			// CDN on — gallery reads are public and tolerate the short stale window.
-			useCdn: true,
-		});
-	}
-	return _sanityClient;
-}
-
-function hasSanityConfig() {
-	return Boolean(sanityProjectId && sanityDataset);
-}
-
-async function fetchOrFallback<T>(query: string, fallback: T, params?: Record<string, unknown>) {
-	if (!hasSanityConfig()) return fallback;
-
-	try {
-		const result = await sanityClient().fetch<T | null>(query, params ?? {});
-		return result ?? fallback;
-	} catch (err) {
-		console.error("[sanity] Falling back after fetch failed:", err);
-		return fallback;
-	}
-}
+export { fetchHomepageContent, type HomepageContent } from "$lib/server/content/homepage";
+export { fetchSanityOrFallback, hasSanityConfig, sanityClient };
 
 // ─── GROQ Queries ───────────────────────────────────────────
-
-export interface HomepageContent {
-	practiceLine: string;
-	quote: {
-		text: string;
-		attribution: string;
-	};
-	navLinks: { label: string; href: string }[];
-	seo: {
-		description: string;
-		ogImage?: string;
-	};
-}
 
 export interface AboutContent {
 	heading: string;
@@ -113,24 +55,6 @@ export interface ModelingPageContent {
 		ogImage?: string;
 	};
 }
-
-const HOMEPAGE_QUERY = `
-*[_type == "homepage"][0] {
-  practiceLine,
-  quote {
-    text,
-    attribution
-  },
-  navLinks[] {
-    label,
-    href
-  },
-  "seo": {
-    "description": seo.description,
-    "ogImage": seo.ogImage.asset->url
-  }
-}
-`;
 
 const ABOUT_QUERY = `
 {
@@ -247,29 +171,8 @@ const _COLLECTION_WITH_PRINTS_QUERY = `
 
 // ─── Data Fetchers ──────────────────────────────────────────
 
-export async function fetchHomepageContent(): Promise<HomepageContent> {
-	const content = await fetchOrFallback<Partial<HomepageContent>>(
-		HOMEPAGE_QUERY,
-		getFallbackHomepageContent(),
-	);
-
-	const fallback = getFallbackHomepageContent();
-	return {
-		practiceLine: content.practiceLine || fallback.practiceLine,
-		quote: {
-			text: content.quote?.text || fallback.quote.text,
-			attribution: content.quote?.attribution || fallback.quote.attribution,
-		},
-		navLinks: content.navLinks?.length ? content.navLinks : fallback.navLinks,
-		seo: {
-			description: content.seo?.description || fallback.seo.description,
-			ogImage: content.seo?.ogImage || fallback.seo.ogImage,
-		},
-	};
-}
-
 export async function fetchAboutContent(): Promise<AboutContent> {
-	const result = await fetchOrFallback<{
+	const result = await fetchSanityOrFallback<{
 		about?: {
 			heading?: string;
 			name?: string;
@@ -317,7 +220,7 @@ export async function fetchAboutContent(): Promise<AboutContent> {
 }
 
 export async function fetchModelingPageContent(): Promise<ModelingPageContent> {
-	const content = await fetchOrFallback<Partial<ModelingPageContent>>(
+	const content = await fetchSanityOrFallback<Partial<ModelingPageContent>>(
 		MODELING_PAGE_QUERY,
 		getFallbackModelingPageContent(),
 	);
@@ -456,28 +359,6 @@ function getMockCollections(): PrintCollection[] {
 			printCount: 8,
 		},
 	];
-}
-
-function getFallbackHomepageContent(): HomepageContent {
-	return {
-		practiceLine:
-			"Exploring light, movement, and sound as a photographer, director, model, and musician.",
-		quote: {
-			text: "The camera does not know what it takes; it captures materials with which you reconstruct, not so much what you saw as what you thought you saw. Hence the best photography is aware, mindful, of illusion and uses illusion, permitting and encouraging it - especially unconscious and powerful illusions that are not usually admitted on the scene.",
-			attribution: "Thomas Merton",
-		},
-		navLinks: [
-			{ label: "about", href: "/about" },
-			{ label: "modeling & acting", href: "/modeling" },
-			{ label: "photography", href: "/gallery" },
-			{ label: "booking", href: "/about#book" },
-			{ label: "shop prints", href: "/shop" },
-		],
-		seo: {
-			description:
-				"Margaret Helena photography, portfolio galleries, booking, and fine art prints.",
-		},
-	};
 }
 
 function getFallbackModelingPageContent(): ModelingPageContent {
