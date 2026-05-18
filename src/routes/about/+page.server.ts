@@ -1,10 +1,10 @@
-import { type AboutContent, fetchAboutContent } from "$lib/server/content/about";
+import { fetchAboutContent } from "$lib/server/content/about";
+import { fetchSiteSettings } from "$lib/server/content/siteSettings";
 import type { PageServerLoad } from "./$types";
 
 export const prerender = true;
 
-export type AboutData = AboutContent;
-
 export const load: PageServerLoad = async () => {
-	return { about: await fetchAboutContent() };
+	const [about, settings] = await Promise.all([fetchAboutContent(), fetchSiteSettings()]);
+	return { about, settings };
 };

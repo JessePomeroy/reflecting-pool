@@ -28,6 +28,14 @@ export {
 	getFallbackPrintCollections,
 	getFallbackPrintProducts,
 } from "$lib/server/content/shopCatalog";
+export {
+	type ContactSettingsContent,
+	fetchSiteSettings,
+	getFallbackSiteSettings,
+	normalizeSiteSettings,
+	type SiteSettingsContent,
+	type SiteSettingsResult,
+} from "$lib/server/content/siteSettings";
 export { fetchSanityOrFallback, hasSanityConfig, sanityClient };
 
 // Order-related functions (`createSanityOrder`, `updateSanityOrder`,
