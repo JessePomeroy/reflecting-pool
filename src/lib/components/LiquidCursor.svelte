@@ -5,6 +5,7 @@ import {
 	cursorFragmentShader as fragmentShader,
 	cursorVertexShader as vertexShader,
 } from "$lib/shaders/cursor";
+import { shouldEnableLiquidCursor } from "$lib/surface/interactiveSurface";
 import type { ParallaxContext } from "$lib/types/gallery";
 
 // ── Context + canvas ref ────────────────────────────────────────────────────
@@ -62,8 +63,8 @@ onMount(() => {
 	// Only skip when there is no mouse/trackpad-class pointer and reduced motion
 	// Removed isLowEnd check — even 4-core machines handle this fine at half res
 	const hasFinePointer = window.matchMedia("(any-pointer: fine)").matches;
-	if (!hasFinePointer) return;
-	if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+	const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	if (!shouldEnableLiquidCursor({ hasFinePointer, prefersReducedMotion })) return;
 
 	// Dynamic import keeps Three.js out of the SSR bundle
 	import("three")

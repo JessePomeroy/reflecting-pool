@@ -1,9 +1,16 @@
 <script lang="ts">
 import { onMount, setContext } from "svelte";
 import { browser } from "$app/environment";
+import {
+	applyOrientation,
+	applyPointerMove,
+	createSurfaceInput,
+	createSurfaceOutput,
+	shouldTrackPointer,
+	stepSurface,
+} from "$lib/surface/interactiveSurface";
 import type { ParallaxContext, Ripple } from "$lib/types/gallery";
 import { detectDevice } from "$lib/utils/device";
-import { clamp, lerp } from "$lib/utils/math";
 
 interface Props {
 	children: import("svelte").Snippet;
@@ -17,11 +24,8 @@ let isMobile = $state(device.isMobile);
 let isLowEnd = $state(device.isLowEnd);
 let hasFinePointer = $state(device.hasFinePointer);
 
-// Raw input (written by event handlers)
-let rawX = 0;
-let rawY = 0;
-let rawPixelX = 0;
-let rawPixelY = 0;
+const surfaceInput = createSurfaceInput();
+const surfaceOutput = createSurfaceOutput();
 
 // Smoothed output (written by rAF)
 let smoothX = $state(0);
@@ -33,10 +37,6 @@ let tick = $state(0);
 // Ripple state
 let ripples = $state<Ripple[]>([]);
 let rippleId = 0;
-
-// Lerp factor — lower = smoother/slower
-const LERP_FACTOR = 0.08;
-const MOUSE_THRESHOLD = 2; // minimum delta in px before updating
 
 function addRipple(x: number, y: number) {
 	rippleId++;
@@ -82,27 +82,21 @@ onMount(() => {
 	if (!browser) return;
 
 	let rafId: number;
-	let lastRawX = 0;
-	let lastRawY = 0;
 
 	// Mouse tracking
 	function handleMouseMove(e: MouseEvent) {
-		const dx = Math.abs(e.clientX - lastRawX);
-		const dy = Math.abs(e.clientY - lastRawY);
-		if (dx < MOUSE_THRESHOLD && dy < MOUSE_THRESHOLD) return;
-
-		lastRawX = e.clientX;
-		lastRawY = e.clientY;
-		rawPixelX = e.clientX;
-		rawPixelY = e.clientY;
-		rawX = (e.clientX / window.innerWidth - 0.5) * 2;
-		rawY = (e.clientY / window.innerHeight - 0.5) * 2;
+		applyPointerMove(
+			surfaceInput,
+			e.clientX,
+			e.clientY,
+			window.innerWidth,
+			window.innerHeight,
+		);
 	}
 
 	// Gyroscope for touch devices
 	function handleOrientation(e: DeviceOrientationEvent) {
-		rawX = clamp((e.gamma || 0) / 45, -1, 1) * 0.5;
-		rawY = clamp((e.beta || 0) / 45, -1, 1) * 0.5;
+		applyOrientation(surfaceInput, e.gamma, e.beta);
 	}
 
 	// Resize handler
@@ -116,10 +110,11 @@ onMount(() => {
 
 	// THE single rAF loop for the entire app
 	function animate() {
-		smoothX = lerp(smoothX, rawX, LERP_FACTOR);
-		smoothY = lerp(smoothY, rawY, LERP_FACTOR);
-		smoothPixelX = lerp(smoothPixelX, rawPixelX, LERP_FACTOR);
-		smoothPixelY = lerp(smoothPixelY, rawPixelY, LERP_FACTOR);
+		stepSurface(surfaceOutput, surfaceInput);
+		smoothX = surfaceOutput.smoothX;
+		smoothY = surfaceOutput.smoothY;
+		smoothPixelX = surfaceOutput.smoothPixelX;
+		smoothPixelY = surfaceOutput.smoothPixelY;
 		tick++;
 
 		rafId = requestAnimationFrame(animate);
@@ -135,7 +130,7 @@ onMount(() => {
 	}
 
 	// Attach listeners
-	if (hasFinePointer) {
+	if (shouldTrackPointer({ hasFinePointer })) {
 		window.addEventListener("mousemove", handleMouseMove, { passive: true });
 	}
 
