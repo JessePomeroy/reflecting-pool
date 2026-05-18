@@ -1,5 +1,5 @@
 import { error } from "@sveltejs/kit";
-import { fetchCollectionWithPrints } from "$lib/server/sanity";
+import { fetchCollectionWithPrints } from "$lib/server/content/shopCatalog";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params }) => {

@@ -1,4 +1,4 @@
-import { fetchCollections, fetchPrintableProducts } from "$lib/server/sanity";
+import { fetchCollections, fetchPrintableProducts } from "$lib/server/content/shopCatalog";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async () => {
