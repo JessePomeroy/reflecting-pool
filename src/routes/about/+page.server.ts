@@ -1,4 +1,4 @@
-import { type AboutContent, fetchAboutContent } from "$lib/server/sanity";
+import { type AboutContent, fetchAboutContent } from "$lib/server/content/about";
 import type { PageServerLoad } from "./$types";
 
 export const prerender = true;

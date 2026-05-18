@@ -13,24 +13,11 @@ import { fetchSanityOrFallback, hasSanityConfig, sanityClient } from "$lib/serve
 import type { PrintCollection, PrintProduct } from "$lib/shop/types";
 import { V2_SIZES } from "$lib/shop/v2Catalog";
 
+export { type AboutContent, fetchAboutContent } from "$lib/server/content/about";
 export { fetchHomepageContent, type HomepageContent } from "$lib/server/content/homepage";
 export { fetchSanityOrFallback, hasSanityConfig, sanityClient };
 
 // ─── GROQ Queries ───────────────────────────────────────────
-
-export interface AboutContent {
-	heading: string;
-	portrait: string;
-	bio: string;
-	artistStatement: string;
-	sections: { title: string; items: string[] }[];
-	highlights: { label: string; value: string }[];
-	socialLinks: { platform: string; url: string }[];
-	seo: {
-		description: string;
-		ogImage: string;
-	};
-}
 
 export interface ModelingImage {
 	id: string;
@@ -55,42 +42,6 @@ export interface ModelingPageContent {
 		ogImage?: string;
 	};
 }
-
-const ABOUT_QUERY = `
-{
-  "about": *[_type == "about"][0] {
-    heading,
-    name,
-    title,
-    "portrait": portrait.asset->url,
-    shortBio,
-    plainBio,
-    sections[] {
-      title,
-      items
-    },
-    highlights[] {
-      label,
-      value
-    },
-    social {
-      instagram,
-      twitter,
-      email
-    },
-    "seo": {
-      "description": seo.description,
-      "ogImage": seo.ogImage.asset->url
-    }
-  },
-  "settings": *[_type == "siteSettings"][0] {
-    socialLinks[] {
-      platform,
-      url
-    }
-  }
-}
-`;
 
 const MODELING_PAGE_QUERY = `
 *[_type == "modelingPage"][0] {
@@ -170,54 +121,6 @@ const _COLLECTION_WITH_PRINTS_QUERY = `
 `;
 
 // ─── Data Fetchers ──────────────────────────────────────────
-
-export async function fetchAboutContent(): Promise<AboutContent> {
-	const result = await fetchSanityOrFallback<{
-		about?: {
-			heading?: string;
-			name?: string;
-			title?: string;
-			portrait?: string;
-			shortBio?: string;
-			plainBio?: string;
-			sections?: { title?: string; items?: string[] }[];
-			highlights?: { label?: string; value?: string }[];
-			social?: { instagram?: string; twitter?: string; email?: string };
-			seo?: { description?: string; ogImage?: string };
-		};
-		settings?: { socialLinks?: { platform?: string; url?: string }[] };
-	}>(ABOUT_QUERY, {});
-
-	const fallback = getFallbackAboutContent();
-	const about = result.about;
-	const socialLinks = result.settings?.socialLinks?.filter(isCompleteLink) ?? [];
-	const legacySocialLinks = [
-		about?.social?.instagram ? { platform: "instagram", url: about.social.instagram } : null,
-		about?.social?.twitter ? { platform: "twitter", url: about.social.twitter } : null,
-		about?.social?.email ? { platform: "email", url: `mailto:${about.social.email}` } : null,
-	].filter(isCompleteLink);
-
-	return {
-		heading: about?.heading || fallback.heading,
-		portrait: about?.portrait || fallback.portrait,
-		bio:
-			about?.plainBio ||
-			[about?.name, about?.shortBio].filter(Boolean).join("\n\n") ||
-			fallback.bio,
-		artistStatement: fallback.artistStatement,
-		sections: normalizeSections(about?.sections) ?? fallback.sections,
-		highlights: normalizeHighlights(about?.highlights) ?? fallback.highlights,
-		socialLinks: socialLinks.length
-			? socialLinks
-			: legacySocialLinks.length
-				? legacySocialLinks
-				: fallback.socialLinks,
-		seo: {
-			description: about?.seo?.description || fallback.seo.description,
-			ogImage: about?.seo?.ogImage || fallback.seo.ogImage,
-		},
-	};
-}
 
 export async function fetchModelingPageContent(): Promise<ModelingPageContent> {
 	const content = await fetchSanityOrFallback<Partial<ModelingPageContent>>(
@@ -480,86 +383,6 @@ function getFallbackModelingPageContent(): ModelingPageContent {
 			description: "Digital headshots and modeling portfolio for Margaret Helena.",
 		},
 	};
-}
-
-function getFallbackAboutContent(): AboutContent {
-	return {
-		heading: "about",
-		portrait: "/images/flower-01.jpg",
-		bio: "",
-		artistStatement:
-			"Building In Between — a space for artists to gather where image, sound, and memory meet.",
-		sections: [
-			{
-				title: "background",
-				items: [
-					"Chicago-raised creative working across documentation, direction, music, and performance",
-					"BA in Journalism + minor in Media Art, University of Wisconsin-Whitewater",
-					"Former volleyball setter — a role that continues to shape how I approach collaboration, timing, and visual awareness",
-				],
-			},
-			{
-				title: "experience",
-				items: [
-					"Off the Record Press — concert photography",
-					"Steven Piper — commercial photography internship",
-					"Maggie Mac LLC — freelance photography and videography",
-					"SGK Inc. + Chicago-based photographers — freelance photo/production assistant",
-					"Heaven Gallery (Wicker Park) — gallery intern",
-				],
-			},
-			{
-				title: "practice",
-				items: ["Photography, direction, and music", "Modeling, acting, and singing"],
-			},
-			{
-				title: "current",
-				items: [
-					"Building In Between — a space for artists to gather where image, sound, and memory meet",
-				],
-			},
-		],
-		highlights: [
-			{ label: "based in", value: "chicago, illinois" },
-			{ label: "practice", value: "photography · direction · music" },
-			{ label: "performance", value: "modeling · acting · singing" },
-			{ label: "available for", value: "photo · video · production support" },
-		],
-		socialLinks: [{ platform: "instagram", url: "https://www.instagram.com/zippymiggy/" }],
-		seo: {
-			description:
-				"margaret helena — chicago-raised creative working across photography, direction, music, modeling, acting, and performance.",
-			ogImage: "/images/flower-03.jpg",
-		},
-	};
-}
-
-function isCompleteLink(
-	link: { platform?: string; url?: string } | null | undefined,
-): link is { platform: string; url: string } {
-	return Boolean(link?.platform && link.url);
-}
-
-function normalizeSections(sections?: { title?: string; items?: string[] }[]) {
-	const normalized = sections
-		?.map((section) => ({
-			title: section.title ?? "",
-			items: section.items?.filter(Boolean) ?? [],
-		}))
-		.filter((section) => section.title && section.items.length);
-
-	return normalized?.length ? normalized : null;
-}
-
-function normalizeHighlights(highlights?: { label?: string; value?: string }[]) {
-	const normalized = highlights
-		?.map((highlight) => ({
-			label: highlight.label ?? "",
-			value: highlight.value ?? "",
-		}))
-		.filter((highlight) => highlight.label && highlight.value);
-
-	return normalized?.length ? normalized : null;
 }
 
 function normalizeModelingGalleries(galleries?: Partial<ModelingGallery>[]) {
