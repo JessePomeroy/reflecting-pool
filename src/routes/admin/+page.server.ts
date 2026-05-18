@@ -1,14 +1,12 @@
 import type { PageServerLoad } from "./$types";
 
 /**
- * Admin dashboard home loader. Auth is enforced in `+layout.server.ts`
- * (which sets `data.isAuthenticated`); unauthenticated visitors get the
- * login form rendered by `<AuthGuard>` on the client, so this loader
- * short-circuits to avoid leaking data or burning Convex calls.
+ * Admin dashboard home loader. Auth is normalized in `+layout.server.ts`;
+ * only authorized admin sessions should fetch admin data.
  */
 export const load: PageServerLoad = async ({ parent }) => {
-	const { isAuthenticated } = await parent();
-	if (!isAuthenticated) {
+	const { adminSession } = await parent();
+	if (adminSession.status !== "authorized") {
 		return { newInquiryCount: 0 };
 	}
 
