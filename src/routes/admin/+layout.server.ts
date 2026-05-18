@@ -1,3 +1,4 @@
+import { getTenantAdminLayoutData } from "@jessepomeroy/admin";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "$convex/api";
 import { env } from "$env/dynamic/public";
@@ -34,22 +35,11 @@ function getConvex() {
  * in `@mmailaender/convex-better-auth-svelte@0.7.3`.
  */
 export const load: LayoutServerLoad = async ({ cookies }) => {
-	let isAuthenticated = false;
+	let identity: { email: string | null } | null = null;
 	try {
-		await requireAuthWithIdentity(cookies);
-		isAuthenticated = true;
+		({ identity } = await requireAuthWithIdentity(cookies));
 	} catch {
-		// Any validation error → fall through as unauthenticated. The
-		// client-side AuthGuard renders the login form from here.
-		isAuthenticated = false;
-	}
-
-	if (!isAuthenticated) {
-		return {
-			tier: "basic" as const,
-			isCreator: false,
-			isAuthenticated,
-		};
+		return getTenantAdminLayoutData({ status: "unauthenticated" });
 	}
 
 	// Only fetch tier for authenticated callers — a stray `checkTier` on
@@ -59,9 +49,10 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
 		siteUrl: adminConfig.siteUrl,
 	});
 
-	return {
+	return getTenantAdminLayoutData({
+		status: "authorized",
+		email: identity.email,
 		tier: result.tier,
 		isCreator: false,
-		isAuthenticated,
-	};
+	});
 };
