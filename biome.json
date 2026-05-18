@@ -19,7 +19,8 @@
 			"!**/.vercel",
 			"!**/.claude",
 			"!**/build",
-			"!**/static"
+			"!**/static",
+			"!**/test-results"
 		]
 	},
 	"overrides": [

@@ -1,11 +1,11 @@
 // Retail pricing for prints
 // Cost data from LumaPrints + margin strategy from LUMAPRINTS.md
 
+import { getSize, getWholesaleCost, V2_PAPERS } from "./printCatalog";
 import type { PrintDimensions } from "./types";
 
-/** Cost and retail prices per paper type and size */
+/** Retail prices per paper type and size. Fallback data only; live products use Sanity variants. */
 interface PriceEntry {
-	cost: number;
 	retail: number;
 }
 
@@ -15,16 +15,16 @@ interface PriceEntry {
  */
 const PRICE_TABLE: Record<string, PriceEntry> = {
 	// Archival Matte (subcategory 103001)
-	"Archival Matte:4x6": { cost: 1.71, retail: 15 },
-	"Archival Matte:8x10": { cost: 3.19, retail: 35 },
-	"Archival Matte:11x14": { cost: 5.5, retail: 55 },
-	"Archival Matte:16x20": { cost: 8.5, retail: 85 },
+	"Archival Matte:4x6": { retail: 15 },
+	"Archival Matte:8x10": { retail: 35 },
+	"Archival Matte:11x14": { retail: 55 },
+	"Archival Matte:16x20": { retail: 85 },
 
 	// Glossy (subcategory 103007)
-	"Glossy:4x6": { cost: 3.02, retail: 18 },
-	"Glossy:8x10": { cost: 5.09, retail: 40 },
-	"Glossy:11x14": { cost: 7.2, retail: 60 },
-	"Glossy:16x20": { cost: 10.2, retail: 95 },
+	"Glossy:4x6": { retail: 18 },
+	"Glossy:8x10": { retail: 40 },
+	"Glossy:11x14": { retail: 60 },
+	"Glossy:16x20": { retail: 95 },
 };
 
 function priceKey(paper: string, size: PrintDimensions): string {
@@ -39,15 +39,18 @@ export function getRetailPrice(paper: string, size: PrintDimensions): number | n
 
 /** Get the cost (LumaPrints wholesale) for a paper + size */
 export function getCost(paper: string, size: PrintDimensions): number | null {
-	const entry = PRICE_TABLE[priceKey(paper, size)];
-	return entry?.cost ?? null;
+	const paperSlug = V2_PAPERS.find((entry) => entry.name === paper)?.slug;
+	const sizeSlug = getSize(`${size.width}x${size.height}`)?.slug;
+	if (!paperSlug || !sizeSlug) return null;
+	return getWholesaleCost(paperSlug, sizeSlug);
 }
 
 /** Get the profit margin for a paper + size */
 export function getMargin(paper: string, size: PrintDimensions): number | null {
 	const entry = PRICE_TABLE[priceKey(paper, size)];
-	if (!entry) return null;
-	return entry.retail - entry.cost;
+	const cost = getCost(paper, size);
+	if (!entry || cost === null) return null;
+	return entry.retail - cost;
 }
 
 /** Get the starting (lowest) retail price across all papers and sizes */
@@ -86,7 +89,7 @@ export function getAllPrices(): {
 			height: h,
 			sizeLabel: `${w}×${h}`,
 			retail: entry.retail,
-			cost: entry.cost,
+			cost: getCost(paper, { width: w, height: h, label: `${w}×${h}` }) ?? 0,
 		};
 	});
 }

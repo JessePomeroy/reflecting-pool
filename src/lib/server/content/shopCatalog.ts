@@ -1,5 +1,5 @@
+import { V2_SIZES } from "$lib/shop/printCatalog";
 import type { PrintCollection, PrintProduct } from "$lib/shop/types";
-import { V2_SIZES } from "$lib/shop/v2Catalog";
 
 const _PRINTABLE_IMAGES_QUERY = `
 *[_type == "gallery" && isVisible == true] {
