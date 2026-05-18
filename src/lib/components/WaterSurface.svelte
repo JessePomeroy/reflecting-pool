@@ -4,22 +4,8 @@ import type { ParallaxContext } from "$lib/types/gallery";
 
 const parallax = getContext<ParallaxContext>("parallax");
 
-// Ripple state — CSS-only expanding circles
-let ripples = $state<Array<{ id: number; x: number; y: number }>>([]);
-let nextId = 0;
-
 function handleClick(e: MouseEvent) {
-	nextId++;
-	const id = nextId;
-	ripples = [...ripples, { id, x: e.clientX, y: e.clientY }];
-
-	// Also notify parallax context
 	parallax.addRipple(e.clientX, e.clientY);
-
-	// Clean up after animation
-	setTimeout(() => {
-		ripples = ripples.filter((r) => r.id !== id);
-	}, 1200);
 }
 </script>
 
@@ -30,7 +16,7 @@ function handleClick(e: MouseEvent) {
 	<div class="caustics-layer"></div>
 
 	<!-- Ripple rings -->
-	{#each ripples as ripple (ripple.id)}
+	{#each parallax.ripples as ripple (ripple.id)}
 		<div
 			class="ripple-ring"
 			style:left="{ripple.x}px"
