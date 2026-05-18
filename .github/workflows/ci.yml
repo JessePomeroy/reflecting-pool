@@ -69,3 +69,11 @@ jobs:
       # the status check, not in production.
       - name: Tests
         run: pnpm test
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Browser smoke tests
+        env:
+          PUBLIC_CONVEX_URL: https://placeholder.convex.cloud
+        run: pnpm test:browser
