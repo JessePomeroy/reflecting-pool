@@ -4,8 +4,12 @@ import { browser } from "$app/environment";
 import {
 	applyOrientation,
 	applyPointerMove,
+	appendRipple,
+	createRipple,
 	createSurfaceInput,
 	createSurfaceOutput,
+	createSurfaceRippleState,
+	removeRipple,
 	shouldTrackPointer,
 	stepSurface,
 } from "$lib/surface/interactiveSurface";
@@ -36,14 +40,14 @@ let tick = $state(0);
 
 // Ripple state
 let ripples = $state<Ripple[]>([]);
-let rippleId = 0;
+const rippleState = createSurfaceRippleState();
 
 function addRipple(x: number, y: number) {
-	rippleId++;
-	ripples = [...ripples, { id: rippleId, x, y, startTime: performance.now() }];
+	const ripple = createRipple(rippleState, x, y, performance.now());
+	ripples = appendRipple(ripples, ripple);
 	// Clean up old ripples after animation
 	setTimeout(() => {
-		ripples = ripples.filter((r) => r.id !== rippleId);
+		ripples = removeRipple(ripples, ripple.id);
 	}, 1200);
 }
 
@@ -72,6 +76,9 @@ const ctx: ParallaxContext = {
 	},
 	get tick() {
 		return tick;
+	},
+	get ripples() {
+		return ripples;
 	},
 	addRipple,
 };

@@ -62,5 +62,6 @@ export interface ParallaxContext {
 	readonly isMobile: boolean;
 	readonly isLowEnd: boolean;
 	readonly tick: number;
+	readonly ripples: Ripple[];
 	addRipple: (x: number, y: number) => void;
 }

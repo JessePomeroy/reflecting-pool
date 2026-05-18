@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+	appendRipple,
 	applyOrientation,
 	applyPointerMove,
+	createRipple,
 	createSurfaceInput,
 	createSurfaceOutput,
+	createSurfaceRippleState,
+	pruneExpiredRipples,
+	removeRipple,
 	shouldEnableLiquidCursor,
 	shouldTrackPointer,
 	stepSurface,
@@ -70,5 +75,33 @@ describe("interactive surface", () => {
 		expect(output.smoothY).toBe(0.25);
 		expect(output.smoothPixelX).toBe(50);
 		expect(output.smoothPixelY).toBe(25);
+	});
+
+	it("creates stable ripple ids without closing over mutable counters", () => {
+		const state = createSurfaceRippleState();
+
+		const first = createRipple(state, 10, 20, 100);
+		const second = createRipple(state, 30, 40, 120);
+
+		expect(first).toEqual({ id: 1, x: 10, y: 20, startTime: 100 });
+		expect(second).toEqual({ id: 2, x: 30, y: 40, startTime: 120 });
+	});
+
+	it("appends and removes ripples by id", () => {
+		const state = createSurfaceRippleState();
+		const first = createRipple(state, 10, 20, 100);
+		const second = createRipple(state, 30, 40, 120);
+		const ripples = appendRipple(appendRipple([], first), second);
+
+		expect(ripples).toEqual([first, second]);
+		expect(removeRipple(ripples, first.id)).toEqual([second]);
+	});
+
+	it("prunes expired ripples by timestamp", () => {
+		const state = createSurfaceRippleState();
+		const oldRipple = createRipple(state, 10, 20, 100);
+		const activeRipple = createRipple(state, 30, 40, 1000);
+
+		expect(pruneExpiredRipples([oldRipple, activeRipple], 1400, 1200)).toEqual([activeRipple]);
 	});
 });
