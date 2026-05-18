@@ -1,5 +1,5 @@
 import { error } from "@sveltejs/kit";
-import { fetchPrintProduct } from "$lib/server/sanity";
+import { fetchPrintProduct } from "$lib/server/content/shopCatalog";
 import { V2_PAPERS, V2_SIZES } from "$lib/shop/v2Catalog";
 import type { PageServerLoad } from "./$types";
 
