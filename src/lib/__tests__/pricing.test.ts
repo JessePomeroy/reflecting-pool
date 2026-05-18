@@ -63,11 +63,11 @@ describe("getCost", () => {
 	});
 
 	it("returns LumaPrints cost for Glossy 16x20", () => {
-		expect(getCost("Glossy", size(16, 20))).toBe(10.2);
+		expect(getCost("Glossy", size(16, 20))).toBe(12.99);
 	});
 
 	it("returns null for unknown combination", () => {
-		expect(getCost("Archival Matte", size(5, 7))).toBeNull();
+		expect(getCost("Archival Matte", size(99, 99))).toBeNull();
 	});
 });
 
@@ -79,7 +79,7 @@ describe("getMargin", () => {
 
 	it("returns correct margin for Glossy 16x20", () => {
 		const margin = getMargin("Glossy", size(16, 20));
-		expect(margin).toBeCloseTo(95 - 10.2, 5);
+		expect(margin).toBeCloseTo(95 - 12.99, 5);
 	});
 
 	it("all margins are positive (healthy pricing)", () => {

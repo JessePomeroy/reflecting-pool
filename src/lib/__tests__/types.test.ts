@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { getPaper, getSize, V2_PAPERS, V2_SIZES } from "../shop/v2Catalog";
+import {
+	getPaper,
+	getSize,
+	getWholesaleCost,
+	LUMA_PAPERS,
+	LUMA_SIZES,
+	LUMA_WHOLESALE_COSTS,
+	V2_PAPERS,
+	V2_SIZES,
+} from "../shop/v2Catalog";
 
 describe("V2_PAPERS", () => {
 	it("has at least one paper entry", () => {
@@ -81,5 +90,22 @@ describe("getSize", () => {
 
 	it("returns undefined for unknown slug", () => {
 		expect(getSize("99x99")).toBeUndefined();
+	});
+});
+
+describe("LumaPrints catalog aliases", () => {
+	it("exports the same paper and size contract under Luma names", () => {
+		expect(LUMA_PAPERS).toBe(V2_PAPERS);
+		expect(LUMA_SIZES).toBe(V2_SIZES);
+	});
+
+	it("contains wholesale costs for every seeded paper/size combination", () => {
+		expect(LUMA_WHOLESALE_COSTS).toHaveLength(54);
+		expect(getWholesaleCost("archival-matte", "8x10")).toBe(3.19);
+		expect(getWholesaleCost("glossy", "16x20")).toBe(12.99);
+	});
+
+	it("looks up canvas wholesale costs through the same helper", () => {
+		expect(getWholesaleCost("canvas-black-1.25", "16x20")).toBe(25.95);
 	});
 });
