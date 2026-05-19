@@ -16,8 +16,8 @@ importers:
         specifier: ^0.12.2
         version: 0.12.2(@standard-schema/spec@1.1.0)(better-auth@1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react@19.2.5)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))))(convex@1.36.0(react@19.2.5))(react@19.2.5)(typescript@5.9.3)
       '@jessepomeroy/admin':
-        specifier: ^1.1.7
-        version: 1.1.7(@mmailaender/convex-svelte@0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3))(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(isomorphic-dompurify@3.11.0(@noble/hashes@2.2.0))(resend@6.12.2)(svelte-dnd-action@0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))
+        specifier: ^1.1.8
+        version: 1.1.8(@mmailaender/convex-svelte@0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3))(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(isomorphic-dompurify@3.11.0(@noble/hashes@2.2.0))(resend@6.12.2)(svelte-dnd-action@0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))
       '@jessepomeroy/crm-api':
         specifier: ^1.0.0
         version: 1.0.0(convex@1.36.0(react@19.2.5))
@@ -875,8 +875,8 @@ packages:
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
     engines: {node: '>=18.0.0'}
 
-  '@jessepomeroy/admin@1.1.7':
-    resolution: {integrity: sha512-ESrwVJM+TH7YSvRVll+YfQP/3AYqPDPOpdoITqV0N8ow5wjVvS1S+NrMBTLPkjcE/jol97YgLH/cMAp5zIVbNA==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/admin/1.1.7/cc4dbd8be81c862ed1ff4b88d3f322ca0bf9cd91}
+  '@jessepomeroy/admin@1.1.8':
+    resolution: {integrity: sha512-sLSV7JWle/XkaQTZIH48MQ9JrVsY9QopQaUwGnEooqHzomCJ6m9pt7co/BSSDXacgPKoYicwzFVPoWyHZnOiBw==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/admin/1.1.8/7abfb519757d6ee54c14cbee82f246634d3ae759}
     peerDependencies:
       '@mmailaender/convex-svelte': ^0.18.0
       '@sveltejs/kit': ^2.0.0
@@ -1960,8 +1960,8 @@ packages:
   dom-accessibility-api@0.6.3:
     resolution: {integrity: sha512-7ZgogeTnjuHbo+ct10G9Ffp0mif17idi0IyWNVA/wcwcm7NPOD/WEHVP3n7n3MhXqxoIYm8d6MuZohYWIZ4T3w==}
 
-  dompurify@3.4.3:
-    resolution: {integrity: sha512-VVwJidIJcp1hpg2OMXML3ZVRPYSZiq4aX7qBh83BSIpOaRDqI+qxhXjjIWnpzkOXhmp0L81lnoME1mnCc9H48A==}
+  dompurify@3.4.5:
+    resolution: {integrity: sha512-OrwIBKsdNSVEeubdJ1HBv/wNENRM9ytAVCv7YXt//A3vPdVMNuACRqK9mXCGCBW2ln7BT/A4X0jXHo2Gu89miA==}
 
   dotenv@16.6.1:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
@@ -2216,8 +2216,8 @@ packages:
     resolution: {integrity: sha512-NxVFwLAnrd9i7KUBxC4DrUhmgjzOs+1Qm50D3oF1/oL+r1NpZ4gA7xvG0/zJ8evR7zIKn4vLf7qTNduWFtCrRw==}
     engines: {node: 20 || >=22}
 
-  lru-cache@11.3.6:
-    resolution: {integrity: sha512-Gf/KoL3C/MlI7Bt0PGI9I+TeTC/I6r/csU58N4BSNc4lppLBeKsOdFYkK+dX0ABDUMJNfCHTyPpzwwO21Awd3A==}
+  lru-cache@11.4.0:
+    resolution: {integrity: sha512-W+R+kFL4HgVxONq2bhXPi3bGpzGe/yEhVOp233qw9wCRtgncJ15P3bC+e4zZMu4Cq7d+WAJjXGW0uUkifhcatA==}
     engines: {node: 20 || >=22}
 
   lru-cache@5.1.1:
@@ -3376,7 +3376,7 @@ snapshots:
     dependencies:
       minipass: 7.1.3
 
-  '@jessepomeroy/admin@1.1.7(@mmailaender/convex-svelte@0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3))(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(isomorphic-dompurify@3.11.0(@noble/hashes@2.2.0))(resend@6.12.2)(svelte-dnd-action@0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))':
+  '@jessepomeroy/admin@1.1.8(@mmailaender/convex-svelte@0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3))(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(isomorphic-dompurify@3.11.0(@noble/hashes@2.2.0))(resend@6.12.2)(svelte-dnd-action@0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))':
     dependencies:
       '@mmailaender/convex-svelte': 0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3)
       '@sveltejs/kit': 2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))
@@ -4419,7 +4419,7 @@ snapshots:
 
   dom-accessibility-api@0.6.3: {}
 
-  dompurify@3.4.3:
+  dompurify@3.4.5:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 
@@ -4650,7 +4650,7 @@ snapshots:
 
   isomorphic-dompurify@3.11.0(@noble/hashes@2.2.0):
     dependencies:
-      dompurify: 3.4.3
+      dompurify: 3.4.5
       jsdom: 29.1.1(@noble/hashes@2.2.0)
     transitivePeerDependencies:
       - '@noble/hashes'
@@ -4698,7 +4698,7 @@ snapshots:
       decimal.js: 10.6.0
       html-encoding-sniffer: 6.0.0(@noble/hashes@2.2.0)
       is-potential-custom-element-name: 1.0.1
-      lru-cache: 11.3.6
+      lru-cache: 11.4.0
       parse5: 8.0.1
       saxes: 6.0.0
       symbol-tree: 3.2.4
@@ -4754,7 +4754,7 @@ snapshots:
 
   lru-cache@11.3.5: {}
 
-  lru-cache@11.3.6: {}
+  lru-cache@11.4.0: {}
 
   lru-cache@5.1.1:
     dependencies:
