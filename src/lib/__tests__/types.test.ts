@@ -8,7 +8,7 @@ import {
 	LUMA_WHOLESALE_COSTS,
 	V2_PAPERS,
 	V2_SIZES,
-} from "../shop/v2Catalog";
+} from "../shop/printCatalog";
 
 describe("V2_PAPERS", () => {
 	it("has at least one paper entry", () => {
