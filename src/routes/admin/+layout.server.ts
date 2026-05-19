@@ -24,15 +24,15 @@ function getConvex() {
  *
  * We don't redirect to a login URL — there isn't a dedicated /login route
  * in this app; the AuthGuard component renders `<LoginPage>` inline when
- * it sees no session. So on validation failure, we return
- * `isAuthenticated: false`. The client-side AuthGuard handles the login
- * flow; child +page.server.ts loaders read `isAuthenticated` and skip
- * their data fetches when it's false.
+ * it sees no session. So on validation failure, we return an
+ * `adminSession.status` of `unauthenticated`. The client-side AuthGuard
+ * handles the login flow; child +page.server.ts loaders read the normalized
+ * session state and skip their data fetches when it is not authorized.
  *
- * `isAuthenticated` is also consumed by `+layout.svelte` to drive
- * `setupAuth`'s state — server-validated identity instead of the flickery
- * `authClient.useSession()` subscription that re-introduces the pause bug
- * in `@mmailaender/convex-better-auth-svelte@0.7.3`.
+ * `+layout.svelte` also derives `setupAuth` from `adminSession.status` —
+ * server-validated identity instead of the flickery `authClient.useSession()`
+ * subscription that re-introduces the pause bug in
+ * `@mmailaender/convex-better-auth-svelte@0.7.3`.
  */
 export const load: LayoutServerLoad = async ({ cookies }) => {
 	let identity: { email: string | null } | null = null;
