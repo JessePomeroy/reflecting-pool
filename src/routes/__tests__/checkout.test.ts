@@ -1,19 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mock Stripe before importing the endpoint
-const mockCreate = vi.fn().mockResolvedValue({
-	id: "cs_test_session",
-	url: "https://checkout.stripe.com/pay/cs_test_session",
-});
+const { mockCreateHubPrintCheckoutSession } = vi.hoisted(() => ({
+	mockCreateHubPrintCheckoutSession: vi.fn().mockResolvedValue({
+		sessionId: "cs_test_session",
+		url: "https://checkout.stripe.com/pay/cs_test_session",
+		platformFeeAmount: 175,
+	}),
+}));
 
-function MockStripe() {
-	return {
-		checkout: { sessions: { create: mockCreate } },
-		webhooks: { constructEvent: vi.fn() },
-	};
-}
+vi.mock("$lib/server/checkoutBridge", () => ({
+	createHubPrintCheckoutSession: mockCreateHubPrintCheckoutSession,
+}));
 
-vi.mock("stripe", () => ({ default: MockStripe }));
+const checkoutUrl = "https://checkout.stripe.com/pay/cs_test_session";
 
 // Helper to create a mock SvelteKit RequestEvent
 function makeRequest(body: unknown) {
@@ -42,6 +41,11 @@ describe("POST /api/checkout", () => {
 
 	beforeEach(async () => {
 		vi.clearAllMocks();
+		mockCreateHubPrintCheckoutSession.mockResolvedValue({
+			sessionId: "cs_test_session",
+			url: checkoutUrl,
+			platformFeeAmount: 175,
+		});
 		// Dynamic import after mocks are set up
 		const mod = await import("../../routes/api/checkout/+server");
 		POST = mod.POST as unknown as typeof POST;
@@ -129,11 +133,11 @@ describe("POST /api/checkout", () => {
 		expect(data.url).toContain("checkout.stripe.com");
 	});
 
-	it("passes correct metadata to Stripe session", async () => {
-		mockCreate.mockClear();
-		mockCreate.mockResolvedValue({
-			id: "cs_test_meta",
+	it("passes validated print metadata to the hub checkout bridge", async () => {
+		mockCreateHubPrintCheckoutSession.mockResolvedValue({
+			sessionId: "cs_test_meta",
 			url: "https://checkout.stripe.com/pay/cs_test_meta",
+			platformFeeAmount: 90,
 		});
 
 		const req = makeRequest({
@@ -150,8 +154,10 @@ describe("POST /api/checkout", () => {
 
 		await POST(req as never);
 
-		expect(mockCreate).toHaveBeenCalledWith(
+		expect(mockCreateHubPrintCheckoutSession).toHaveBeenCalledWith(
 			expect.objectContaining({
+				amountCents: 1800,
+				productName: "Peony Blush — 4×6",
 				metadata: expect.objectContaining({
 					productSlug: "garden-portraits--img-08",
 					paperName: "Glossy",

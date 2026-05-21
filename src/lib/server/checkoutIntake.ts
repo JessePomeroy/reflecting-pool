@@ -1,4 +1,4 @@
-import { createCheckoutSession } from "$lib/server/stripe";
+import { createHubPrintCheckoutSession } from "$lib/server/checkoutBridge";
 import { getRetailPrice } from "$lib/shop/pricing";
 import type { CheckoutMetadata } from "$lib/shop/types";
 
@@ -34,8 +34,9 @@ export async function createPrintCheckout(
 ): Promise<PrintCheckoutResult> {
 	const normalized = normalizeCheckoutRequest(body);
 
-	const session = await createCheckoutSession({
-		priceInDollars: normalized.expectedPrice,
+	const session = await createHubPrintCheckoutSession({
+		siteUrl: baseUrl,
+		amountCents: Math.round(normalized.expectedPrice * 100),
 		productName: `${normalized.imageTitle || "Fine Art Print"} — ${normalized.paperSizeLabel}`,
 		productDescription: `${normalized.paperName} print, ${normalized.paperSizeLabel} inches`,
 		imageUrl: normalized.imageUrl,

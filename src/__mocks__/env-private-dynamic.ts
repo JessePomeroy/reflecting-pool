@@ -12,6 +12,8 @@ export const env = {
 	LUMAPRINTS_USE_SANDBOX: "false",
 	STRIPE_SECRET_KEY: "sk_test_mock",
 	STRIPE_WEBHOOK_SECRET: "whsec_mock",
+	CHECKOUT_BRIDGE_SECRET: "test-checkout-bridge-secret",
+	CHECKOUT_BRIDGE_URL: "https://angelsrest.test/api/tenant-checkout/print",
 	SANITY_PROJECT_ID: "test-project",
 	SANITY_DATASET: "test",
 	SANITY_API_READ_TOKEN: "test-read-token",
