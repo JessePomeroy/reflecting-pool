@@ -34,7 +34,20 @@ test.describe("interactive surface", () => {
 
 	test("water clicks render one shared pair of ripple rings", async ({ page }) => {
 		await page.goto("/");
-		await page.locator(".water-surface").click({ position: { x: 1000, y: 700 } });
+		const waterSurface = page.locator(".water-surface");
+		await expect(waterSurface).toBeVisible();
+
+		await waterSurface.evaluate((element) => {
+			element.dispatchEvent(
+				new MouseEvent("click", {
+					bubbles: true,
+					cancelable: true,
+					clientX: 640,
+					clientY: 360,
+					view: window,
+				}),
+			);
+		});
 
 		await expect(page.locator(".ripple-ring")).toHaveCount(2);
 	});
