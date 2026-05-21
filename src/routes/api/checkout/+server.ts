@@ -22,7 +22,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 			error(err.status, err.message);
 		}
 
-		console.error("Stripe checkout error:", err);
+		console.error("Checkout error:", err);
 		error(500, "Failed to create checkout session");
 	}
 };
