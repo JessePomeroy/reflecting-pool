@@ -100,8 +100,8 @@ reflecting-pool's only.
    (cookie → JWT). `setupAuth(() => ({ isAuthenticated:
    data.isAuthenticated, ... }))` where `data.isAuthenticated` comes
    from `+layout.server.ts`'s `requireAuthWithIdentity` (NOT
-   `authClient.useSession()` — that re-introduces the pause bug in
-   `@mmailaender/convex-better-auth-svelte@0.7.3`). Mutations route
+   `authClient.useSession()` — that re-introduces the old Better Auth
+   session-pause trap). Mutations route
    through `/api/admin/mutation/+server.ts`. See the PR candidate in
    `~/Documents/quilt/00_inbox/` for the full design.
 4. **Auth proxy uses `createSvelteKitHandler()`.** Hand-rolled fetch()

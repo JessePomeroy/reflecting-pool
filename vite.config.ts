@@ -22,4 +22,9 @@ export default defineConfig({
 			allow: ["convex/_generated"],
 		},
 	},
+	build: {
+		// Three.js is lazy-loaded for the interactive/modeling surfaces. Keep
+		// warnings focused on chunks larger than that known dependency.
+		chunkSizeWarningLimit: 900,
+	},
 });

@@ -6,7 +6,7 @@ import {
 	isTenantAdminServerAuthorized,
 	setAdminConfig,
 } from "@jessepomeroy/admin";
-import { setupAuth, setupConvex } from "@mmailaender/convex-svelte";
+import { setupAuth, setupConvex } from "convex-svelte";
 import { PUBLIC_CONVEX_URL } from "$env/static/public";
 import { authClient } from "$lib/auth/client";
 import { adminConfig } from "$lib/config/admin";

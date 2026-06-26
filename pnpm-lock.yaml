@@ -14,19 +14,19 @@ importers:
     dependencies:
       '@convex-dev/better-auth':
         specifier: ^0.12.2
-        version: 0.12.2(@standard-schema/spec@1.1.0)(better-auth@1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react@19.2.5)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))))(convex@1.36.0(react@19.2.5))(react@19.2.5)(typescript@5.9.3)
+        version: 0.12.2(@standard-schema/spec@1.1.0)(better-auth@1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))))(convex@1.36.0(react@19.2.7))(react@19.2.7)(typescript@5.9.3)
       '@jessepomeroy/admin':
-        specifier: ^2.0.1
-        version: 2.0.1(@mmailaender/convex-svelte@0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3))(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(resend@6.12.2)(svelte-dnd-action@0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))
+        specifier: ^2.0.2
+        version: 2.0.2(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex-svelte@0.14.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.7))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3))(convex@1.36.0(react@19.2.7))(resend@6.12.2(@react-email/render@2.0.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7)))(svelte-dnd-action@0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))
       '@jessepomeroy/crm-api':
         specifier: ^1.0.0
-        version: 1.0.0(convex@1.36.0(react@19.2.5))
+        version: 1.0.0(convex@1.36.0(react@19.2.7))
       '@mmailaender/convex-better-auth-svelte':
-        specifier: ^0.7.4
-        version: 0.7.4(b0cdbe38ae19b1632404365c87a516a9)
-      '@mmailaender/convex-svelte':
-        specifier: ^0.18.0
-        version: 0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3)
+        specifier: ^0.8.0
+        version: 0.8.0(fc530162fd53f1bebd216902acbfe2fc)
+      '@react-email/render':
+        specifier: ^2.0.9
+        version: 2.0.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@sanity/client':
         specifier: ^7.21.0
         version: 7.21.0
@@ -35,16 +35,25 @@ importers:
         version: 10.51.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(rollup@4.60.2)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))
       '@vercel/analytics':
         specifier: ^2.0.1
-        version: 2.0.1(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react@19.2.5)(svelte@5.55.4(@typescript-eslint/types@8.58.0))
+        version: 2.0.1(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react@19.2.7)(svelte@5.55.4(@typescript-eslint/types@8.58.0))
       better-auth:
         specifier: ^1.6.10
-        version: 1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react@19.2.5)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))
+        version: 1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))
       convex:
         specifier: ^1.36.0
-        version: 1.36.0(react@19.2.5)
+        version: 1.36.0(react@19.2.7)
+      convex-svelte:
+        specifier: ^0.14.0
+        version: 0.14.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.7))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3)
+      react:
+        specifier: ^19.2.7
+        version: 19.2.7
+      react-dom:
+        specifier: ^19.2.7
+        version: 19.2.7(react@19.2.7)
       resend:
         specifier: ^6.12.2
-        version: 6.12.2
+        version: 6.12.2(@react-email/render@2.0.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7))
       stripe:
         specifier: ^22.0.2
         version: 22.0.2(@types/node@25.5.2)
@@ -867,12 +876,12 @@ packages:
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
     engines: {node: '>=18.0.0'}
 
-  '@jessepomeroy/admin@2.0.1':
-    resolution: {integrity: sha512-Vi/XAb0KCGZ0XWJ4HdDcGLYm5cJuQLFYUrhDpdwOSPOcykk6gXq3wvcM0WTRjOsoWHJ+5YNk5XsNZnguf2mrJQ==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/admin/2.0.1/a3ba207a4dafd80ede958f036bafaa19150a40fc}
+  '@jessepomeroy/admin@2.0.2':
+    resolution: {integrity: sha512-EHK40+gVHxfReH2MzmlTRGBlv9xXUkjARmzRqtgGqrjxgDWKvZTDrjj9u0BPPQgJZcHIyNp96peIGgkbO/Eo7A==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/admin/2.0.2/244ee01def77e191794cb118a5a9292d342d066c}
     peerDependencies:
-      '@mmailaender/convex-svelte': ^0.18.0
       '@sveltejs/kit': ^2.0.0
       convex: ^1.30.0
+      convex-svelte: ^0.14.0
       resend: ^6.0.0
       svelte: ^5.0.0
       svelte-dnd-action: ^0.9.0
@@ -903,20 +912,14 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@mmailaender/convex-better-auth-svelte@0.7.4':
-    resolution: {integrity: sha512-FySN4W53X6+jb1jNaDHRvqtqpAqeY5ZE0bStEcszuTVOu731VPIu6cu4aL9vzYcpYhDVv6PCnF6N2u3MVd2aUA==}
+  '@mmailaender/convex-better-auth-svelte@0.8.0':
+    resolution: {integrity: sha512-ahy/7fEdFtK7YEtKyGqlu9g4OsCNG0Bc2baMjEeZbWF++Djt9ke/oPzq7LCrobqg3jc/4tv5wXX6EOsMxig42Q==}
     peerDependencies:
       '@convex-dev/better-auth': '>=0.10.10'
-      '@mmailaender/convex-svelte': '>=0.15.0'
       better-auth: ^1.4.9
       convex: ^1.31.0
+      convex-svelte: '>=0.13.0'
       svelte: ^5.0.0
-
-  '@mmailaender/convex-svelte@0.18.0':
-    resolution: {integrity: sha512-2dv4cQjThk2Hs9BRrvKv8xc/Z6GqZP428uV9OTzVYBHih65uTF+/r3cqnEnDJv34H2Rr7TOHrfpCu/9aXP2yUg==}
-    peerDependencies:
-      convex: '>1.10.0'
-      svelte: '>=5.36.0'
 
   '@noble/ciphers@2.2.0':
     resolution: {integrity: sha512-Z6pjIZ/8IJcCGzb2S/0Px5J81yij85xASuk1teLNeg75bfT07MV3a/O2Mtn1I2se43k3lkVEcFaR10N4cgQcZA==}
@@ -1131,6 +1134,13 @@ packages:
     peerDependencies:
       '@opentelemetry/api': ^1.8
 
+  '@react-email/render@2.0.9':
+    resolution: {integrity: sha512-M89LiXy2q+9tmQ4VMR0rYGuEe6NJ6HhZsSxBMoLwIia5fVOLcZQcZe2GEO0nAkLZspDjEhn7mtMRPmeMKECEdQ==}
+    engines: {node: '>=20.0.0'}
+    peerDependencies:
+      react: ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^18.0 || ^19.0 || ^19.0.0-rc
+
   '@rollup/pluginutils@5.3.0':
     resolution: {integrity: sha512-5EdhGZtnu3V88ces7s53hhfK5KSASnJZv8Lulpc04cWO3REESroJXg73DFsOmgbU2BhwV0E20bu2IDZb3VKW4Q==}
     engines: {node: '>=14.0.0'}
@@ -1284,6 +1294,9 @@ packages:
 
   '@sanity/eventsource@5.0.2':
     resolution: {integrity: sha512-/B9PMkUvAlUrpRq0y+NzXgRv5lYCLxZNsBJD2WXVnqZYOfByL9oQBV7KiTaARuObp5hcQYuPfOAVjgXe3hrixA==}
+
+  '@selderee/plugin-htmlparser2@0.11.0':
+    resolution: {integrity: sha512-P33hHGdldxGabLFjPPpaTxVolMrzrcegejx+0GxjrIb9Zv48D8yAIA/QTDR2dFl7Uz7urX8aX6+5bCZslr+gWQ==}
 
   '@sentry-internal/browser-utils@10.51.0':
     resolution: {integrity: sha512-lNKBS4P7RUvf1niojXQWe9bU3gnBUCbST4Dj0pSiyat1N96cXVyHkeE+uGxowD0RrVWhs+kGHiVX3FcmRWF6sA==}
@@ -1877,6 +1890,12 @@ packages:
       zod:
         optional: true
 
+  convex-svelte@0.14.0:
+    resolution: {integrity: sha512-eCaId++XnczQvEGc0sQi30BHkSEQ5AZjdDWaAqSlva2h9zKezGz8enp6MdFN7MIIMIlYZF3dKdzQ/LQ0d59KhQ==}
+    peerDependencies:
+      convex: ^1.30.0
+      svelte: ^5.19.0
+
   convex@1.36.0:
     resolution: {integrity: sha512-17cfDr2z+Apd59291rKWij6jq79eVwzY9u2MQOnuVkOsfEPXcuerWHQLf1ngXAbQjeTXD1nwQYsxQBhZnjZMIQ==}
     engines: {node: '>=18.0.0', npm: '>=7.0.0'}
@@ -1951,6 +1970,19 @@ packages:
   dom-accessibility-api@0.6.3:
     resolution: {integrity: sha512-7ZgogeTnjuHbo+ct10G9Ffp0mif17idi0IyWNVA/wcwcm7NPOD/WEHVP3n7n3MhXqxoIYm8d6MuZohYWIZ4T3w==}
 
+  dom-serializer@2.0.0:
+    resolution: {integrity: sha512-wIkAryiqt/nV5EQKqQpo3SToSOV9J0DnbJqwK7Wv/Trc92zIAYZ4FlMu+JPFW1DfGFt81ZTCGgDEabffXeLyJg==}
+
+  domelementtype@2.3.0:
+    resolution: {integrity: sha512-OLETBj6w0OsagBwdXnPdN0cnMfF9opN69co+7ZrbfPGrdpPVNBUj02spi6B1N7wChLQiPn4CSH/zJvXw56gmHw==}
+
+  domhandler@5.0.3:
+    resolution: {integrity: sha512-cgwlv/1iFQiFnU96XXgROh8xTeetsnJiDsTc7TYCLFd9+/WNkIqPTxiM/8pSd8VIrhXGTf1Ny1q1hquVqDJB5w==}
+    engines: {node: '>= 4'}
+
+  domutils@3.2.2:
+    resolution: {integrity: sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==}
+
   dotenv@16.6.1:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
     engines: {node: '>=12'}
@@ -1960,6 +1992,10 @@ packages:
 
   emoji-regex@10.6.0:
     resolution: {integrity: sha512-toUI84YS5YmxW219erniWD0CIVOo46xGKColeNQRgOzDorgBi1v4D71/OFzgD9GO2UGKIv1C3Sp8DAn0+j5w7A==}
+
+  entities@4.5.0:
+    resolution: {integrity: sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw==}
+    engines: {node: '>=0.12'}
 
   entities@8.0.0:
     resolution: {integrity: sha512-zwfzJecQ/Uej6tusMqwAqU/6KL2XaB2VZ2Jg54Je6ahNBGNH6Ek6g3jjNCF0fG9EWQKGZNddNjU5F1ZQn/sBnA==}
@@ -2086,6 +2122,13 @@ packages:
     resolution: {integrity: sha512-CV9TW3Y3f8/wT0BRFc1/KAVQ3TUHiXmaAb6VW9vtiMFf7SLoMd1PdAc4W3KFOFETBJUb90KatHqlsZMWV+R9Gg==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
 
+  html-to-text@9.0.5:
+    resolution: {integrity: sha512-qY60FjREgVZL03vJU6IfMV4GDjGBIoOyvuFdpBDIX9yTlDw0TjxVBQp+P8NvpdIXNJvfWBTNul7fsAQJq2FNpg==}
+    engines: {node: '>=14'}
+
+  htmlparser2@8.0.2:
+    resolution: {integrity: sha512-GYdjWKDkbRLkZ5geuHs5NY1puJ+PXwP7+fHPRz06Eirsb9ugf6d8kkXav6ADhcODhFFPMIXyxkxSuMf3D6NCFA==}
+
   https-proxy-agent@5.0.1:
     resolution: {integrity: sha512-dFcAjpTQFgoLMzC2VwU+C/CbS7uRL0lWmxDITmqm7C+7F0Odmj6s9l6alZc6AELXhrnggM2CeWSXHGOdX2YtwA==}
     engines: {node: '>= 6'}
@@ -2166,6 +2209,9 @@ packages:
   kysely@0.28.17:
     resolution: {integrity: sha512-nbD8lB9EB3wNdMhOCdx5Li8DxnLbvKByylRLcJ1h+4SkrowVeECAyZlyiKMThF7xFdRz0jSQ2MoJr+wXux2y0Q==}
     engines: {node: '>=20.0.0'}
+
+  leac@0.6.0:
+    resolution: {integrity: sha512-y+SqErxb8h7nE/fiEX07jsbuhrpO9lL8eca7/Y1nuWV2moNlXhyd59iDGcRf6moVyDMbmTNzL40SUyrFU/yDpg==}
 
   lint-staged@16.4.0:
     resolution: {integrity: sha512-lBWt8hujh/Cjysw5GYVmZpFHXDCgZzhrOm8vbcUdobADZNOK/bRshr2kM3DfgrrtR1DQhfupW9gnIXOfiFi+bw==}
@@ -2296,6 +2342,9 @@ packages:
   parse5@8.0.1:
     resolution: {integrity: sha512-z1e/HMG90obSGeidlli3hj7cbocou0/wa5HacvI3ASx34PecNjNQeaHNo5WIZpWofN9kgkqV1q5YvXe3F0FoPw==}
 
+  parseley@0.12.1:
+    resolution: {integrity: sha512-e6qHKe3a9HWr0oMRVDTRhKce+bRO8VGQR3NyVwcjwrbhMmFCX9KszEV35+rn4AdilFAq9VPxP/Fe1wC9Qjd2lw==}
+
   path-exists@4.0.0:
     resolution: {integrity: sha512-ak9Qy5Q7jYb2Wwcey5Fpvg2KoAc/ZIhLSLOSBmRmygPsGwkVVt0fZa0qrtMz+m6tJTAHfZQ8FnmB4MG4LWy7/w==}
     engines: {node: '>=8'}
@@ -2306,6 +2355,9 @@ packages:
 
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
+
+  peberminta@0.9.0:
+    resolution: {integrity: sha512-XIxfHpEuSJbITd1H3EeQwpcZbTLHc+VVr8ANI9t5sit565tsI4/xK3KWTUFE2e6QiangUkh3B0jihzmGnNrRsQ==}
 
   pg-int8@1.0.1:
     resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
@@ -2378,11 +2430,16 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
+  react-dom@19.2.7:
+    resolution: {integrity: sha512-t0BRVXvbiE/o20Hfw669rLbMCDWtYZLvmJigy2f0MxsXF+71pxhR3xOkspmsO8h3ZlNzyibAmtCa3l4lYKk6gQ==}
+    peerDependencies:
+      react: ^19.2.7
+
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
 
-  react@19.2.5:
-    resolution: {integrity: sha512-llUJLzz1zTUBrskt2pwZgLq59AemifIftw4aB7JxOqf1HY2FDaGDxgwpAPVzHU1kdWabH7FauP4i1oEeer2WCA==}
+  react@19.2.7:
+    resolution: {integrity: sha512-HNe9WslTbXmFK8o8cmwgAeJFSBvt1bPdHCVKtaaV+WlAN36mpT4hcRpwbf3fY56ar2oIXzsBpOAiIRHAdY0OlQ==}
     engines: {node: '>=0.10.0'}
 
   readable-stream@3.6.2:
@@ -2461,6 +2518,12 @@ packages:
   saxes@6.0.0:
     resolution: {integrity: sha512-xAg7SOnEhrm5zI3puOOKyy1OMcMlIJZYNJY7xLBwSze0UjhPLnWfj2GF2EpT0jmzaJKIWKHLsaSSajf35bcYnA==}
     engines: {node: '>=v12.22.7'}
+
+  scheduler@0.27.0:
+    resolution: {integrity: sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==}
+
+  selderee@0.11.0:
+    resolution: {integrity: sha512-5TF+l7p4+OsnP8BCCvSyZiSPc4x4//p5uPwK8TCnVPJYRmU2aYKMpOXvw8zM5a5JvuuCGN1jmsMwuU2W02ukfA==}
 
   semver@6.3.1:
     resolution: {integrity: sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==}
@@ -3047,15 +3110,15 @@ snapshots:
     dependencies:
       css-tree: 3.2.1
 
-  '@convex-dev/better-auth@0.12.2(@standard-schema/spec@1.1.0)(better-auth@1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react@19.2.5)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))))(convex@1.36.0(react@19.2.5))(react@19.2.5)(typescript@5.9.3)':
+  '@convex-dev/better-auth@0.12.2(@standard-schema/spec@1.1.0)(better-auth@1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))))(convex@1.36.0(react@19.2.7))(react@19.2.7)(typescript@5.9.3)':
     dependencies:
       '@better-fetch/fetch': 1.1.21
-      better-auth: 1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react@19.2.5)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))
+      better-auth: 1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))
       common-tags: 1.8.2
-      convex: 1.36.0(react@19.2.5)
-      convex-helpers: 0.1.116(@standard-schema/spec@1.1.0)(convex@1.36.0(react@19.2.5))(react@19.2.5)(typescript@5.9.3)(zod@4.4.3)
+      convex: 1.36.0(react@19.2.7)
+      convex-helpers: 0.1.116(@standard-schema/spec@1.1.0)(convex@1.36.0(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(zod@4.4.3)
       jose: 6.2.3
-      react: 19.2.5
+      react: 19.2.7
       remeda: 2.34.0
       semver: 7.8.0
       type-fest: 5.6.0
@@ -3343,18 +3406,18 @@ snapshots:
     dependencies:
       minipass: 7.1.3
 
-  '@jessepomeroy/admin@2.0.1(@mmailaender/convex-svelte@0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3))(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(resend@6.12.2)(svelte-dnd-action@0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))':
+  '@jessepomeroy/admin@2.0.2(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex-svelte@0.14.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.7))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3))(convex@1.36.0(react@19.2.7))(resend@6.12.2(@react-email/render@2.0.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7)))(svelte-dnd-action@0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))':
     dependencies:
-      '@mmailaender/convex-svelte': 0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3)
       '@sveltejs/kit': 2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))
-      convex: 1.36.0(react@19.2.5)
-      resend: 6.12.2
+      convex: 1.36.0(react@19.2.7)
+      convex-svelte: 0.14.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.7))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3)
+      resend: 6.12.2(@react-email/render@2.0.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7))
       svelte: 5.55.4(@typescript-eslint/types@8.58.0)
       svelte-dnd-action: 0.9.69(svelte@5.55.4(@typescript-eslint/types@8.58.0))
 
-  '@jessepomeroy/crm-api@1.0.0(convex@1.36.0(react@19.2.5))':
+  '@jessepomeroy/crm-api@1.0.0(convex@1.36.0(react@19.2.7))':
     dependencies:
-      convex: 1.36.0(react@19.2.5)
+      convex: 1.36.0(react@19.2.7)
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
@@ -3388,24 +3451,14 @@ snapshots:
       - encoding
       - supports-color
 
-  '@mmailaender/convex-better-auth-svelte@0.7.4(b0cdbe38ae19b1632404365c87a516a9)':
+  '@mmailaender/convex-better-auth-svelte@0.8.0(fc530162fd53f1bebd216902acbfe2fc)':
     dependencies:
-      '@convex-dev/better-auth': 0.12.2(@standard-schema/spec@1.1.0)(better-auth@1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react@19.2.5)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))))(convex@1.36.0(react@19.2.5))(react@19.2.5)(typescript@5.9.3)
-      '@mmailaender/convex-svelte': 0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3)
-      better-auth: 1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react@19.2.5)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))
-      convex: 1.36.0(react@19.2.5)
+      '@convex-dev/better-auth': 0.12.2(@standard-schema/spec@1.1.0)(better-auth@1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))))(convex@1.36.0(react@19.2.7))(react@19.2.7)(typescript@5.9.3)
+      better-auth: 1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))
+      convex: 1.36.0(react@19.2.7)
+      convex-svelte: 0.14.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.7))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3)
       is-network-error: 1.3.2
       svelte: 5.55.4(@typescript-eslint/types@8.58.0)
-
-  '@mmailaender/convex-svelte@0.18.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.5))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3)':
-    dependencies:
-      convex: 1.36.0(react@19.2.5)
-      esm-env: 1.2.2
-      runed: 0.37.1(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3)
-      svelte: 5.55.4(@typescript-eslint/types@8.58.0)
-    transitivePeerDependencies:
-      - '@sveltejs/kit'
-      - zod
 
   '@noble/ciphers@2.2.0': {}
 
@@ -3670,6 +3723,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@react-email/render@2.0.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+    dependencies:
+      html-to-text: 9.0.5
+      prettier: 3.8.3
+      react: 19.2.7
+      react-dom: 19.2.7(react@19.2.7)
+
   '@rollup/pluginutils@5.3.0(rollup@4.60.2)':
     dependencies:
       '@types/estree': 1.0.8
@@ -3766,6 +3826,11 @@ snapshots:
       '@types/eventsource': 1.1.15
       event-source-polyfill: 1.0.31
       eventsource: 2.0.2
+
+  '@selderee/plugin-htmlparser2@0.11.0':
+    dependencies:
+      domhandler: 5.0.3
+      selderee: 0.11.0
 
   '@sentry-internal/browser-utils@10.51.0':
     dependencies:
@@ -4117,10 +4182,10 @@ snapshots:
   '@typescript-eslint/types@8.58.0':
     optional: true
 
-  '@vercel/analytics@2.0.1(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react@19.2.5)(svelte@5.55.4(@typescript-eslint/types@8.58.0))':
+  '@vercel/analytics@2.0.1(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react@19.2.7)(svelte@5.55.4(@typescript-eslint/types@8.58.0))':
     optionalDependencies:
       '@sveltejs/kit': 2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))
-      react: 19.2.5
+      react: 19.2.7
       svelte: 5.55.4(@typescript-eslint/types@8.58.0)
 
   '@vercel/nft@1.5.0(rollup@4.60.2)':
@@ -4235,7 +4300,7 @@ snapshots:
 
   baseline-browser-mapping@2.10.25: {}
 
-  better-auth@1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react@19.2.5)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))):
+  better-auth@1.6.10(@opentelemetry/api@1.9.1)(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))):
     dependencies:
       '@better-auth/core': 1.6.10(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0)
       '@better-auth/drizzle-adapter': 1.6.10(@better-auth/core@1.6.10(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.0)
@@ -4256,7 +4321,8 @@ snapshots:
       zod: 4.4.3
     optionalDependencies:
       '@sveltejs/kit': 2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))
-      react: 19.2.5
+      react: 19.2.7
+      react-dom: 19.2.7(react@19.2.7)
       svelte: 5.55.4(@typescript-eslint/types@8.58.0)
       vitest: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.5.2)(jsdom@29.0.2(@noble/hashes@2.2.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3))
     transitivePeerDependencies:
@@ -4325,22 +4391,32 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  convex-helpers@0.1.116(@standard-schema/spec@1.1.0)(convex@1.36.0(react@19.2.5))(react@19.2.5)(typescript@5.9.3)(zod@4.4.3):
+  convex-helpers@0.1.116(@standard-schema/spec@1.1.0)(convex@1.36.0(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(zod@4.4.3):
     dependencies:
-      convex: 1.36.0(react@19.2.5)
+      convex: 1.36.0(react@19.2.7)
     optionalDependencies:
       '@standard-schema/spec': 1.1.0
-      react: 19.2.5
+      react: 19.2.7
       typescript: 5.9.3
       zod: 4.4.3
 
-  convex@1.36.0(react@19.2.5):
+  convex-svelte@0.14.0(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.36.0(react@19.2.7))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3):
+    dependencies:
+      convex: 1.36.0(react@19.2.7)
+      esm-env: 1.2.2
+      runed: 0.37.1(@sveltejs/kit@2.57.1(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.4(@typescript-eslint/types@8.58.0))(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.2(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.55.4(@typescript-eslint/types@8.58.0))(zod@4.4.3)
+      svelte: 5.55.4(@typescript-eslint/types@8.58.0)
+    transitivePeerDependencies:
+      - '@sveltejs/kit'
+      - zod
+
+  convex@1.36.0(react@19.2.7):
     dependencies:
       esbuild: 0.27.0
       prettier: 3.8.3
       ws: 8.18.0
     optionalDependencies:
-      react: 19.2.5
+      react: 19.2.7
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -4385,11 +4461,31 @@ snapshots:
 
   dom-accessibility-api@0.6.3: {}
 
+  dom-serializer@2.0.0:
+    dependencies:
+      domelementtype: 2.3.0
+      domhandler: 5.0.3
+      entities: 4.5.0
+
+  domelementtype@2.3.0: {}
+
+  domhandler@5.0.3:
+    dependencies:
+      domelementtype: 2.3.0
+
+  domutils@3.2.2:
+    dependencies:
+      dom-serializer: 2.0.0
+      domelementtype: 2.3.0
+      domhandler: 5.0.3
+
   dotenv@16.6.1: {}
 
   electron-to-chromium@1.5.348: {}
 
   emoji-regex@10.6.0: {}
+
+  entities@4.5.0: {}
 
   entities@8.0.0: {}
 
@@ -4560,6 +4656,21 @@ snapshots:
     transitivePeerDependencies:
       - '@noble/hashes'
 
+  html-to-text@9.0.5:
+    dependencies:
+      '@selderee/plugin-htmlparser2': 0.11.0
+      deepmerge: 4.3.1
+      dom-serializer: 2.0.0
+      htmlparser2: 8.0.2
+      selderee: 0.11.0
+
+  htmlparser2@8.0.2:
+    dependencies:
+      domelementtype: 2.3.0
+      domhandler: 5.0.3
+      domutils: 3.2.2
+      entities: 4.5.0
+
   https-proxy-agent@5.0.1:
     dependencies:
       agent-base: 6.0.2
@@ -4647,6 +4758,8 @@ snapshots:
   kleur@4.1.5: {}
 
   kysely@0.28.17: {}
+
+  leac@0.6.0: {}
 
   lint-staged@16.4.0:
     dependencies:
@@ -4756,6 +4869,11 @@ snapshots:
     dependencies:
       entities: 8.0.0
 
+  parseley@0.12.1:
+    dependencies:
+      leac: 0.6.0
+      peberminta: 0.9.0
+
   path-exists@4.0.0: {}
 
   path-scurry@2.0.2:
@@ -4764,6 +4882,8 @@ snapshots:
       minipass: 7.1.3
 
   pathe@2.0.3: {}
+
+  peberminta@0.9.0: {}
 
   pg-int8@1.0.1: {}
 
@@ -4821,9 +4941,14 @@ snapshots:
 
   punycode@2.3.1: {}
 
+  react-dom@19.2.7(react@19.2.7):
+    dependencies:
+      react: 19.2.7
+      scheduler: 0.27.0
+
   react-is@17.0.2: {}
 
-  react@19.2.5: {}
+  react@19.2.7: {}
 
   readable-stream@3.6.2:
     dependencies:
@@ -4849,10 +4974,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  resend@6.12.2:
+  resend@6.12.2(@react-email/render@2.0.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7)):
     dependencies:
       postal-mime: 2.7.4
       svix: 1.90.0
+    optionalDependencies:
+      '@react-email/render': 2.0.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
 
   resolve-from@5.0.0: {}
 
@@ -4919,6 +5046,12 @@ snapshots:
   saxes@6.0.0:
     dependencies:
       xmlchars: 2.2.0
+
+  scheduler@0.27.0: {}
+
+  selderee@0.11.0:
+    dependencies:
+      parseley: 0.12.1
 
   semver@6.3.1: {}
 

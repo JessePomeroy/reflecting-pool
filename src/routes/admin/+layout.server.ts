@@ -31,8 +31,7 @@ function getConvex() {
  *
  * `+layout.svelte` also derives `setupAuth` from `adminSession.status` —
  * server-validated identity instead of the flickery `authClient.useSession()`
- * subscription that re-introduces the pause bug in
- * `@mmailaender/convex-better-auth-svelte@0.7.3`.
+ * subscription that re-introduces the old Better Auth session-pause bug.
  */
 export const load: LayoutServerLoad = async ({ cookies }) => {
 	let identity: { email: string | null } | null = null;
