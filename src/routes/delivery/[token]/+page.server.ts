@@ -64,6 +64,7 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	const images = await convex.query(api.galleries.getImages, {
 		galleryId: gallery._id,
+		token,
 	});
 
 	const workerUrl = getGalleryWorkerUrl();

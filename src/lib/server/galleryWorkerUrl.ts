@@ -1,4 +1,4 @@
-import { dev } from "$app/environment";
+import { building, dev } from "$app/environment";
 import { env } from "$env/dynamic/private";
 
 /**
@@ -13,5 +13,6 @@ export function getGalleryWorkerUrl(): string {
 	const url = env.GALLERY_WORKER_URL;
 	if (url) return url;
 	if (dev) return "https://gallery-worker.thinkingofview.workers.dev";
+	if (building) return "https://gallery-worker.invalid";
 	throw new Error("GALLERY_WORKER_URL is not set. Configure it in Vercel environment variables.");
 }
