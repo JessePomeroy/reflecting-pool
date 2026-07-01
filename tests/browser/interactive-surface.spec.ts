@@ -34,6 +34,8 @@ test.describe("interactive surface", () => {
 
 	test("water clicks render one shared pair of ripple rings", async ({ page }) => {
 		await page.goto("/");
+		await expect(page.locator("body")).toHaveClass(/liquid-cursor-enabled/);
+
 		const waterSurface = page.locator(".water-surface");
 		await expect(waterSurface).toBeVisible();
 
