@@ -39,7 +39,17 @@ test.describe("interactive surface", () => {
 		const waterSurface = page.locator(".water-surface");
 		await expect(waterSurface).toBeVisible();
 
-		await waterSurface.click({ position: { x: 640, y: 360 } });
+		await waterSurface.evaluate((element) => {
+			element.dispatchEvent(
+				new MouseEvent("click", {
+					bubbles: true,
+					cancelable: true,
+					clientX: 640,
+					clientY: 360,
+					view: window,
+				}),
+			);
+		});
 
 		await expect(page.locator(".ripple-ring")).toHaveCount(2);
 	});
