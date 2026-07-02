@@ -19,6 +19,7 @@
 		"pnpm": ">=10.33.0"
 	},
 	"devDependencies": {
+		"@babel/preset-typescript": "^7.29.7",
 		"@biomejs/biome": "^2.4.13",
 		"@playwright/test": "^1.60.0",
 		"@sveltejs/adapter-vercel": "^6.3.4",
@@ -61,9 +62,11 @@
 		"@convex-dev/better-auth": "^0.12.5",
 		"@jessepomeroy/admin": "^2.3.2",
 		"@jessepomeroy/crm-api": "^1.1.0",
+		"@jessepomeroy/print-catalog": "^0.2.0",
 		"@mmailaender/convex-better-auth-svelte": "^0.8.0",
 		"@react-email/render": "^2.0.9",
 		"@sanity/client": "^7.21.0",
+		"@sentry/node": "^10.63.0",
 		"@sentry/sveltekit": "^10.62.0",
 		"@vercel/analytics": "^2.0.1",
 		"better-auth": "1.6.23",
@@ -73,6 +76,7 @@
 		"react-dom": "^19.2.7",
 		"resend": "^6.12.2",
 		"stripe": "^22.0.2",
+		"supports-color": "^10.2.2",
 		"svelte-dnd-action": "^0.9.69",
 		"three": "^0.183.2"
 	},

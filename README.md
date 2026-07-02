@@ -8,6 +8,7 @@ A SvelteKit spoke site that consumes shared platform packages from `angelsrest`:
 
 - `@jessepomeroy/admin` — full CRM admin dashboard (orders, inquiries, galleries, invoicing, quotes, contracts) gated by tier
 - `@jessepomeroy/crm-api` — Convex schema + generated types
+- `@jessepomeroy/print-catalog` — shared LumaPrints paper, size, frame, canvas, wholesale, and pricing helpers
 
 Plus:
 
@@ -39,6 +40,30 @@ pnpm build        # production build
 ```
 
 Required env vars in `.env.local` — copy from `.env.example` and ask Jesse for current dev credentials.
+
+### GitHub Packages auth
+
+This app consumes private `@jessepomeroy/*` packages from GitHub Packages.
+The repo-level `.npmrc` maps the package scope to the GitHub registry, but it
+does not and should not contain a token.
+
+Before running `pnpm install` in a fresh local environment, write a GitHub
+Packages token with `read:packages` access into your user npm config:
+
+```bash
+pnpm config set --location user //npm.pkg.github.com/:_authToken "$GITHUB_TOKEN"
+```
+
+For Vercel or another hosted install, setting `NODE_AUTH_TOKEN` alone is not
+enough. The install command must write that token into npm config before
+dependency installation:
+
+```bash
+pnpm config set --location user //npm.pkg.github.com/:_authToken "$NODE_AUTH_TOKEN" && pnpm install --frozen-lockfile
+```
+
+In GitHub Actions, use `actions/setup-node` with the GitHub Packages registry
+or run the same config command before `pnpm install`.
 
 ## Deploy
 
