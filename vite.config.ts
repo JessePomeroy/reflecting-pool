@@ -1,9 +1,32 @@
+import { sentrySvelteKit } from "@sentry/sveltekit";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
+
 // import basicSsl from "@vitejs/plugin-basic-ssl";
+
+const canUploadSentrySourceMaps = Boolean(
+	process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_ORG && process.env.SENTRY_PROJECT,
+);
 
 export default defineConfig({
 	plugins: [
+		sentrySvelteKit({
+			// This site uses Sentry for error capture only right now
+			// (`tracesSampleRate: 0`). Leaving auto-instrumentation on injects
+			// @sentry/sveltekit runtime imports into every server load and makes
+			// Vercel trace Sentry's build-time plugin code into the serverless
+			// bundle. Re-enable only when we intentionally turn tracing on.
+			autoInstrument: false,
+			autoUploadSourceMaps: canUploadSentrySourceMaps,
+			sourceMapsUploadOptions: canUploadSentrySourceMaps
+				? {
+						org: process.env.SENTRY_ORG,
+						project: process.env.SENTRY_PROJECT,
+						authToken: process.env.SENTRY_AUTH_TOKEN,
+						telemetry: false,
+					}
+				: undefined,
+		}),
 		sveltekit(),
 		// basicSsl(),
 		// ↑ Enable for iOS gyroscope testing on dev (DeviceOrientationEvent
