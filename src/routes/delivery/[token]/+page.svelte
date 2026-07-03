@@ -1,8 +1,13 @@
 <script lang="ts">
+import { onMount } from "svelte";
 import { setupConvex, useConvexClient } from "convex-svelte";
 import { api } from "$convex/api";
 import type { Id } from "$convex/dataModel";
 import { PUBLIC_CONVEX_URL } from "$env/static/public";
+import {
+	canChooseGalleryDownloadDirectory,
+	saveGalleryImagesToDirectory,
+} from "$lib/galleryDelivery/downloadDestination";
 import {
 	createGalleryDownloadPlan,
 	type GalleryDownloadImage,
@@ -31,6 +36,9 @@ let lightboxIndex = $state(-1);
 let lightboxOpen = $derived(lightboxIndex >= 0);
 let downloading = $state(false);
 let downloadError = $state<string | null>(null);
+let folderDownloadsSupported = $state(false);
+let chooseDownloadFolder = $state(false);
+let folderDownloadStatus = $state<string | null>(null);
 let selectedImageIds = $state(new Set<string>());
 let galleryView = $state<"grid" | "list">("grid");
 let selectedImages = $derived(images.filter((img) => selectedImageIds.has(img._id)));
@@ -41,6 +49,10 @@ let allImagesSelected = $derived(
 
 let dialogEl = $state<HTMLDivElement | undefined>(undefined);
 let previouslyFocused: HTMLElement | null = null;
+
+onMount(() => {
+	folderDownloadsSupported = canChooseGalleryDownloadDirectory(window);
+});
 
 function openLightbox(index: number) {
 	previouslyFocused = document.activeElement as HTMLElement | null;
@@ -162,6 +174,25 @@ function submitZipDownload(plan: Extract<GalleryDownloadPlan, { type: "zip" }>) 
 	});
 }
 
+async function saveImagesToFolder(targetImages: GalleryDownloadImage[]) {
+	folderDownloadStatus = "choose a folder to save this download.";
+	await saveGalleryImagesToDirectory({
+		images: targetImages,
+		window,
+		onProgress(progress) {
+			folderDownloadStatus = `saving ${progress.completed}/${progress.total} · ${progress.filename}`;
+		},
+	});
+	folderDownloadStatus = `saved ${targetImages.length} file${targetImages.length === 1 ? "" : "s"}.`;
+	setTimeout(() => {
+		folderDownloadStatus = null;
+	}, 5000);
+}
+
+function isPickerAbort(error: unknown) {
+	return error instanceof DOMException && error.name === "AbortError";
+}
+
 async function downloadImages(
 	targetImages: GalleryDownloadImage[],
 	emptyMessage: string,
@@ -183,13 +214,23 @@ async function downloadImages(
 	downloading = true;
 	downloadError = null;
 	try {
-		if (plan.type === "single") {
+		if (chooseDownloadFolder || (plan.type === "tooLarge" && folderDownloadsSupported)) {
+			await saveImagesToFolder(targetImages);
+		} else if (plan.type === "tooLarge") {
+			showDownloadError(
+				"this download is too large for a zip. use a browser that supports folder downloads.",
+				6000,
+			);
+		} else if (plan.type === "single") {
 			triggerDownload(plan.image);
 		} else {
 			submitZipDownload(plan);
 		}
-	} catch {
-		showDownloadError("download failed. please try again.", 6000);
+	} catch (error) {
+		folderDownloadStatus = null;
+		if (!isPickerAbort(error)) {
+			showDownloadError("download failed. please try again.", 6000);
+		}
 	} finally {
 		window.setTimeout(() => {
 			downloading = false;
@@ -271,7 +312,21 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 				>
 					{allImagesSelected ? "clear selection" : "select all"}
 				</button>
+				<label class="folder-download-toggle" aria-disabled={!folderDownloadsSupported}>
+					<input
+						type="checkbox"
+						bind:checked={chooseDownloadFolder}
+						disabled={!folderDownloadsSupported || downloading}
+					/>
+					<span>choose folder</span>
+				</label>
 			</div>
+		{/if}
+
+		{#if folderDownloadStatus}
+			<p class="download-status" role="status">{folderDownloadStatus}</p>
+		{:else if data.gallery.downloadEnabled && !folderDownloadsSupported}
+			<p class="download-status subtle">folder downloads require a chromium browser.</p>
 		{/if}
 
 		{#if downloadError}
@@ -603,6 +658,30 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 		border-color: rgba(var(--paper-rgb), 0.16);
 	}
 
+	.folder-download-toggle {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		min-height: 44px;
+		font-family: var(--font-serif);
+		font-size: 0.78rem;
+		font-style: italic;
+		letter-spacing: 0.08em;
+		color: rgba(var(--paper-rgb), 0.58);
+		cursor: pointer;
+	}
+
+	.folder-download-toggle[aria-disabled="true"] {
+		cursor: not-allowed;
+		color: rgba(var(--paper-rgb), 0.34);
+	}
+
+	.folder-download-toggle input {
+		width: 0.9rem;
+		height: 0.9rem;
+		accent-color: rgba(var(--paper-rgb), 0.9);
+	}
+
 	.ghost-btn.small {
 		padding: 0.5rem 1.1rem;
 		font-size: 0.78rem;
@@ -621,6 +700,19 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 		letter-spacing: 0.05em;
 		color: rgba(var(--paper-rgb), 0.7);
 		margin-top: 1.25rem;
+	}
+
+	.download-status {
+		font-family: var(--font-serif);
+		font-size: 0.82rem;
+		font-style: italic;
+		letter-spacing: 0.05em;
+		color: rgba(var(--paper-rgb), 0.58);
+		margin: 1rem 0 0;
+	}
+
+	.download-status.subtle {
+		color: rgba(var(--paper-rgb), 0.38);
 	}
 
 	.view-toggle {
