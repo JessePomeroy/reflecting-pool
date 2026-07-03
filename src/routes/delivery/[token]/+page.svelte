@@ -3,6 +3,7 @@ import { setupConvex, useConvexClient } from "convex-svelte";
 import { api } from "$convex/api";
 import type { Id } from "$convex/dataModel";
 import { PUBLIC_CONVEX_URL } from "$env/static/public";
+import { galleryZipDownloadUrl } from "$lib/galleryDelivery/downloadUrls";
 
 let { data } = $props();
 
@@ -25,6 +26,12 @@ let lightboxIndex = $state(-1);
 let lightboxOpen = $derived(lightboxIndex >= 0);
 let downloading = $state(false);
 let downloadError = $state<string | null>(null);
+let selectedImageIds = $state(new Set<string>());
+let selectedImages = $derived(images.filter((img) => selectedImageIds.has(img._id)));
+let selectedCount = $derived(selectedImages.length);
+let allImagesSelected = $derived(
+	images.length > 0 && selectedCount === images.length,
+);
 
 let dialogEl = $state<HTMLDivElement | undefined>(undefined);
 let previouslyFocused: HTMLElement | null = null;
@@ -101,56 +108,121 @@ async function toggleFavorite(index: number) {
 	}
 }
 
-async function zipDownload(imageKeys: string[], fileSuffix: string) {
-	if (imageKeys.length === 0) {
-		downloadError = "no photos selected.";
-		setTimeout(() => {
-			downloadError = null;
-		}, 4000);
+function showDownloadError(message: string, timeout = 4000) {
+	downloadError = message;
+	setTimeout(() => {
+		downloadError = null;
+	}, timeout);
+}
+
+function toggleImageSelection(imageId: string) {
+	const next = new Set(selectedImageIds);
+	if (next.has(imageId)) {
+		next.delete(imageId);
+	} else {
+		next.add(imageId);
+	}
+	selectedImageIds = next;
+}
+
+function selectAllImages() {
+	selectedImageIds = new Set(images.map((img) => img._id));
+}
+
+function clearSelection() {
+	selectedImageIds = new Set();
+}
+
+function triggerDownload(image: { downloadUrl: string | null; filename: string }) {
+	if (!image.downloadUrl) {
+		showDownloadError("downloads are disabled for this gallery.");
 		return;
 	}
+
+	const a = document.createElement("a");
+	a.href = image.downloadUrl;
+	a.download = image.filename;
+	a.rel = "noopener";
+	document.body.appendChild(a);
+	a.click();
+	a.remove();
+}
+
+function submitZipDownload(targetImages: Array<{ r2Key: string }>, galleryName: string) {
+	const iframeName = `gallery-download-${crypto.randomUUID()}`;
+	const iframe = document.createElement("iframe");
+	iframe.name = iframeName;
+	iframe.hidden = true;
+	document.body.appendChild(iframe);
+
+	const form = document.createElement("form");
+	form.method = "POST";
+	form.action = galleryZipDownloadUrl(data.workerUrl);
+	form.target = iframeName;
+	form.hidden = true;
+
+	const fields = {
+		token: data.token,
+		galleryName,
+		imageKeys: JSON.stringify(targetImages.map((img) => img.r2Key)),
+	};
+
+	for (const [name, value] of Object.entries(fields)) {
+		const input = document.createElement("input");
+		input.type = "hidden";
+		input.name = name;
+		input.value = value;
+		form.appendChild(input);
+	}
+
+	document.body.appendChild(form);
+	form.submit();
+	window.setTimeout(() => {
+		form.remove();
+		iframe.remove();
+	}, 60_000);
+}
+
+async function downloadImages(
+	targetImages: Array<{ downloadUrl: string | null; filename: string; r2Key: string }>,
+	emptyMessage: string,
+	galleryName = data.gallery.name,
+) {
+	if (targetImages.length === 0) {
+		showDownloadError(emptyMessage);
+		return;
+	}
+
 	downloading = true;
 	downloadError = null;
 	try {
-		const res = await fetch(`${data.workerUrl}/download/zip`, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				token: data.token,
-				imageKeys,
-				galleryName: `${data.gallery.name}${fileSuffix}`,
-			}),
-		});
-		if (!res.ok) throw new Error("Download failed");
-
-		const blob = await res.blob();
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = `${data.gallery.name.replace(/[^a-zA-Z0-9._-]/g, "_")}${fileSuffix}.zip`;
-		a.click();
-		URL.revokeObjectURL(url);
+		if (targetImages.length === 1) {
+			triggerDownload(targetImages[0]);
+		} else {
+			submitZipDownload(targetImages, galleryName);
+		}
 	} catch {
-		downloadError = "download failed. please try again.";
-		setTimeout(() => {
-			downloadError = null;
-		}, 6000);
+		showDownloadError("download failed. please try again.", 6000);
 	} finally {
-		downloading = false;
+		window.setTimeout(() => {
+			downloading = false;
+		}, 1500);
 	}
 }
 
 function downloadAll() {
-	return zipDownload(
-		images.map((img) => img.r2Key),
-		"",
-	);
+	return downloadImages(images, "no photographs are available to download yet.");
+}
+
+function downloadSelected() {
+	return downloadImages(selectedImages, "no photographs selected.");
 }
 
 function downloadFavorites() {
-	return zipDownload(
-		images.filter((img) => img.isFavorite).map((img) => img.r2Key),
-		"-favorites",
+	return downloadImages(
+		images.filter((img) => img.isFavorite),
+		"no favorite photographs selected.",
+		`${data.gallery.name}-favorites`,
 	);
 }
 
@@ -184,7 +256,15 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 					onclick={downloadAll}
 					disabled={downloading}
 				>
-					{downloading ? "preparing…" : "download all"}
+					{downloading ? "starting…" : "download all"}
+				</button>
+				<button
+					type="button"
+					class="ghost-btn muted"
+					onclick={downloadSelected}
+					disabled={downloading || selectedCount === 0}
+				>
+					download selected · {selectedCount}
 				</button>
 				{#if data.gallery.favoritesEnabled && favoriteCount > 0}
 					<button
@@ -196,6 +276,14 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 						download favorites · {favoriteCount}
 					</button>
 				{/if}
+				<button
+					type="button"
+					class="ghost-btn subtle"
+					onclick={allImagesSelected ? clearSelection : selectAllImages}
+					disabled={downloading || images.length === 0}
+				>
+					{allImagesSelected ? "clear selection" : "select all"}
+				</button>
 			</div>
 		{/if}
 
@@ -229,6 +317,20 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 					>
 						{image.isFavorite ? "♥" : "♡"}
 					</button>
+				{/if}
+				{#if data.gallery.downloadEnabled}
+					<label
+						class="select-photo"
+						class:selected={selectedImageIds.has(image._id)}
+						aria-label={"select " + image.filename}
+					>
+						<input
+							type="checkbox"
+							checked={selectedImageIds.has(image._id)}
+							onchange={() => toggleImageSelection(image._id)}
+						/>
+						<span aria-hidden="true"></span>
+					</label>
 				{/if}
 			</div>
 		{/each}
@@ -424,6 +526,11 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 		border-color: rgba(var(--paper-rgb), 0.2);
 	}
 
+	.ghost-btn.subtle {
+		color: rgba(var(--paper-rgb), 0.48);
+		border-color: rgba(var(--paper-rgb), 0.16);
+	}
+
 	.ghost-btn.small {
 		padding: 0.5rem 1.1rem;
 		font-size: 0.78rem;
@@ -540,6 +647,58 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 		color: rgba(var(--paper-rgb), 1);
 		border-color: rgba(var(--paper-rgb), 0.65);
 		background: rgba(var(--ink-rgb), 0.75);
+	}
+
+	.select-photo {
+		position: absolute;
+		top: 0.6rem;
+		left: 0.6rem;
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		border: 1px solid rgba(var(--paper-rgb), 0.25);
+		background: rgba(var(--ink-rgb), 0.55);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		opacity: 0;
+		transition:
+			opacity 300ms ease,
+			background 300ms ease,
+			border-color 300ms ease;
+	}
+
+	.grid-cell:hover .select-photo,
+	.grid-cell:focus-within .select-photo,
+	.select-photo.selected {
+		opacity: 1;
+	}
+
+	.select-photo:hover,
+	.select-photo.selected {
+		background: rgba(var(--ink-rgb), 0.75);
+		border-color: rgba(var(--paper-rgb), 0.55);
+	}
+
+	.select-photo input {
+		position: absolute;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.select-photo span {
+		width: 15px;
+		height: 15px;
+		border: 1px solid rgba(var(--paper-rgb), 0.7);
+		border-radius: 2px;
+		background: rgba(var(--paper-rgb), 0.08);
+	}
+
+	.select-photo.selected span {
+		background: rgba(var(--paper-rgb), 0.9);
+		border-color: rgba(var(--paper-rgb), 0.95);
+		box-shadow: inset 0 0 0 3px rgba(var(--ink-rgb), 0.72);
 	}
 
 	/* ─── Lightbox ──────────────────────────────────────── */
@@ -674,6 +833,9 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 			gap: 0.5rem;
 		}
 		.fav-btn {
+			opacity: 1;
+		}
+		.select-photo {
 			opacity: 1;
 		}
 		.lightbox {

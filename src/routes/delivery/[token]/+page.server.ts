@@ -3,6 +3,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "$convex/api";
 import type { Id } from "$convex/dataModel";
 import { env as publicEnv } from "$env/dynamic/public";
+import { galleryOriginalDownloadUrl } from "$lib/galleryDelivery/downloadUrls";
 import { getGalleryWorkerUrl } from "$lib/server/galleryWorkerUrl";
 import type { PageServerLoad } from "./$types";
 
@@ -76,7 +77,9 @@ export const load: PageServerLoad = async ({ params }) => {
 			...img,
 			thumbUrl: `${workerUrl}/image/${img.r2Key.replace("/original/", "/thumb/")}`,
 			previewUrl: `${workerUrl}/image/${img.r2Key.replace("/original/", "/preview/")}`,
-			downloadUrl: `${workerUrl}/download/${img.r2Key}?token=${token}`,
+			downloadUrl: gallery.downloadEnabled
+				? galleryOriginalDownloadUrl(workerUrl, img.r2Key, token)
+				: null,
 		})),
 		client: result.client,
 		workerUrl,
