@@ -4,6 +4,7 @@ import { api } from "$convex/api";
 import type { Id } from "$convex/dataModel";
 import { env as publicEnv } from "$env/dynamic/public";
 import { galleryOriginalDownloadUrl } from "$lib/galleryDelivery/downloadUrls";
+import { galleryFileLabel, isBrowserPreviewableGalleryFile } from "$lib/galleryDelivery/fileTypes";
 import { getGalleryWorkerUrl } from "$lib/server/galleryWorkerUrl";
 import type { PageServerLoad } from "./$types";
 
@@ -80,6 +81,8 @@ export const load: PageServerLoad = async ({ params }) => {
 			downloadUrl: gallery.downloadEnabled
 				? galleryOriginalDownloadUrl(workerUrl, img.r2Key, token)
 				: null,
+			canPreview: isBrowserPreviewableGalleryFile(img.filename),
+			fileLabel: galleryFileLabel(img.filename),
 		})),
 		client: result.client,
 		workerUrl,
