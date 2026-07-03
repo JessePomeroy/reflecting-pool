@@ -4,7 +4,7 @@ import type { Snippet } from "svelte";
 import { dev } from "$app/environment";
 import { page } from "$app/state";
 import LiquidCursor from "$lib/components/LiquidCursor.svelte";
-import { SITE_URL } from "$lib/config/site";
+import { siteUrlForPath } from "$lib/config/site";
 import ParallaxProvider from "$lib/components/ParallaxProvider.svelte";
 
 interface Props {
@@ -18,6 +18,7 @@ inject({ mode: dev ? "development" : "production" });
 const isPublicRoute = $derived(
 	!page.url.pathname.startsWith("/admin") && !page.url.pathname.startsWith("/delivery"),
 );
+const canonicalUrl = $derived(siteUrlForPath(page.url.pathname));
 </script>
 
 <svelte:head>
@@ -35,7 +36,9 @@ const isPublicRoute = $derived(
 	<meta property="og:title" content="margaret helena · photography" />
 	<meta property="og:description" content="Fine art photography prints on archival paper" />
 	<meta property="og:type" content="website" />
-	<link rel="canonical" href={SITE_URL} />
+	{#if isPublicRoute}
+		<link rel="canonical" href={canonicalUrl} />
+	{/if}
 </svelte:head>
 
 <video
