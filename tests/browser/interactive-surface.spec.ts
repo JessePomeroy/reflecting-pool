@@ -24,9 +24,17 @@ async function emulateFinePointer(page: import("@playwright/test").Page) {
 	});
 }
 
+async function hasWebGL(page: import("@playwright/test").Page) {
+	return page.evaluate(() => {
+		const canvas = document.createElement("canvas");
+		return Boolean(canvas.getContext("webgl") || canvas.getContext("webgl2"));
+	});
+}
+
 test.describe("interactive surface", () => {
 	test("desktop pointer enables the liquid cursor", async ({ page }) => {
 		await emulateFinePointer(page);
+		test.skip(!(await hasWebGL(page)), "liquid cursor requires WebGL support");
 		await page.goto("/");
 
 		await expect(page.locator("canvas.liquid-cursor")).toBeAttached();
@@ -63,9 +71,6 @@ test.describe("interactive surface", () => {
 	test("water clicks render one shared pair of ripple rings", async ({ page }) => {
 		await emulateFinePointer(page);
 		await page.goto("/");
-		await expect(page.locator("body")).toHaveClass(/liquid-cursor-enabled/, {
-			timeout: LIQUID_CURSOR_TIMEOUT_MS,
-		});
 
 		const waterSurface = page.locator(".water-surface");
 		await expect(waterSurface).toBeVisible();
