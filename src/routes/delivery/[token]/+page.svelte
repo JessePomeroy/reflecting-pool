@@ -149,16 +149,9 @@ function triggerDownload(image: { downloadUrl: string | null; filename: string }
 }
 
 function submitZipDownload(targetImages: Array<{ r2Key: string }>, galleryName: string) {
-	const iframeName = `gallery-download-${crypto.randomUUID()}`;
-	const iframe = document.createElement("iframe");
-	iframe.name = iframeName;
-	iframe.hidden = true;
-	document.body.appendChild(iframe);
-
 	const form = document.createElement("form");
 	form.method = "POST";
 	form.action = galleryZipDownloadUrl(data.workerUrl);
-	form.target = iframeName;
 	form.hidden = true;
 
 	const fields = {
@@ -179,7 +172,6 @@ function submitZipDownload(targetImages: Array<{ r2Key: string }>, galleryName: 
 	form.submit();
 	window.setTimeout(() => {
 		form.remove();
-		iframe.remove();
 	}, 60_000);
 }
 
@@ -301,11 +293,17 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 					onclick={() => openLightbox(i)}
 					aria-label="view photograph {i + 1} of {images.length}"
 				>
-					<img
-						src={image.thumbUrl}
-						alt="photograph {i + 1}: {image.filename}"
-						loading="lazy"
-					/>
+					{#if image.canPreview}
+						<img
+							src={image.thumbUrl}
+							alt="photograph {i + 1}: {image.filename}"
+							loading="lazy"
+						/>
+					{:else}
+						<span class="file-tile" aria-label={image.filename}>
+							<span>{image.fileLabel}</span>
+						</span>
+					{/if}
 				</button>
 				{#if data.gallery.favoritesEnabled}
 					<button
@@ -332,6 +330,7 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 						<span aria-hidden="true"></span>
 					</label>
 				{/if}
+				<p class="image-filename">{image.filename}</p>
 			</div>
 		{/each}
 	</div>
@@ -360,11 +359,17 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="lightbox-content" onclick={(e) => e.stopPropagation()}>
-			<img
-				src={images[lightboxIndex].previewUrl}
-				alt={images[lightboxIndex].filename}
-				class="lightbox-image"
-			/>
+			{#if images[lightboxIndex].canPreview}
+				<img
+					src={images[lightboxIndex].previewUrl}
+					alt={images[lightboxIndex].filename}
+					class="lightbox-image"
+				/>
+			{:else}
+				<div class="lightbox-file">
+					<span>{images[lightboxIndex].fileLabel}</span>
+				</div>
+			{/if}
 			<div class="lightbox-meta">
 				<span class="filename">{images[lightboxIndex].filename}</span>
 				<span class="counter" aria-live="polite">{lightboxIndex + 1} / {images.length}</span>
@@ -568,21 +573,20 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 
 	.grid-cell {
 		position: relative;
-		aspect-ratio: 1;
-		overflow: hidden;
 		border-radius: 2px;
-		background: rgba(var(--ink-rgb), 0.35);
 	}
 
 	.thumb-btn {
 		display: block;
 		width: 100%;
-		height: 100%;
+		aspect-ratio: 1;
 		padding: 0;
 		border: none;
 		background: none;
 		cursor: pointer;
 		overflow: hidden;
+		border-radius: 2px;
+		background: rgba(var(--ink-rgb), 0.35);
 	}
 
 	.thumb-btn img {
@@ -591,6 +595,25 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 		object-fit: cover;
 		display: block;
 		opacity: 0.92;
+	}
+
+	.file-tile {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(var(--paper-rgb), 0.08);
+		color: rgba(var(--paper-rgb), 0.7);
+	}
+
+	.file-tile span {
+		padding: 0.45rem 0.8rem;
+		border: 1px solid rgba(var(--paper-rgb), 0.24);
+		border-radius: 999px;
+		font-size: 0.72rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
@@ -604,6 +627,16 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 			transform: scale(1.025);
 			opacity: 1;
 		}
+	}
+
+	.image-filename {
+		margin: 0.5rem 0 0;
+		font-size: 0.72rem;
+		line-height: 1.3;
+		color: rgba(var(--paper-rgb), 0.54);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.fav-btn {
@@ -735,6 +768,27 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 		object-fit: contain;
 		border-radius: 2px;
 		box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+	}
+
+	.lightbox-file {
+		width: min(520px, 80vw);
+		aspect-ratio: 4 / 3;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 2px;
+		background: rgba(var(--paper-rgb), 0.08);
+		color: rgba(var(--paper-rgb), 0.72);
+		box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+	}
+
+	.lightbox-file span {
+		padding: 0.5rem 0.9rem;
+		border: 1px solid rgba(var(--paper-rgb), 0.24);
+		border-radius: 999px;
+		font-size: 0.75rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
 	}
 
 	.lightbox-meta {
