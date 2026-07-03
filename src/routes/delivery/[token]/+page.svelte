@@ -5,6 +5,10 @@ import { api } from "$convex/api";
 import type { Id } from "$convex/dataModel";
 import { PUBLIC_CONVEX_URL } from "$env/static/public";
 import {
+	canSaveGalleryZipFile,
+	saveGalleryImagesAsZipFile,
+} from "$lib/galleryDelivery/downloadArchive";
+import {
 	canChooseGalleryDownloadDirectory,
 	saveGalleryImagesToDirectory,
 } from "$lib/galleryDelivery/downloadDestination";
@@ -14,6 +18,7 @@ import {
 	type GalleryDownloadPlan,
 	submitGalleryZipDownloadForm,
 } from "$lib/galleryDelivery/downloadPlan";
+import { chooseGalleryDownloadRoute } from "$lib/galleryDelivery/downloadRoute";
 
 let { data } = $props();
 
@@ -37,6 +42,7 @@ let lightboxOpen = $derived(lightboxIndex >= 0);
 let downloading = $state(false);
 let downloadError = $state<string | null>(null);
 let folderDownloadsSupported = $state(false);
+let zipFileDownloadsSupported = $state(false);
 let chooseDownloadFolder = $state(false);
 let folderDownloadStatus = $state<string | null>(null);
 let folderDownloadAbortController = $state<AbortController | null>(null);
@@ -49,12 +55,16 @@ let allImagesSelected = $derived(
 	images.length > 0 && selectedCount === images.length,
 );
 let folderDownloadInProgress = $derived(folderDownloadAbortController !== null);
+let chosenLocationDownloadsSupported = $derived(
+	folderDownloadsSupported || zipFileDownloadsSupported,
+);
 
 let dialogEl = $state<HTMLDivElement | undefined>(undefined);
 let previouslyFocused: HTMLElement | null = null;
 
 onMount(() => {
 	folderDownloadsSupported = canChooseGalleryDownloadDirectory(window);
+	zipFileDownloadsSupported = canSaveGalleryZipFile(window);
 });
 
 function openLightbox(index: number) {
@@ -217,6 +227,33 @@ async function saveImagesToFolder(targetImages: GalleryDownloadImage[]) {
 	}
 }
 
+async function saveImagesToZip(targetImages: GalleryDownloadImage[], galleryName: string) {
+	const controller = new AbortController();
+	folderDownloadAbortController = controller;
+	setFolderDownloadStatus("choose where to save this zip.");
+	try {
+		await saveGalleryImagesAsZipFile({
+			images: targetImages,
+			galleryName,
+			window,
+			signal: controller.signal,
+			onProgress(progress) {
+				setFolderDownloadStatus(
+					`zipping ${progress.completed}/${progress.total} · ${progress.filename}`,
+				);
+			},
+		});
+		const statusToken = setFolderDownloadStatus(
+			`saved ${targetImages.length} file${targetImages.length === 1 ? "" : "s"} as zip.`,
+		);
+		clearFolderDownloadStatusLater(statusToken, 5000);
+	} finally {
+		if (folderDownloadAbortController === controller) {
+			folderDownloadAbortController = null;
+		}
+	}
+}
+
 function isPickerAbort(error: unknown) {
 	return error instanceof DOMException && error.name === "AbortError";
 }
@@ -247,16 +284,26 @@ async function downloadImages(
 	downloading = true;
 	downloadError = null;
 	try {
-		if (chooseDownloadFolder || (plan.type === "tooLarge" && folderDownloadsSupported)) {
+		const route = chooseGalleryDownloadRoute({
+			chooseLocation: chooseDownloadFolder,
+			folderDownloadsSupported,
+			planType: plan.type,
+			targetCount: targetImages.length,
+			zipFileDownloadsSupported,
+		});
+
+		if (route === "folder") {
 			await saveImagesToFolder(targetImages);
-		} else if (plan.type === "tooLarge") {
+		} else if (route === "browserZip") {
+			await saveImagesToZip(targetImages, galleryName);
+		} else if (route === "unsupportedTooLarge") {
 			showDownloadError(
-				"this download is too large for a zip. use a browser that supports folder downloads.",
+				"this download is too large for a live zip. use a browser that supports chosen-location downloads.",
 				6000,
 			);
 		} else if (plan.type === "single") {
 			triggerDownload(plan.image);
-		} else {
+		} else if (plan.type === "zip") {
 			submitZipDownload(plan);
 		}
 	} catch (error) {
@@ -348,13 +395,13 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 				>
 					{allImagesSelected ? "clear selection" : "select all"}
 				</button>
-				<label class="folder-download-toggle" aria-disabled={!folderDownloadsSupported}>
+				<label class="folder-download-toggle" aria-disabled={!chosenLocationDownloadsSupported}>
 					<input
 						type="checkbox"
 						bind:checked={chooseDownloadFolder}
-						disabled={!folderDownloadsSupported || downloading}
+						disabled={!chosenLocationDownloadsSupported || downloading}
 					/>
-					<span>choose folder</span>
+					<span>choose location</span>
 				</label>
 				{#if folderDownloadInProgress}
 					<button
@@ -370,8 +417,8 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 
 		{#if folderDownloadStatus}
 			<p class="download-status" role="status">{folderDownloadStatus}</p>
-		{:else if data.gallery.downloadEnabled && !folderDownloadsSupported}
-			<p class="download-status subtle">folder downloads require a chromium browser.</p>
+		{:else if data.gallery.downloadEnabled && !chosenLocationDownloadsSupported}
+			<p class="download-status subtle">chosen-location downloads require a chromium browser.</p>
 		{/if}
 
 		{#if downloadError}
