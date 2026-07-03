@@ -46,10 +46,10 @@ describe("sitemap", () => {
 
 		expect(response.headers.get("Content-Type")).toBe("application/xml");
 		expect(response.headers.get("Cache-Control")).toBe("max-age=3600");
-		expect(xml).toContain("<loc>https://reflectingpool.com/</loc>");
-		expect(xml).toContain("<loc>https://reflectingpool.com/shop</loc>");
-		expect(xml).toContain("<loc>https://reflectingpool.com/shop/collection/wildflowers</loc>");
-		expect(xml).toContain("<loc>https://reflectingpool.com/shop/wildflowers--img-01</loc>");
+		expect(xml).toContain("<loc>https://margarethelena.com/</loc>");
+		expect(xml).toContain("<loc>https://margarethelena.com/shop</loc>");
+		expect(xml).toContain("<loc>https://margarethelena.com/shop/collection/wildflowers</loc>");
+		expect(xml).toContain("<loc>https://margarethelena.com/shop/wildflowers--img-01</loc>");
 		expect(xml.match(/<loc>/g)?.length).toBeGreaterThan(10);
 	});
 
@@ -62,11 +62,11 @@ describe("sitemap", () => {
 		const xml = await response.text();
 
 		expect(xml).toContain(
-			"<loc>https://reflectingpool.com/shop/collection/wildflowers&amp;roses</loc>",
+			"<loc>https://margarethelena.com/shop/collection/wildflowers&amp;roses</loc>",
 		);
-		expect(xml).toContain("<loc>https://reflectingpool.com/shop/print&quot;study</loc>");
-		expect(xml).toContain("<loc>https://reflectingpool.com/shop/print&lt;study&gt;</loc>");
-		expect(locCount(xml, "https://reflectingpool.com/shop/collection/wildflowers&amp;roses")).toBe(
+		expect(xml).toContain("<loc>https://margarethelena.com/shop/print&quot;study</loc>");
+		expect(xml).toContain("<loc>https://margarethelena.com/shop/print&lt;study&gt;</loc>");
+		expect(locCount(xml, "https://margarethelena.com/shop/collection/wildflowers&amp;roses")).toBe(
 			1,
 		);
 	});
@@ -78,9 +78,9 @@ describe("sitemap", () => {
 		const xml = await response.text();
 
 		expect(response.status).toBe(200);
-		expect(xml).toContain("<loc>https://reflectingpool.com/</loc>");
-		expect(xml).toContain("<loc>https://reflectingpool.com/about</loc>");
-		expect(xml).toContain("<loc>https://reflectingpool.com/shop</loc>");
+		expect(xml).toContain("<loc>https://margarethelena.com/</loc>");
+		expect(xml).toContain("<loc>https://margarethelena.com/about</loc>");
+		expect(xml).toContain("<loc>https://margarethelena.com/shop</loc>");
 		expect(warnSpy).toHaveBeenCalledWith(
 			"[sitemap] failed to load dynamic shop URLs",
 			expect.any(Error),
