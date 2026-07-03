@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const LIQUID_CURSOR_TIMEOUT_MS = 15_000;
+const SKIP_CI_VISUAL_INTERACTION = Boolean(process.env.CI);
 const interactiveSurfaceReady = (page: import("@playwright/test").Page) =>
 	page.locator("body[data-interactive-surface-ready='true']");
 
@@ -37,7 +38,7 @@ test.describe("interactive surface", () => {
 	test("desktop pointer enables the liquid cursor", async ({ page }) => {
 		await emulateFinePointer(page);
 		test.skip(
-			Boolean(process.env.CI) || !(await hasWebGL(page)),
+			SKIP_CI_VISUAL_INTERACTION || !(await hasWebGL(page)),
 			"liquid cursor WebGL initialization is not reliable in headless CI",
 		);
 		await page.goto("/");
@@ -74,6 +75,10 @@ test.describe("interactive surface", () => {
 	});
 
 	test("water clicks render one shared pair of ripple rings", async ({ page }) => {
+		test.skip(
+			SKIP_CI_VISUAL_INTERACTION,
+			"interactive surface hydration is covered by local browser smoke",
+		);
 		await page.goto("/");
 		await expect(interactiveSurfaceReady(page)).toBeAttached();
 
