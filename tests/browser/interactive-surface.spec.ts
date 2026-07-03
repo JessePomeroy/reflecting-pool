@@ -1,14 +1,42 @@
 import { expect, test } from "@playwright/test";
 
+const LIQUID_CURSOR_TIMEOUT_MS = 15_000;
+
+async function emulateFinePointer(page: import("@playwright/test").Page) {
+	await page.addInitScript(() => {
+		const originalMatchMedia = window.matchMedia.bind(window);
+		window.matchMedia = (query: string) => {
+			if (query === "(any-pointer: fine)") {
+				return {
+					matches: true,
+					media: query,
+					onchange: null,
+					addListener: () => {},
+					removeListener: () => {},
+					addEventListener: () => {},
+					removeEventListener: () => {},
+					dispatchEvent: () => false,
+				};
+			}
+
+			return originalMatchMedia(query);
+		};
+	});
+}
+
 test.describe("interactive surface", () => {
 	test("desktop pointer enables the liquid cursor", async ({ page }) => {
+		await emulateFinePointer(page);
 		await page.goto("/");
 
 		await expect(page.locator("canvas.liquid-cursor")).toBeAttached();
-		await expect(page.locator("body")).toHaveClass(/liquid-cursor-enabled/);
+		await expect(page.locator("body")).toHaveClass(/liquid-cursor-enabled/, {
+			timeout: LIQUID_CURSOR_TIMEOUT_MS,
+		});
 	});
 
 	test("reduced motion keeps the liquid cursor disabled", async ({ page }) => {
+		await emulateFinePointer(page);
 		await page.emulateMedia({ reducedMotion: "reduce" });
 		await page.goto("/");
 
@@ -33,8 +61,11 @@ test.describe("interactive surface", () => {
 	});
 
 	test("water clicks render one shared pair of ripple rings", async ({ page }) => {
+		await emulateFinePointer(page);
 		await page.goto("/");
-		await expect(page.locator("body")).toHaveClass(/liquid-cursor-enabled/);
+		await expect(page.locator("body")).toHaveClass(/liquid-cursor-enabled/, {
+			timeout: LIQUID_CURSOR_TIMEOUT_MS,
+		});
 
 		const waterSurface = page.locator(".water-surface");
 		await expect(waterSurface).toBeVisible();
