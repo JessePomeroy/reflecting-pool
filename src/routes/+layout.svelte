@@ -4,6 +4,7 @@ import type { Snippet } from "svelte";
 import { dev } from "$app/environment";
 import { page } from "$app/state";
 import LiquidCursor from "$lib/components/LiquidCursor.svelte";
+import { SITE_URL } from "$lib/config/site";
 import ParallaxProvider from "$lib/components/ParallaxProvider.svelte";
 
 interface Props {
@@ -34,7 +35,7 @@ const isPublicRoute = $derived(
 	<meta property="og:title" content="margaret helena · photography" />
 	<meta property="og:description" content="Fine art photography prints on archival paper" />
 	<meta property="og:type" content="website" />
-	<link rel="canonical" href="https://margarethelena.com" />
+	<link rel="canonical" href={SITE_URL} />
 </svelte:head>
 
 <video

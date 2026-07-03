@@ -1,7 +1,6 @@
+import { SITE_URL } from "$lib/config/site";
 import { fetchCollections, fetchPrintableProducts } from "$lib/server/content/shopCatalog";
 import type { RequestHandler } from "./$types";
-
-const SITE_URL = "https://reflectingpool.com";
 
 interface SitemapPage {
 	url: string;
