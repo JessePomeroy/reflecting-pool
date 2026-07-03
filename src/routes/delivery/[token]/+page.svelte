@@ -3,7 +3,11 @@ import { setupConvex, useConvexClient } from "convex-svelte";
 import { api } from "$convex/api";
 import type { Id } from "$convex/dataModel";
 import { PUBLIC_CONVEX_URL } from "$env/static/public";
-import { galleryZipDownloadUrl } from "$lib/galleryDelivery/downloadUrls";
+import {
+	createGalleryDownloadPlan,
+	type GalleryDownloadImage,
+	type GalleryDownloadPlan,
+} from "$lib/galleryDelivery/downloadPlan";
 
 let { data } = $props();
 
@@ -149,19 +153,13 @@ function triggerDownload(image: { downloadUrl: string | null; filename: string }
 	a.remove();
 }
 
-function submitZipDownload(targetImages: Array<{ r2Key: string }>, galleryName: string) {
+function submitZipDownload(plan: Extract<GalleryDownloadPlan, { type: "zip" }>) {
 	const form = document.createElement("form");
 	form.method = "POST";
-	form.action = galleryZipDownloadUrl(data.workerUrl);
+	form.action = plan.action;
 	form.hidden = true;
 
-	const fields = {
-		token: data.token,
-		galleryName,
-		imageKeys: JSON.stringify(targetImages.map((img) => img.r2Key)),
-	};
-
-	for (const [name, value] of Object.entries(fields)) {
+	for (const [name, value] of Object.entries(plan.fields)) {
 		const input = document.createElement("input");
 		input.type = "hidden";
 		input.name = name;
@@ -177,22 +175,30 @@ function submitZipDownload(targetImages: Array<{ r2Key: string }>, galleryName: 
 }
 
 async function downloadImages(
-	targetImages: Array<{ downloadUrl: string | null; filename: string; r2Key: string }>,
+	targetImages: GalleryDownloadImage[],
 	emptyMessage: string,
 	galleryName = data.gallery.name,
 ) {
-	if (targetImages.length === 0) {
-		showDownloadError(emptyMessage);
+	const plan = createGalleryDownloadPlan({
+		images: targetImages,
+		emptyMessage,
+		galleryName,
+		token: data.token,
+		workerUrl: data.workerUrl,
+	});
+
+	if (plan.type === "empty") {
+		showDownloadError(plan.message);
 		return;
 	}
 
 	downloading = true;
 	downloadError = null;
 	try {
-		if (targetImages.length === 1) {
-			triggerDownload(targetImages[0]);
+		if (plan.type === "single") {
+			triggerDownload(plan.image);
 		} else {
-			submitZipDownload(targetImages, galleryName);
+			submitZipDownload(plan);
 		}
 	} catch {
 		showDownloadError("download failed. please try again.", 6000);
