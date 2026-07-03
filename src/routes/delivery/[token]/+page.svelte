@@ -39,6 +39,8 @@ let downloadError = $state<string | null>(null);
 let folderDownloadsSupported = $state(false);
 let chooseDownloadFolder = $state(false);
 let folderDownloadStatus = $state<string | null>(null);
+let folderDownloadAbortController = $state<AbortController | null>(null);
+let folderDownloadStatusToken = 0;
 let selectedImageIds = $state(new Set<string>());
 let galleryView = $state<"grid" | "list">("grid");
 let selectedImages = $derived(images.filter((img) => selectedImageIds.has(img._id)));
@@ -46,6 +48,7 @@ let selectedCount = $derived(selectedImages.length);
 let allImagesSelected = $derived(
 	images.length > 0 && selectedCount === images.length,
 );
+let folderDownloadInProgress = $derived(folderDownloadAbortController !== null);
 
 let dialogEl = $state<HTMLDivElement | undefined>(undefined);
 let previouslyFocused: HTMLElement | null = null;
@@ -174,23 +177,53 @@ function submitZipDownload(plan: Extract<GalleryDownloadPlan, { type: "zip" }>) 
 	});
 }
 
-async function saveImagesToFolder(targetImages: GalleryDownloadImage[]) {
-	folderDownloadStatus = "choose a folder to save this download.";
-	await saveGalleryImagesToDirectory({
-		images: targetImages,
-		window,
-		onProgress(progress) {
-			folderDownloadStatus = `saving ${progress.completed}/${progress.total} · ${progress.filename}`;
-		},
-	});
-	folderDownloadStatus = `saved ${targetImages.length} file${targetImages.length === 1 ? "" : "s"}.`;
+function setFolderDownloadStatus(message: string | null) {
+	folderDownloadStatus = message;
+	folderDownloadStatusToken += 1;
+	return folderDownloadStatusToken;
+}
+
+function clearFolderDownloadStatusLater(token: number, delayMs: number) {
 	setTimeout(() => {
-		folderDownloadStatus = null;
-	}, 5000);
+		if (folderDownloadStatusToken === token) {
+			setFolderDownloadStatus(null);
+		}
+	}, delayMs);
+}
+
+async function saveImagesToFolder(targetImages: GalleryDownloadImage[]) {
+	const controller = new AbortController();
+	folderDownloadAbortController = controller;
+	setFolderDownloadStatus("choose a folder to save this download.");
+	try {
+		await saveGalleryImagesToDirectory({
+			images: targetImages,
+			window,
+			signal: controller.signal,
+			onProgress(progress) {
+				setFolderDownloadStatus(
+					`saving ${progress.completed}/${progress.total} · ${progress.filename}`,
+				);
+			},
+		});
+		const statusToken = setFolderDownloadStatus(
+			`saved ${targetImages.length} file${targetImages.length === 1 ? "" : "s"}.`,
+		);
+		clearFolderDownloadStatusLater(statusToken, 5000);
+	} finally {
+		if (folderDownloadAbortController === controller) {
+			folderDownloadAbortController = null;
+		}
+	}
 }
 
 function isPickerAbort(error: unknown) {
 	return error instanceof DOMException && error.name === "AbortError";
+}
+
+function cancelFolderDownload() {
+	setFolderDownloadStatus("canceling download...");
+	folderDownloadAbortController?.abort(new DOMException("Download canceled.", "AbortError"));
 }
 
 async function downloadImages(
@@ -227,8 +260,11 @@ async function downloadImages(
 			submitZipDownload(plan);
 		}
 	} catch (error) {
-		folderDownloadStatus = null;
-		if (!isPickerAbort(error)) {
+		if (isPickerAbort(error)) {
+			const statusToken = setFolderDownloadStatus("download canceled.");
+			clearFolderDownloadStatusLater(statusToken, 3000);
+		} else {
+			setFolderDownloadStatus(null);
 			showDownloadError("download failed. please try again.", 6000);
 		}
 	} finally {
@@ -284,7 +320,7 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 					onclick={downloadAll}
 					disabled={downloading}
 				>
-					{downloading ? "starting…" : "download all"}
+					{folderDownloadInProgress ? "saving…" : downloading ? "starting…" : "download all"}
 				</button>
 				<button
 					type="button"
@@ -320,6 +356,15 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 					/>
 					<span>choose folder</span>
 				</label>
+				{#if folderDownloadInProgress}
+					<button
+						type="button"
+						class="ghost-btn danger"
+						onclick={cancelFolderDownload}
+					>
+						cancel download
+					</button>
+				{/if}
 			</div>
 		{/if}
 
@@ -656,6 +701,11 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 	.ghost-btn.subtle {
 		color: rgba(var(--paper-rgb), 0.48);
 		border-color: rgba(var(--paper-rgb), 0.16);
+	}
+
+	.ghost-btn.danger {
+		color: rgba(255, 128, 128, 0.9);
+		border-color: rgba(255, 128, 128, 0.45);
 	}
 
 	.folder-download-toggle {
