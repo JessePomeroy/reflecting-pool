@@ -27,27 +27,35 @@ function uniquePages(pages: SitemapPage[]) {
 }
 
 export const GET: RequestHandler = async () => {
-	let dynamicPages: SitemapPage[] = [];
+	const dynamicPages: SitemapPage[] = [];
 
-	try {
-		const [collections, products] = await Promise.all([
-			fetchCollections(),
-			fetchPrintableProducts(),
-		]);
-		dynamicPages = [
-			...collections.map((collection) => ({
+	const [collectionsResult, productsResult] = await Promise.allSettled([
+		fetchCollections(),
+		fetchPrintableProducts(),
+	]);
+
+	if (collectionsResult.status === "fulfilled") {
+		dynamicPages.push(
+			...collectionsResult.value.map((collection) => ({
 				url: `/shop/collection/${collection.slug}`,
 				priority: "0.7",
 				changefreq: "weekly",
 			})),
-			...products.map((product) => ({
+		);
+	} else {
+		console.warn("[sitemap] failed to load collection URLs", collectionsResult.reason);
+	}
+
+	if (productsResult.status === "fulfilled") {
+		dynamicPages.push(
+			...productsResult.value.map((product) => ({
 				url: `/shop/${product.slug}`,
 				priority: "0.6",
 				changefreq: "monthly",
 			})),
-		];
-	} catch (error) {
-		console.warn("[sitemap] failed to load dynamic shop URLs", error);
+		);
+	} else {
+		console.warn("[sitemap] failed to load product URLs", productsResult.reason);
 	}
 
 	const pages = uniquePages([
