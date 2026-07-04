@@ -76,13 +76,11 @@ describe("sitemap", () => {
 		const xml = await response.text();
 
 		expect(xml).toContain(
-			"<loc>https://margarethelena.com/shop/collection/wildflowers&amp;roses</loc>",
+			"<loc>https://margarethelena.com/shop/collection/wildflowers%26roses</loc>",
 		);
-		expect(xml).toContain("<loc>https://margarethelena.com/shop/print&quot;study</loc>");
-		expect(xml).toContain("<loc>https://margarethelena.com/shop/print&lt;study&gt;</loc>");
-		expect(locCount(xml, "https://margarethelena.com/shop/collection/wildflowers&amp;roses")).toBe(
-			1,
-		);
+		expect(xml).toContain("<loc>https://margarethelena.com/shop/print%22study</loc>");
+		expect(xml).toContain("<loc>https://margarethelena.com/shop/print%3Cstudy%3E</loc>");
+		expect(locCount(xml, "https://margarethelena.com/shop/collection/wildflowers%26roses")).toBe(1);
 	});
 
 	it("keeps static sitemap URLs available when dynamic shop content fails", async () => {
