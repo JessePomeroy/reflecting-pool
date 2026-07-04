@@ -18,11 +18,25 @@ async function importSitemapRouteWithCatalog(
 	return importSitemapRoute();
 }
 
-async function importSitemapRouteWithRejectedCatalog() {
+async function importSitemapRouteWithRejectedCollections(
+	products: Pick<PrintProduct, "slug">[] = [],
+) {
 	vi.resetModules();
 	vi.doMock("$lib/server/content/shopCatalog", () => ({
 		fetchCollections: vi.fn().mockRejectedValue(new Error("catalog unavailable")),
-		fetchPrintableProducts: vi.fn().mockResolvedValue([]),
+		fetchPrintableProducts: vi.fn().mockResolvedValue(products),
+	}));
+
+	return importSitemapRoute();
+}
+
+async function importSitemapRouteWithRejectedProducts(
+	collections: Pick<PrintCollection, "slug">[] = [],
+) {
+	vi.resetModules();
+	vi.doMock("$lib/server/content/shopCatalog", () => ({
+		fetchCollections: vi.fn().mockResolvedValue(collections),
+		fetchPrintableProducts: vi.fn().mockRejectedValue(new Error("products unavailable")),
 	}));
 
 	return importSitemapRoute();
@@ -73,7 +87,7 @@ describe("sitemap", () => {
 
 	it("keeps static sitemap URLs available when dynamic shop content fails", async () => {
 		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-		const { GET } = await importSitemapRouteWithRejectedCatalog();
+		const { GET } = await importSitemapRouteWithRejectedCollections();
 		const response = await GET({} as Parameters<typeof GET>[0]);
 		const xml = await response.text();
 
@@ -82,7 +96,39 @@ describe("sitemap", () => {
 		expect(xml).toContain("<loc>https://margarethelena.com/about</loc>");
 		expect(xml).toContain("<loc>https://margarethelena.com/shop</loc>");
 		expect(warnSpy).toHaveBeenCalledWith(
-			"[sitemap] failed to load dynamic shop URLs",
+			"[sitemap] failed to load collection URLs",
+			expect.any(Error),
+		);
+	});
+
+	it("keeps product URLs when collection URLs fail", async () => {
+		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+		const { GET } = await importSitemapRouteWithRejectedCollections([{ slug: "surviving-print" }]);
+		const response = await GET({} as Parameters<typeof GET>[0]);
+		const xml = await response.text();
+
+		expect(response.status).toBe(200);
+		expect(xml).toContain("<loc>https://margarethelena.com/shop/surviving-print</loc>");
+		expect(warnSpy).toHaveBeenCalledWith(
+			"[sitemap] failed to load collection URLs",
+			expect.any(Error),
+		);
+	});
+
+	it("keeps collection URLs when product URLs fail", async () => {
+		const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+		const { GET } = await importSitemapRouteWithRejectedProducts([
+			{ slug: "surviving-collection" },
+		]);
+		const response = await GET({} as Parameters<typeof GET>[0]);
+		const xml = await response.text();
+
+		expect(response.status).toBe(200);
+		expect(xml).toContain(
+			"<loc>https://margarethelena.com/shop/collection/surviving-collection</loc>",
+		);
+		expect(warnSpy).toHaveBeenCalledWith(
+			"[sitemap] failed to load product URLs",
 			expect.any(Error),
 		);
 	});
