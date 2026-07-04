@@ -1,5 +1,6 @@
 <script lang="ts">
 import { formatPrice, getStartingPrice } from "$lib/shop/pricing";
+import { shopCollectionPath, shopProductPath } from "$lib/shop/urls";
 import type { PageData } from "./$types";
 
 let { data }: { data: PageData } = $props();
@@ -29,7 +30,7 @@ const startingPrice = getStartingPrice();
 			<h2 class="section-title">collections</h2>
 			<div class="collections-grid">
 				{#each data.collections as collection (collection.id)}
-					<a href="/shop/collection/{collection.slug}" class="collection-card">
+					<a href={shopCollectionPath(collection.slug)} class="collection-card">
 						<div class="collection-image-wrapper">
 							<img
 								src={collection.coverImage}
@@ -62,7 +63,7 @@ const startingPrice = getStartingPrice();
 		{:else}
 			<div class="prints-grid">
 				{#each data.products as product (product.id)}
-					<a href="/shop/{product.slug}" class="print-card">
+					<a href={shopProductPath(product.slug)} class="print-card">
 						<div class="print-image-wrapper">
 							<img
 								src={product.imageUrl}

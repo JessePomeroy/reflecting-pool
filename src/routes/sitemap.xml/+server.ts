@@ -1,5 +1,6 @@
 import { SITE_URL } from "$lib/config/site";
 import { fetchCollections, fetchPrintableProducts } from "$lib/server/content/shopCatalog";
+import { shopCollectionPath, shopProductPath } from "$lib/shop/urls";
 import type { RequestHandler } from "./$types";
 
 interface SitemapPage {
@@ -37,7 +38,7 @@ export const GET: RequestHandler = async () => {
 	if (collectionsResult.status === "fulfilled") {
 		dynamicPages.push(
 			...collectionsResult.value.map((collection) => ({
-				url: `/shop/collection/${collection.slug}`,
+				url: shopCollectionPath(collection.slug),
 				priority: "0.7",
 				changefreq: "weekly",
 			})),
@@ -49,7 +50,7 @@ export const GET: RequestHandler = async () => {
 	if (productsResult.status === "fulfilled") {
 		dynamicPages.push(
 			...productsResult.value.map((product) => ({
-				url: `/shop/${product.slug}`,
+				url: shopProductPath(product.slug),
 				priority: "0.6",
 				changefreq: "monthly",
 			})),
