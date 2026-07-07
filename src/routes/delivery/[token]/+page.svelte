@@ -19,6 +19,12 @@ import {
 	submitGalleryZipDownloadForm,
 } from "$lib/galleryDelivery/downloadPlan";
 import { chooseGalleryDownloadRoute } from "$lib/galleryDelivery/downloadRoute";
+import {
+	prepareGalleryZipDownload,
+	triggerPreparedZipArchiveDownload,
+	waitForPreparedZipArchive,
+	type PreparedZipProgress,
+} from "$lib/galleryDelivery/preparedZip";
 
 let { data } = $props();
 
@@ -254,6 +260,54 @@ async function saveImagesToZip(targetImages: GalleryDownloadImage[], galleryName
 	}
 }
 
+function preparedZipStatusMessage(status: PreparedZipProgress) {
+	if (status.status === "queued") return "queued zip build...";
+	if (status.status === "building") {
+		return `building zip ${status.processedBytes > 0 ? `${status.processedBytes} bytes processed` : `${status.imageCount} files`}`;
+	}
+	if (status.status === "ready") return "zip ready. starting download...";
+	return "preparing zip...";
+}
+
+async function savePreparedZip(
+	plan: Extract<GalleryDownloadPlan, { type: "tooLarge" }>,
+	galleryName: string,
+) {
+	const controller = new AbortController();
+	folderDownloadAbortController = controller;
+	setFolderDownloadStatus("preparing zip...");
+	try {
+		const initialStatus = await prepareGalleryZipDownload({
+			fetch: window.fetch.bind(window),
+			plan,
+			signal: controller.signal,
+		});
+		const archiveUrl = await waitForPreparedZipArchive({
+			clearTimeout: window.clearTimeout,
+			fetch: window.fetch.bind(window),
+			initialStatus,
+			onStatus(status) {
+				setFolderDownloadStatus(preparedZipStatusMessage(status));
+			},
+			setTimeout: window.setTimeout,
+			signal: controller.signal,
+			token: data.token,
+			workerUrl: data.workerUrl,
+		});
+		triggerPreparedZipArchiveDownload({
+			document,
+			filename: `${galleryName}.zip`,
+			url: archiveUrl,
+		});
+		const statusToken = setFolderDownloadStatus("zip download started.");
+		clearFolderDownloadStatusLater(statusToken, 5000);
+	} finally {
+		if (folderDownloadAbortController === controller) {
+			folderDownloadAbortController = null;
+		}
+	}
+}
+
 function isPickerAbort(error: unknown) {
 	return error instanceof DOMException && error.name === "AbortError";
 }
@@ -296,11 +350,8 @@ async function downloadImages(
 			await saveImagesToFolder(targetImages);
 		} else if (route === "browserZip") {
 			await saveImagesToZip(targetImages, galleryName);
-		} else if (route === "unsupportedTooLarge") {
-			showDownloadError(
-				"this download is too large for a live zip. use a browser that supports chosen-location downloads.",
-				6000,
-			);
+		} else if (route === "preparedZip" && plan.type === "tooLarge") {
+			await savePreparedZip(plan, galleryName);
 		} else if (plan.type === "single") {
 			triggerDownload(plan.image);
 		} else if (plan.type === "zip") {
