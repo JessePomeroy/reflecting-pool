@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
 	galleryOriginalDownloadUrl,
 	galleryPreparedZipArchiveUrl,
+	galleryPreparedZipCancelUrl,
 	galleryPreparedZipStatusUrl,
 	galleryPrepareZipDownloadUrl,
 	galleryZipDownloadUrl,
@@ -38,6 +39,15 @@ describe("galleryOriginalDownloadUrl", () => {
 			),
 		).toBe(
 			"https://gallery-worker.example.com/download/zip/prepare/request%2Fwith%20spaces?token=portal%2Ftoken%3Fabc",
+		);
+		expect(
+			galleryPreparedZipCancelUrl(
+				"https://gallery-worker.example.com/",
+				"request/with spaces",
+				"portal/token?abc",
+			),
+		).toBe(
+			"https://gallery-worker.example.com/download/zip/prepare/request%2Fwith%20spaces/cancel?token=portal%2Ftoken%3Fabc",
 		);
 		expect(
 			galleryPreparedZipArchiveUrl(
