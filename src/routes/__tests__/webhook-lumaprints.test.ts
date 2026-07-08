@@ -75,6 +75,14 @@ const MOCK_CLAIM = {
 	order: MOCK_ORDER,
 };
 
+const MOCK_RECORD = {
+	recorded: true,
+	order: {
+		_id: MOCK_ORDER._id,
+		orderNumber: MOCK_ORDER.orderNumber,
+	},
+};
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe("POST /api/webhooks/lumaprints", () => {
@@ -140,7 +148,7 @@ describe("POST /api/webhooks/lumaprints", () => {
 	});
 
 	it("emails the customer with tracking info after marking the order shipped", async () => {
-		mockConvexMutation.mockResolvedValue(MOCK_CLAIM);
+		mockConvexMutation.mockResolvedValueOnce(MOCK_CLAIM).mockResolvedValueOnce(MOCK_RECORD);
 
 		const req = makeRequest({
 			body: {
@@ -165,13 +173,22 @@ describe("POST /api/webhooks/lumaprints", () => {
 				html: expect.stringContaining("https://ups.com/track?tracknum=1Z999AA10123456784"),
 			}),
 		);
+		expect(mockConvexMutation).toHaveBeenCalledTimes(2);
+		expect(mockConvexMutation.mock.calls[1][1]).toMatchObject({
+			webhookSecret: "test-webhook-secret",
+			siteUrl: "zippymiggy.com",
+			lumaprintsOrderNumber: "LP-55555",
+			status: "sent",
+		});
 	});
 
 	it("does not send a shipment email when the order has no customer email", async () => {
-		mockConvexMutation.mockResolvedValue({
-			claimed: true,
-			order: { ...MOCK_ORDER, customerEmail: "" },
-		});
+		mockConvexMutation
+			.mockResolvedValueOnce({
+				claimed: true,
+				order: { ...MOCK_ORDER, customerEmail: "" },
+			})
+			.mockResolvedValueOnce(MOCK_RECORD);
 
 		const req = makeRequest({
 			body: {
@@ -185,7 +202,12 @@ describe("POST /api/webhooks/lumaprints", () => {
 
 		await POST(req as never);
 
-		expect(mockConvexMutation).toHaveBeenCalled();
+		expect(mockConvexMutation).toHaveBeenCalledTimes(2);
+		expect(mockConvexMutation.mock.calls[1][1]).toMatchObject({
+			lumaprintsOrderNumber: "LP-55555",
+			status: "skipped",
+			error: "Order has no customer email",
+		});
 		expect(mockResendSend).not.toHaveBeenCalled();
 	});
 
@@ -220,6 +242,7 @@ describe("POST /api/webhooks/lumaprints", () => {
 	it("sends once across sequential shipment webhook replay results", async () => {
 		mockConvexMutation
 			.mockResolvedValueOnce(MOCK_CLAIM)
+			.mockResolvedValueOnce(MOCK_RECORD)
 			.mockResolvedValueOnce({ claimed: false, order: MOCK_ORDER });
 
 		const requestBody = {
@@ -235,7 +258,11 @@ describe("POST /api/webhooks/lumaprints", () => {
 
 		expect(firstResponse.status).toBe(200);
 		expect(secondResponse.status).toBe(200);
-		expect(mockConvexMutation).toHaveBeenCalledTimes(2);
+		expect(mockConvexMutation).toHaveBeenCalledTimes(3);
+		expect(mockConvexMutation.mock.calls[1][1]).toMatchObject({
+			lumaprintsOrderNumber: "LP-55555",
+			status: "sent",
+		});
 		expect(mockResendSend).toHaveBeenCalledTimes(1);
 	});
 
@@ -263,7 +290,7 @@ describe("POST /api/webhooks/lumaprints", () => {
 	});
 
 	it("still returns 200 when the shipment email send fails", async () => {
-		mockConvexMutation.mockResolvedValue(MOCK_CLAIM);
+		mockConvexMutation.mockResolvedValueOnce(MOCK_CLAIM).mockResolvedValueOnce(MOCK_RECORD);
 		mockResendSend.mockRejectedValue(new Error("Resend unavailable"));
 
 		const req = makeRequest({
@@ -279,12 +306,17 @@ describe("POST /api/webhooks/lumaprints", () => {
 		const response = await POST(req as never);
 
 		expect(response.status).toBe(200);
-		expect(mockConvexMutation).toHaveBeenCalled();
+		expect(mockConvexMutation).toHaveBeenCalledTimes(2);
+		expect(mockConvexMutation.mock.calls[1][1]).toMatchObject({
+			lumaprintsOrderNumber: "LP-55555",
+			status: "failed",
+			error: "Resend unavailable",
+		});
 		expect(mockResendSend).toHaveBeenCalledTimes(1);
 	});
 
 	it("still returns 200 when Resend returns an error result", async () => {
-		mockConvexMutation.mockResolvedValue(MOCK_CLAIM);
+		mockConvexMutation.mockResolvedValueOnce(MOCK_CLAIM).mockResolvedValueOnce(MOCK_RECORD);
 		mockResendSend.mockResolvedValue({ data: null, error: { message: "invalid sender" } });
 
 		const req = makeRequest({
@@ -300,7 +332,38 @@ describe("POST /api/webhooks/lumaprints", () => {
 		const response = await POST(req as never);
 
 		expect(response.status).toBe(200);
-		expect(mockConvexMutation).toHaveBeenCalled();
+		expect(mockConvexMutation).toHaveBeenCalledTimes(2);
+		expect(mockConvexMutation.mock.calls[1][1]).toMatchObject({
+			lumaprintsOrderNumber: "LP-55555",
+			status: "failed",
+			error: JSON.stringify({ message: "invalid sender" }),
+		});
+		expect(mockResendSend).toHaveBeenCalledTimes(1);
+	});
+
+	it("still returns 200 when recording shipment email delivery state fails", async () => {
+		mockConvexMutation
+			.mockResolvedValueOnce(MOCK_CLAIM)
+			.mockRejectedValueOnce(new Error("Convex delivery-state write failed"));
+
+		const req = makeRequest({
+			body: {
+				event: "shipment.created",
+				data: {
+					orderNumber: "LP-55555",
+					trackingNumber: "1Z999AA10123456784",
+				},
+			},
+		});
+
+		const response = await POST(req as never);
+
+		expect(response.status).toBe(200);
+		expect(mockConvexMutation).toHaveBeenCalledTimes(2);
+		expect(mockConvexMutation.mock.calls[1][1]).toMatchObject({
+			lumaprintsOrderNumber: "LP-55555",
+			status: "sent",
+		});
 		expect(mockResendSend).toHaveBeenCalledTimes(1);
 	});
 

@@ -10,6 +10,11 @@ import type { RequestHandler } from "./$types";
 const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 const FROM_EMAIL = env.FROM_EMAIL || adminConfig.fromEmail;
 
+type ShipmentEmailDeliveryResult =
+	| { status: "sent" }
+	| { status: "failed"; error: string }
+	| { status: "skipped"; error?: string };
+
 /**
  * Shared secret between this webhook and the Convex mutations it calls.
  * Must be set on both sides (Vercel `WEBHOOK_SECRET` + `npx convex env
@@ -163,12 +168,13 @@ export const POST: RequestHandler = async ({ request, url }) => {
 		const convex = getConvex();
 
 		try {
+			const webhookSecret = getWebhookSecret();
 			// The LumaPrints webhook only knows its own orderNumber. Convex owns
 			// the lookup, tracking/status patch, and one-time email claim in a
 			// single transaction so concurrent webhook deliveries cannot double
 			// email the customer.
 			const claim = await convex.mutation(api.orders.claimShipmentEmailNotification, {
-				webhookSecret: getWebhookSecret(),
+				webhookSecret,
 				siteUrl: adminConfig.siteUrl,
 				lumaprintsOrderNumber: orderNumber,
 				trackingNumber: trackingNumber || undefined,
@@ -177,12 +183,18 @@ export const POST: RequestHandler = async ({ request, url }) => {
 
 			if (claim) {
 				if (claim.claimed) {
-					await sendShipmentEmail({
+					const delivery = await sendShipmentEmail({
 						customerEmail: claim.order.customerEmail,
 						orderNumber: claim.order.orderNumber,
 						lumaprintsOrderNumber: orderNumber,
 						trackingNumber,
 						trackingUrl,
+					});
+					await recordShipmentEmailDelivery({
+						convex,
+						webhookSecret,
+						lumaprintsOrderNumber: orderNumber,
+						delivery,
 					});
 				}
 				console.log(`Order ${orderNumber} marked as shipped. Tracking: ${trackingNumber}`);
@@ -201,6 +213,31 @@ export const POST: RequestHandler = async ({ request, url }) => {
 	return json({ received: true });
 };
 
+async function recordShipmentEmailDelivery({
+	convex,
+	webhookSecret,
+	lumaprintsOrderNumber,
+	delivery,
+}: {
+	convex: ReturnType<typeof getConvex>;
+	webhookSecret: string;
+	lumaprintsOrderNumber: string;
+	delivery: ShipmentEmailDeliveryResult;
+}) {
+	try {
+		await convex.mutation(api.orders.recordShipmentEmailDelivery, {
+			webhookSecret,
+			siteUrl: adminConfig.siteUrl,
+			lumaprintsOrderNumber,
+			status: delivery.status,
+			error:
+				delivery.status === "failed" || delivery.status === "skipped" ? delivery.error : undefined,
+		});
+	} catch (err) {
+		console.error("Failed to record LumaPrints shipment email delivery state:", err);
+	}
+}
+
 async function sendShipmentEmail({
 	customerEmail,
 	orderNumber,
@@ -213,8 +250,9 @@ async function sendShipmentEmail({
 	lumaprintsOrderNumber: string;
 	trackingNumber?: string;
 	trackingUrl?: string;
-}) {
-	if (!resend || !customerEmail) return;
+}): Promise<ShipmentEmailDeliveryResult> {
+	if (!customerEmail) return { status: "skipped", error: "Order has no customer email" };
+	if (!resend) return { status: "skipped", error: "RESEND_API_KEY is not configured" };
 
 	const displayOrderNumber = orderNumber || lumaprintsOrderNumber;
 	const safeTrackingUrl = getSafeTrackingUrl(trackingUrl);
@@ -241,9 +279,22 @@ async function sendShipmentEmail({
 		});
 		if (result && typeof result === "object" && "error" in result && result.error) {
 			console.error("LumaPrints shipment email failed:", result.error);
+			return { status: "failed", error: formatError(result.error) };
 		}
+		return { status: "sent" };
 	} catch (emailErr) {
 		console.error("LumaPrints shipment email failed:", emailErr);
+		return { status: "failed", error: formatError(emailErr) };
+	}
+}
+
+function formatError(error: unknown): string {
+	if (error instanceof Error) return error.message;
+	if (typeof error === "string") return error;
+	try {
+		return JSON.stringify(error);
+	} catch {
+		return "Unknown shipment email delivery error";
 	}
 }
 

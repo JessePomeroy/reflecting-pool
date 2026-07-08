@@ -28,8 +28,8 @@ importers:
         specifier: ^2.3.8
         version: 2.3.8(@sveltejs/kit@2.69.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.56.4(@typescript-eslint/types@8.58.0))(vite@7.3.6(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.56.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.6(@types/node@25.5.2)(yaml@2.8.3)))(convex-svelte@0.14.0(@sveltejs/kit@2.69.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.56.4(@typescript-eslint/types@8.58.0))(vite@7.3.6(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.56.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.6(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.42.1(react@19.2.7))(svelte@5.56.4(@typescript-eslint/types@8.58.0))(zod@4.4.3))(convex@1.42.1(react@19.2.7))(resend@6.12.2(@react-email/render@2.0.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7)))(svelte-dnd-action@0.9.69(svelte@5.56.4(@typescript-eslint/types@8.58.0)))(svelte@5.56.4(@typescript-eslint/types@8.58.0))
       '@jessepomeroy/crm-api':
-        specifier: ^1.3.0
-        version: 1.3.0(convex@1.42.1(react@19.2.7))
+        specifier: ^1.3.2
+        version: 1.3.2(convex@1.42.1(react@19.2.7))
       '@jessepomeroy/print-catalog':
         specifier: ^0.2.0
         version: 0.2.0
@@ -872,8 +872,8 @@ packages:
       svelte: ^5.0.0
       svelte-dnd-action: ^0.9.0
 
-  '@jessepomeroy/crm-api@1.3.0':
-    resolution: {integrity: sha512-zB20/lEsajocf+xRahl7xQEPWT+7O2IsbsaLTnZwh0UU+l2Hc5Z0EQ7VbfyT+qKhe1gqNWVf1BPV4S/XYBg8Cw==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/crm-api/1.3.0/9d489d517a0c0c4409197b5268a0f4a866191dbe}
+  '@jessepomeroy/crm-api@1.3.2':
+    resolution: {integrity: sha512-NcbVpqX7CoA0OS9SaFnUFMl69aCapj6w005wxnz7funuPLpEo727Rlj56jQW6jdiXZMVLi0KjCz4Z85opI/KgQ==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/crm-api/1.3.2/0517d31aa2a36731c171d948d2fd26afd0a7fabb}
     peerDependencies:
       convex: ^1.30.0
 
@@ -3301,7 +3301,7 @@ snapshots:
       svelte: 5.56.4(@typescript-eslint/types@8.58.0)
       svelte-dnd-action: 0.9.69(svelte@5.56.4(@typescript-eslint/types@8.58.0))
 
-  '@jessepomeroy/crm-api@1.3.0(convex@1.42.1(react@19.2.7))':
+  '@jessepomeroy/crm-api@1.3.2(convex@1.42.1(react@19.2.7))':
     dependencies:
       convex: 1.42.1(react@19.2.7)
 
