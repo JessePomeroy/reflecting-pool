@@ -22,6 +22,7 @@ import { chooseGalleryDownloadRoute } from "$lib/galleryDelivery/downloadRoute";
 import {
 	cancelPreparedZipDownload,
 	prepareGalleryZipDownload,
+	savePreparedZipArchiveToFile,
 	triggerPreparedZipArchiveDownload,
 	waitForPreparedZipArchive,
 	type PreparedZipProgress,
@@ -272,6 +273,27 @@ function preparedZipStatusMessage(status: PreparedZipProgress) {
 	return "preparing zip...";
 }
 
+function formatDownloadBytes(bytes: number) {
+	if (bytes >= 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} gb`;
+	if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} mb`;
+	if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} kb`;
+	return `${bytes} b`;
+}
+
+function preparedZipSaveProgressMessage({
+	filename,
+	savedBytes,
+	totalBytes,
+}: {
+	filename: string;
+	savedBytes: number;
+	totalBytes?: number;
+}) {
+	return totalBytes
+		? `saving ${filename} · ${formatDownloadBytes(savedBytes)} / ${formatDownloadBytes(totalBytes)}`
+		: `saving ${filename} · ${formatDownloadBytes(savedBytes)}`;
+}
+
 async function savePreparedZip(
 	plan: Extract<GalleryDownloadPlan, { type: "tooLarge" }>,
 	galleryName: string,
@@ -303,12 +325,28 @@ async function savePreparedZip(
 		if (controller.signal.aborted) {
 			throw controller.signal.reason ?? new DOMException("Download canceled.", "AbortError");
 		}
-		triggerPreparedZipArchiveDownload({
-			document,
-			filename: `${galleryName}.zip`,
-			url: archiveUrl,
-		});
-		const statusToken = setFolderDownloadStatus("zip download started.");
+		const archiveFilename = `${galleryName}.zip`;
+		if (chooseDownloadFolder && zipFileDownloadsSupported) {
+			setFolderDownloadStatus("choose where to save this zip.");
+			await savePreparedZipArchiveToFile({
+				filename: archiveFilename,
+				onProgress(progress) {
+					setFolderDownloadStatus(preparedZipSaveProgressMessage(progress));
+				},
+				signal: controller.signal,
+				url: archiveUrl,
+				window,
+			});
+		} else {
+			triggerPreparedZipArchiveDownload({
+				document,
+				filename: archiveFilename,
+				url: archiveUrl,
+			});
+		}
+		const statusToken = setFolderDownloadStatus(
+			chooseDownloadFolder && zipFileDownloadsSupported ? "zip saved." : "zip download started.",
+		);
 		clearFolderDownloadStatusLater(statusToken, 5000);
 	} finally {
 		if (folderDownloadAbortController === controller) {
