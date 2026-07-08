@@ -1,7 +1,6 @@
 import { json } from "@sveltejs/kit";
 import { Resend } from "resend";
 import { api } from "$convex/api";
-import type { Id } from "$convex/dataModel";
 import { env } from "$env/dynamic/private";
 import { adminConfig } from "$lib/config/admin";
 import { getConvex } from "$lib/server/convexClient";
@@ -137,31 +136,23 @@ export const POST: RequestHandler = async ({ request, url }) => {
 		const convex = getConvex();
 
 		try {
-			// The LumaPrints webhook only knows its own orderNumber. Resolve
-			// the Convex `_id` via the by_lumaprintsOrderNumber index, then
-			// patch tracking on the order. Both calls are webhook-gated via
-			// WEBHOOK_SECRET (audit C4).
-			const order = await convex.query(api.orders.getByLumaprintsOrderNumber, {
+			// The LumaPrints webhook only knows its own orderNumber. Convex owns
+			// the lookup, tracking/status patch, and one-time email claim in a
+			// single transaction so concurrent webhook deliveries cannot double
+			// email the customer.
+			const claim = await convex.mutation(api.orders.claimShipmentEmailNotification, {
 				webhookSecret: getWebhookSecret(),
 				siteUrl: adminConfig.siteUrl,
 				lumaprintsOrderNumber: orderNumber,
+				trackingNumber: trackingNumber || undefined,
+				trackingUrl: trackingUrl || undefined,
 			});
 
-			if (order) {
-				const shouldSendShipmentEmail = order.status !== "shipped";
-
-				await convex.mutation(api.orders.updateStatus, {
-					webhookSecret: getWebhookSecret(),
-					orderId: order._id as Id<"orders">,
-					status: "shipped",
-					trackingNumber: trackingNumber || undefined,
-					trackingUrl: trackingUrl || undefined,
-				});
-
-				if (shouldSendShipmentEmail) {
+			if (claim) {
+				if (claim.claimed) {
 					await sendShipmentEmail({
-						customerEmail: order.customerEmail,
-						orderNumber: order.orderNumber,
+						customerEmail: claim.order.customerEmail,
+						orderNumber: claim.order.orderNumber,
 						lumaprintsOrderNumber: orderNumber,
 						trackingNumber,
 						trackingUrl,
