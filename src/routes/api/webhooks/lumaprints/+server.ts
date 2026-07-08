@@ -27,6 +27,33 @@ function getWebhookSecret(): string {
 	return secret;
 }
 
+function getErrorMessage(err: unknown): string {
+	if (err instanceof Error) return err.message;
+	if (typeof err === "string") return err;
+	return "";
+}
+
+function isRetryableConvexShipmentClaimFailure(err: unknown): boolean {
+	const message = getErrorMessage(err).toLowerCase();
+	if (!message) return false;
+
+	const referencesShipmentClaim = message.includes("claimshipmentemailnotification");
+	const looksLikeMissingFunction =
+		message.includes("could not find") ||
+		message.includes("not found") ||
+		message.includes("no such function") ||
+		message.includes("functionnotfound");
+
+	if (referencesShipmentClaim && looksLikeMissingFunction) return true;
+
+	return (
+		message.includes("fetch failed") ||
+		message.includes("network error") ||
+		message.includes("connection timeout") ||
+		message.includes("request timed out")
+	);
+}
+
 /**
  * Constant-time string comparison to avoid leaking secret length / prefix
  * via timing. Cheap; the strings involved are small.
@@ -164,6 +191,9 @@ export const POST: RequestHandler = async ({ request, url }) => {
 			}
 		} catch (err) {
 			console.error("Failed to update order from LumaPrints webhook:", err);
+			if (isRetryableConvexShipmentClaimFailure(err)) {
+				return json({ error: "Shipment processing temporarily unavailable" }, { status: 503 });
+			}
 			// Return 200 so LumaPrints doesn't retry — we'll handle it manually
 		}
 	}
