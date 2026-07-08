@@ -13,7 +13,7 @@
 		"lint": "biome check .",
 		"test": "vitest run",
 		"smoke:gallery-host-bulk-delete": "node scripts/smoke-gallery-host-bulk-delete.mjs",
-		"test:browser": "playwright test"
+		"test:browser": "node scripts/run-playwright.mjs"
 	},
 	"engines": {
 		"node": ">=22.0.0",
