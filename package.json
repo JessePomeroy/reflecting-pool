@@ -40,8 +40,11 @@
 		"vitest": "^4.1.9"
 	},
 	"lint-staged": {
-		"*.{js,ts,svelte,json}": [
+		"*.{js,ts,json}": [
 			"biome check --write"
+		],
+		"*.svelte": [
+			"svelte-check --tsconfig ./tsconfig.json"
 		]
 	},
 	"pnpm": {
