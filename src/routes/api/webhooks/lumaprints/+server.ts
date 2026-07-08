@@ -1,10 +1,15 @@
 import { json } from "@sveltejs/kit";
+import { Resend } from "resend";
 import { api } from "$convex/api";
 import type { Id } from "$convex/dataModel";
 import { env } from "$env/dynamic/private";
 import { adminConfig } from "$lib/config/admin";
 import { getConvex } from "$lib/server/convexClient";
+import { escapeHtml } from "$lib/server/html";
 import type { RequestHandler } from "./$types";
+
+const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
+const FROM_EMAIL = env.FROM_EMAIL || adminConfig.fromEmail;
 
 /**
  * Shared secret between this webhook and the Convex mutations it calls.
@@ -143,6 +148,8 @@ export const POST: RequestHandler = async ({ request, url }) => {
 			});
 
 			if (order) {
+				const shouldSendShipmentEmail = order.status !== "shipped";
+
 				await convex.mutation(api.orders.updateStatus, {
 					webhookSecret: getWebhookSecret(),
 					orderId: order._id as Id<"orders">,
@@ -151,8 +158,15 @@ export const POST: RequestHandler = async ({ request, url }) => {
 					trackingUrl: trackingUrl || undefined,
 				});
 
-				// TODO: Send "order shipped" email to customer with tracking info.
-				// Audit L5 — this TODO is tracked; land before first real customer.
+				if (shouldSendShipmentEmail) {
+					await sendShipmentEmail({
+						customerEmail: order.customerEmail,
+						orderNumber: order.orderNumber,
+						lumaprintsOrderNumber: orderNumber,
+						trackingNumber,
+						trackingUrl,
+					});
+				}
 				console.log(`Order ${orderNumber} marked as shipped. Tracking: ${trackingNumber}`);
 			} else {
 				console.warn(`LumaPrints webhook: no Convex order found for LumaPrints #${orderNumber}`);
@@ -165,3 +179,60 @@ export const POST: RequestHandler = async ({ request, url }) => {
 
 	return json({ received: true });
 };
+
+async function sendShipmentEmail({
+	customerEmail,
+	orderNumber,
+	lumaprintsOrderNumber,
+	trackingNumber,
+	trackingUrl,
+}: {
+	customerEmail?: string;
+	orderNumber?: string;
+	lumaprintsOrderNumber: string;
+	trackingNumber?: string;
+	trackingUrl?: string;
+}) {
+	if (!resend || !customerEmail) return;
+
+	const displayOrderNumber = orderNumber || lumaprintsOrderNumber;
+	const safeTrackingUrl = getSafeTrackingUrl(trackingUrl);
+	const trackingMarkup = trackingUrl
+		? safeTrackingUrl
+			? `<p><a href="${escapeHtml(safeTrackingUrl)}">track your shipment</a></p>`
+			: `<p><strong>tracking link:</strong> ${escapeHtml(trackingUrl)}</p>`
+		: trackingNumber
+			? `<p><strong>tracking:</strong> ${escapeHtml(trackingNumber)}</p>`
+			: "<p>Your print has shipped. Tracking details should update soon.</p>";
+
+	try {
+		const result = await resend.emails.send({
+			from: FROM_EMAIL,
+			to: customerEmail,
+			subject: `your reflecting pool order ${displayOrderNumber} has shipped`,
+			html: `
+				<p>Hi there,</p>
+				<p>Your reflecting pool print order has shipped.</p>
+				<p><strong>order:</strong> ${escapeHtml(displayOrderNumber)}</p>
+				${trackingMarkup}
+				<p>— Margaret</p>
+			`,
+		});
+		if (result && typeof result === "object" && "error" in result && result.error) {
+			console.error("LumaPrints shipment email failed:", result.error);
+		}
+	} catch (emailErr) {
+		console.error("LumaPrints shipment email failed:", emailErr);
+	}
+}
+
+function getSafeTrackingUrl(value: string | undefined): string | null {
+	if (!value) return null;
+	try {
+		const url = new URL(value);
+		if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+		return url.toString();
+	} catch {
+		return null;
+	}
+}
