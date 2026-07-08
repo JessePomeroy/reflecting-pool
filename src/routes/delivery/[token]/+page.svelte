@@ -21,7 +21,9 @@ import {
 import { chooseGalleryDownloadRoute } from "$lib/galleryDelivery/downloadRoute";
 import {
 	cancelPreparedZipDownload,
+	choosePreparedZipArchiveFile,
 	prepareGalleryZipDownload,
+	savePreparedZipArchiveResponseToFile,
 	triggerPreparedZipArchiveDownload,
 	waitForPreparedZipArchive,
 	type PreparedZipProgress,
@@ -272,14 +274,45 @@ function preparedZipStatusMessage(status: PreparedZipProgress) {
 	return "preparing zip...";
 }
 
+function formatDownloadBytes(bytes: number) {
+	if (bytes >= 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} gb`;
+	if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} mb`;
+	if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} kb`;
+	return `${bytes} b`;
+}
+
+function preparedZipSaveProgressMessage({
+	filename,
+	savedBytes,
+	totalBytes,
+}: {
+	filename: string;
+	savedBytes: number;
+	totalBytes?: number;
+}) {
+	return totalBytes
+		? `saving ${filename} · ${formatDownloadBytes(savedBytes)} / ${formatDownloadBytes(totalBytes)}`
+		: `saving ${filename} · ${formatDownloadBytes(savedBytes)}`;
+}
+
 async function savePreparedZip(
 	plan: Extract<GalleryDownloadPlan, { type: "tooLarge" }>,
 	galleryName: string,
 ) {
 	const controller = new AbortController();
 	let requestId: string | null = null;
-	setFolderDownloadStatus("preparing zip...");
+	const archiveFilename = `${galleryName}.zip`;
+	const shouldChooseArchiveFile = chooseDownloadFolder && zipFileDownloadsSupported;
+	folderDownloadAbortController = controller;
+	setFolderDownloadStatus(shouldChooseArchiveFile ? "choose where to save this zip." : "preparing zip...");
 	try {
+		const archiveFile = shouldChooseArchiveFile
+			? await choosePreparedZipArchiveFile({
+					filename: archiveFilename,
+					window,
+				})
+			: null;
+		setFolderDownloadStatus("preparing zip...");
 		const initialStatus = await prepareGalleryZipDownload({
 			fetch: window.fetch.bind(window),
 			plan,
@@ -303,12 +336,26 @@ async function savePreparedZip(
 		if (controller.signal.aborted) {
 			throw controller.signal.reason ?? new DOMException("Download canceled.", "AbortError");
 		}
-		triggerPreparedZipArchiveDownload({
-			document,
-			filename: `${galleryName}.zip`,
-			url: archiveUrl,
-		});
-		const statusToken = setFolderDownloadStatus("zip download started.");
+		if (archiveFile) {
+			await savePreparedZipArchiveResponseToFile({
+				archiveFile,
+				onProgress(progress) {
+					setFolderDownloadStatus(preparedZipSaveProgressMessage(progress));
+				},
+				signal: controller.signal,
+				url: archiveUrl,
+				window,
+			});
+		} else {
+			triggerPreparedZipArchiveDownload({
+				document,
+				filename: archiveFilename,
+				url: archiveUrl,
+			});
+		}
+		const statusToken = setFolderDownloadStatus(
+			shouldChooseArchiveFile ? "zip saved." : "zip download started.",
+		);
 		clearFolderDownloadStatusLater(statusToken, 5000);
 	} finally {
 		if (folderDownloadAbortController === controller) {
