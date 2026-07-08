@@ -364,7 +364,28 @@ describe("POST /api/webhooks/lumaprints", () => {
 		expect(mockConvexQuery).not.toHaveBeenCalled();
 	});
 
-	it("returns 200 even when Convex update throws (do not crash)", async () => {
+	it("returns 503 when the shared Convex claim mutation is not deployed yet", async () => {
+		mockConvexMutation.mockRejectedValue(
+			new Error("Could not find public function orders.claimShipmentEmailNotification"),
+		);
+
+		const req = makeRequest({
+			body: {
+				event: "shipment.created",
+				data: {
+					orderNumber: "LP-55555",
+					trackingNumber: "1Z999",
+					carrier: "USPS",
+				},
+			},
+		});
+
+		const response = await POST(req as never);
+		expect(response.status).toBe(503);
+		expect(mockResendSend).not.toHaveBeenCalled();
+	});
+
+	it("returns 503 when the Convex claim request has a transient network failure", async () => {
 		mockConvexMutation.mockRejectedValue(new Error("Convex connection timeout"));
 
 		const req = makeRequest({
@@ -379,7 +400,26 @@ describe("POST /api/webhooks/lumaprints", () => {
 		});
 
 		const response = await POST(req as never);
-		// Should not throw 500 — return 200 and let it be handled manually
+		expect(response.status).toBe(503);
+		expect(mockResendSend).not.toHaveBeenCalled();
+	});
+
+	it("returns 200 when Convex reports a permanent shipment claim error", async () => {
+		mockConvexMutation.mockRejectedValue(new Error("Duplicate LumaPrints order number"));
+
+		const req = makeRequest({
+			body: {
+				event: "shipment.created",
+				data: {
+					orderNumber: "LP-55555",
+					trackingNumber: "1Z999",
+					carrier: "USPS",
+				},
+			},
+		});
+
+		const response = await POST(req as never);
 		expect(response.status).toBe(200);
+		expect(mockResendSend).not.toHaveBeenCalled();
 	});
 });
