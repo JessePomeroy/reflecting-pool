@@ -10,11 +10,13 @@ const images: GalleryDownloadImage[] = [
 		downloadUrl: "https://gallery-worker.example.com/download/a?token=t",
 		filename: "image/001.jpg",
 		r2Key: "reflecting-pool.com/gallery/original/image-001.jpg",
+		sizeBytes: 1000,
 	},
 	{
 		downloadUrl: "https://gallery-worker.example.com/download/b?token=t",
 		filename: "image/001.jpg",
 		r2Key: "reflecting-pool.com/gallery/original/image-001-copy.jpg",
+		sizeBytes: 1000,
 	},
 ];
 
