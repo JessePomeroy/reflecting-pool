@@ -2,8 +2,22 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Module Mocks ─────────────────────────────────────────────────────────────
 
+const { mockResendSend } = vi.hoisted(() => ({
+	mockResendSend: vi.fn(),
+}));
+
 const mockConvexQuery = vi.fn();
 const mockConvexMutation = vi.fn();
+
+vi.mock("resend", () => ({
+	Resend: vi.fn(function Resend() {
+		return {
+			emails: {
+				send: mockResendSend,
+			},
+		};
+	}),
+}));
 
 vi.mock("../../lib/server/convexClient", () => ({
 	getConvex: () => ({
@@ -21,6 +35,8 @@ vi.mock("$env/dynamic/private", () => ({
 		WEBHOOK_SECRET: "test-webhook-secret",
 		LUMAPRINTS_WEBHOOK_SECRET: "test-shared-secret",
 		LUMAPRINTS_WEBHOOK_SIGNING_SECRET: "",
+		RESEND_API_KEY: "test-resend",
+		FROM_EMAIL: "Reflecting Pool <orders@example.test>",
 	},
 }));
 
@@ -65,6 +81,7 @@ describe("POST /api/webhooks/lumaprints", () => {
 	beforeEach(async () => {
 		vi.clearAllMocks();
 		vi.resetModules();
+		mockResendSend.mockResolvedValue({ id: "email_123" });
 
 		const mod = await import("../../routes/api/webhooks/lumaprints/+server");
 		POST = mod.POST as unknown as typeof POST;
@@ -126,6 +143,153 @@ describe("POST /api/webhooks/lumaprints", () => {
 			trackingNumber: "1Z999AA10123456784",
 			trackingUrl: "https://ups.com/track?tracknum=1Z999AA10123456784",
 		});
+	});
+
+	it("emails the customer with tracking info after marking the order shipped", async () => {
+		mockConvexQuery.mockResolvedValue(MOCK_ORDER);
+		mockConvexMutation.mockResolvedValue(undefined);
+
+		const req = makeRequest({
+			body: {
+				event: "shipment.created",
+				data: {
+					orderNumber: "LP-55555",
+					trackingNumber: "1Z999AA10123456784",
+					trackingUrl: "https://ups.com/track?tracknum=1Z999AA10123456784",
+					carrier: "UPS",
+				},
+			},
+		});
+
+		await POST(req as never);
+
+		expect(mockResendSend).toHaveBeenCalledTimes(1);
+		expect(mockResendSend).toHaveBeenCalledWith(
+			expect.objectContaining({
+				from: "Reflecting Pool <orders@example.test>",
+				to: "jane@example.com",
+				subject: "your reflecting pool order ORD-00099 has shipped",
+				html: expect.stringContaining("https://ups.com/track?tracknum=1Z999AA10123456784"),
+			}),
+		);
+	});
+
+	it("does not send a shipment email when the order has no customer email", async () => {
+		mockConvexQuery.mockResolvedValue({ ...MOCK_ORDER, customerEmail: "" });
+		mockConvexMutation.mockResolvedValue(undefined);
+
+		const req = makeRequest({
+			body: {
+				event: "shipment.created",
+				data: {
+					orderNumber: "LP-55555",
+					trackingNumber: "1Z999AA10123456784",
+				},
+			},
+		});
+
+		await POST(req as never);
+
+		expect(mockConvexMutation).toHaveBeenCalled();
+		expect(mockResendSend).not.toHaveBeenCalled();
+	});
+
+	it("does not send a duplicate shipment email when a webhook replay finds an already shipped order", async () => {
+		mockConvexQuery.mockResolvedValue({
+			...MOCK_ORDER,
+			status: "shipped",
+			trackingNumber: "1Z999AA10123456784",
+		});
+		mockConvexMutation.mockResolvedValue(undefined);
+
+		const req = makeRequest({
+			body: {
+				event: "shipment.created",
+				data: {
+					orderNumber: "LP-55555",
+					trackingNumber: "1Z999AA10123456784",
+				},
+			},
+		});
+
+		await POST(req as never);
+
+		expect(mockConvexMutation).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				status: "shipped",
+				trackingNumber: "1Z999AA10123456784",
+			}),
+		);
+		expect(mockResendSend).not.toHaveBeenCalled();
+	});
+
+	it("does not render non-http tracking URLs as clickable email links", async () => {
+		mockConvexQuery.mockResolvedValue(MOCK_ORDER);
+		mockConvexMutation.mockResolvedValue(undefined);
+
+		const req = makeRequest({
+			body: {
+				event: "shipment.created",
+				data: {
+					orderNumber: "LP-55555",
+					trackingUrl: "javascript:alert(1)",
+				},
+			},
+		});
+
+		await POST(req as never);
+
+		expect(mockResendSend).toHaveBeenCalledWith(
+			expect.objectContaining({
+				html: expect.stringContaining("tracking link:</strong> javascript:alert(1)"),
+			}),
+		);
+		expect(mockResendSend.mock.calls[0][0].html).not.toContain('href="javascript:');
+	});
+
+	it("still returns 200 when the shipment email send fails", async () => {
+		mockConvexQuery.mockResolvedValue(MOCK_ORDER);
+		mockConvexMutation.mockResolvedValue(undefined);
+		mockResendSend.mockRejectedValue(new Error("Resend unavailable"));
+
+		const req = makeRequest({
+			body: {
+				event: "shipment.created",
+				data: {
+					orderNumber: "LP-55555",
+					trackingNumber: "1Z999AA10123456784",
+				},
+			},
+		});
+
+		const response = await POST(req as never);
+
+		expect(response.status).toBe(200);
+		expect(mockConvexMutation).toHaveBeenCalled();
+		expect(mockResendSend).toHaveBeenCalledTimes(1);
+	});
+
+	it("still returns 200 when Resend returns an error result", async () => {
+		mockConvexQuery.mockResolvedValue(MOCK_ORDER);
+		mockConvexMutation.mockResolvedValue(undefined);
+		mockResendSend.mockResolvedValue({ data: null, error: { message: "invalid sender" } });
+
+		const req = makeRequest({
+			body: {
+				event: "shipment.created",
+				data: {
+					orderNumber: "LP-55555",
+					trackingNumber: "1Z999AA10123456784",
+				},
+			},
+		});
+
+		const response = await POST(req as never);
+
+		expect(response.status).toBe(200);
+		expect(mockConvexMutation).toHaveBeenCalled();
+		expect(mockResendSend).toHaveBeenCalledTimes(1);
 	});
 
 	it("handles unknown order gracefully (no Convex mutation)", async () => {
