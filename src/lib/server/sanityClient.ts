@@ -4,12 +4,8 @@ import { createClient } from "@sanity/client";
 import { env } from "$env/dynamic/private";
 import { env as publicEnv } from "$env/dynamic/public";
 
-// Per-client Sanity tenancy is currently undecided (platform-owned vs
-// client-owned, see angelsrest CLAUDE.md). Until a tenant's project is
-// provisioned, Vercel won't have these vars set; using $env/dynamic/private
-// defers the missing-secret failure from build to request time so the rest
-// of the site can deploy. Sanity-backed content routes fall back until real
-// values are pushed.
+// The Studio owns a client-specific Sanity project. Dynamic env access keeps
+// builds and local fallback content usable when project configuration is absent.
 //
 // Lazy-init is required: the @sanity/client constructor throws
 // "Configuration must contain `projectId`" if projectId is undefined,

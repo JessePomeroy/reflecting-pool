@@ -5,12 +5,10 @@ import Stripe from "stripe";
 import { env } from "$env/dynamic/private";
 import type { CheckoutMetadata } from "$lib/shop/types";
 
-// Stripe Connect Express migration is on the roadmap; once that lands the
-// keys move to platform-level vars wired the same way. Until then, accessing
-// these via `$env/dynamic/private` defers a missing-secret failure from
-// build-time (where SvelteKit's static import would harden it) to request
-// time on the few routes that actually invoke Stripe (checkout + webhook).
-// That trade is intentional — see commit message and angelsrest CLAUDE.md.
+// Connected-account checkout sessions are normally created through the Angels
+// Rest hub bridge. This local client verifies webhook signatures and supports
+// the direct checkout helper retained below. Dynamic env access defers missing
+// credentials to the routes that actually use Stripe.
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
 	// Pinned to a tested API version. Stripe SDK v22 narrows `apiVersion`
 	// to its build-time default ("2026-02-25.clover"); at runtime Stripe

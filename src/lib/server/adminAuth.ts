@@ -6,11 +6,9 @@ import { env as publicEnv } from "$env/dynamic/public";
 /**
  * Verify the request has a valid Better Auth session.
  *
- * Audit C12: previously the admin layout loader `+layout.server.ts` did zero
- * server-side auth — it called `api.platform.checkTier` and returned `tier`
- * and `isCreator` to any unauthenticated visitor. Child loaders likewise ran
- * without session validation. Browser-side gates in admin-dashboard's
- * AuthGuard don't protect the data fetched by `+*.server.ts`; this does.
+ * Browser-side gates in admin-dashboard's AuthGuard do not protect data
+ * fetched by `+*.server.ts`; every server loader must validate the session
+ * before it reads or returns admin data.
  *
  * Flow: read the Better Auth cookie → hit Convex's `api.adminAuth.whoami`
  * with the token. Convex parses the JWT with its configured public key and

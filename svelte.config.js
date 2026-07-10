@@ -20,23 +20,17 @@ const config = {
 		},
 	},
 	kit: {
-		// Pin runtime + maxDuration explicitly. Without these, Vercel uses
-		// its evolving defaults — which have bitten the Stripe webhook on
-		// the hub repo before when the implicit function timeout shortened
-		// (audit H47). nodejs22.x matches the `node-version: 22` used in
-		// CI; 30s is generous for webhook + LumaPrints round trips once
-		// those land here.
+		// Pin runtime + maxDuration explicitly so Vercel defaults cannot change
+		// webhook behavior. Node 22 matches package/CI requirements; the longer
+		// request budget covers Stripe and LumaPrints round trips.
 		adapter: adapter({
 			runtime: "nodejs22.x",
 			maxDuration: 30,
 		}),
 		alias: {
-			// Convex schema + generated types live in the angelsrest monorepo and
-			// are consumed here via @jessepomeroy/crm-api (linked via
-			// `link:../angelsrest/packages/crm-api` in package.json). SvelteKit
-			// aliases are resolved as filesystem paths, not package specifiers,
-			// so we point at node_modules/ directly — pnpm's link creates a
-			// symlink there that TS + Vite both follow.
+			// Convex schema + generated types are published by the Angels Rest
+			// `@jessepomeroy/crm-api` package. SvelteKit aliases resolve filesystem
+			// paths, so point at the installed package source.
 			$convex: "./node_modules/@jessepomeroy/crm-api/src",
 		},
 		experimental: {

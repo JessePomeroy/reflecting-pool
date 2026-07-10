@@ -15,12 +15,9 @@ function getConvex() {
 }
 
 /**
- * Server-side auth gate for /admin/** (audit C12). The admin layout relied
- * entirely on the client-side `<AuthGuard>` before, which meant
- * `+layout.server.ts` handed out `tier` to any unauthenticated caller that
- * hit `/admin`. Validating the session here kills that surface: the server
- * refuses to load admin data unless Convex confirms the Better Auth
- * session is intact.
+ * Server-side auth gate for /admin/**. Browser-side `<AuthGuard>` controls
+ * rendering, while this loader independently validates the Better Auth
+ * session before it reads or returns admin data.
  *
  * We don't redirect to a login URL — there isn't a dedicated /login route
  * in this app; the AuthGuard component renders `<LoginPage>` inline when
