@@ -10,7 +10,7 @@ LumaPrints owns production/shipment.
 /api/checkout
   → checkoutIntake.ts (rate, shape, and server-price validation)
   → checkoutBridge.ts (signed request to Angels Rest hub)
-  → Stripe Connect Checkout
+  → hub-owned Stripe Checkout (platform during testing; Connect after handoff)
   → Angels Rest /api/webhooks/stripe (tenant resolution + signature verification)
   → hub orderIntake.ts (Convex order + LumaPrints + refund recovery + email)
 ```
@@ -18,6 +18,11 @@ LumaPrints owns production/shipment.
 The Convex order is idempotent by Stripe checkout session. A persisted
 `lumaprintsOrderNumber` prevents a repeated Stripe event from submitting a
 second physical order.
+
+Reflecting Pool is still pre-handoff and has no connected Stripe account. That
+is acceptable for controlled testing on the hub platform account; client-owned
+live sales require completed Connect onboarding and verified Connect-event
+delivery to the hub first.
 
 ## Inbound shipment flow
 
@@ -37,12 +42,13 @@ Resend remains an external side effect whose outcome must be observable.
 | Papers, sizes, frames, canvas, Luma IDs | `@jessepomeroy/print-catalog` |
 | Retail pricing policy | `src/lib/shop/pricing.ts` |
 | Order and shipment-email state | shared Convex `orders` |
-| Luma HTTP client and payload builder | Angels Rest hub for outbound orders; this spoke for shipment lookup |
+| Luma HTTP client and payload builder | Angels Rest hub |
 | Checkout request validation | `checkoutIntake.ts`, `checkoutBridge.ts` |
 | Order/refund orchestration | Angels Rest commerce webhook and `orderIntake.ts` |
 
-The spoke's Stripe `orderIntake.ts` remains temporarily for a staged endpoint
-migration and must not be copied into future client repositories.
+This spoke owns only the authenticated inbound shipment callback and its
+client-branded shipment email. It has no outbound LumaPrints credentials or
+order-submission client.
 
 ## Image constraints
 
@@ -57,20 +63,17 @@ migration and must not be copied into future client repositories.
 
 The authoritative variable list is `.env.example`. Relevant groups include:
 
-- Stripe/checkout bridge
+- Checkout bridge
 - `WEBHOOK_SECRET`
-- `LUMAPRINTS_API_KEY`, `LUMAPRINTS_API_SECRET`, `LUMAPRINTS_STORE_ID`
-- `LUMAPRINTS_USE_SANDBOX`
 - LumaPrints webhook secret/signing secret
 - Resend sender/recipient configuration
 
-Use `.env.local` for development and LumaPrints sandbox outside production.
+Use `.env.local` for local development. Do not run external shipment or email
+smoke tests against production without explicit scope.
 
 ## Verification
 
 ```bash
-pnpm exec vitest run src/lib/__tests__/lumaprints.test.ts
-pnpm exec vitest run src/routes/__tests__/webhook-stripe.test.ts
 pnpm exec vitest run src/routes/__tests__/webhook-lumaprints.test.ts
 pnpm test
 ```

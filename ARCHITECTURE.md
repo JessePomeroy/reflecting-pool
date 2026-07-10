@@ -12,7 +12,7 @@ reflecting-pool (SvelteKit host)
   ├── @jessepomeroy/crm-api / shared Convex (operations)
   ├── @jessepomeroy/admin (shared admin UI and server handlers)
   ├── @jessepomeroy/print-catalog (pure print metadata/pricing)
-  ├── angelsrest hub checkout bridge (Stripe Connect session creation)
+  ├── angelsrest hub checkout bridge (Stripe session creation and tenant routing)
   └── gallery-worker (R2 upload and delivery)
 ```
 
@@ -24,7 +24,7 @@ components and fallback content remain local.
 | Domain | Owner | Local boundary |
 |---|---|---|
 | Homepage, portfolio, about, modeling, shop catalog, site settings | Sanity | `src/lib/server/content/`, `sanityClient.ts` |
-| Orders and fulfillment state | Shared Convex | Angels Rest commerce webhook; local `orderIntake.ts` is migration-only |
+| Orders and fulfillment state | Shared Convex | Angels Rest commerce webhook |
 | CRM, invoices, quotes, contracts, messages, board | Shared Convex | `@jessepomeroy/admin` pages |
 | Private delivery gallery metadata | Shared Convex | delivery page/admin package |
 | Delivery image/archive objects | Gallery Worker + R2 | `src/lib/galleryDelivery/`, admin server routes |
@@ -49,17 +49,19 @@ data rather than importing Sanity credentials or clients.
 4. `checkoutBridge.ts` sends a signed request to the Angels Rest hub.
 5. The request carries the bare-domain operational tenant key separately from
    this site's public redirect origin.
-6. The hub creates a Stripe Connect Checkout session for this tenant.
-7. Stripe sends the connected-account event to the hub commerce webhook.
+6. The hub resolves the tenant and creates Checkout. During pre-handoff testing,
+   Reflecting Pool has no connected Stripe account and uses the hub platform
+   account; client handoff requires completed Connect onboarding.
+7. Stripe sends the platform-account or connected-account event to the hub
+   commerce webhook.
 8. The hub creates/reuses the shared Convex order, submits LumaPrints, applies
    refund recovery, and sends applicable notifications.
 
-The local Stripe webhook and `orderIntake.ts` remain only as a staged migration
-compatibility path. Existing deployments default to that path until live Stripe
-routing is verified. With `STRIPE_COMMERCE_WEBHOOK_OWNER=hub`, an unexpected
-local Checkout event returns a non-2xx response and performs no side effects.
-Future spokes use the bridge and hub webhook; they do not copy this compatibility
-path.
+This spoke has no Stripe webhook or outbound LumaPrints client. Future spokes use
+the bridge and hub webhook; they do not copy order-intake or fulfillment code.
+Before accepting client-owned live orders, verify the tenant has a connected
+account and the hub's Stripe Connect destination receives connected-account
+`checkout.session.completed` events.
 
 ### Shipment webhook
 

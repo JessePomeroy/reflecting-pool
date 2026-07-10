@@ -70,13 +70,16 @@ testing client navigation, refresh, expiry, and logout behavior.
 ## Commerce and fulfillment
 
 - `/api/checkout` rate-limits and validates the requested print against local
-  shared pricing, then asks the Angels Rest hub to create the connected-account
-  Stripe session.
+  shared pricing, then asks the Angels Rest hub to create the tenant's Stripe
+  session. It uses the platform account during controlled pre-handoff testing
+  and the connected account after onboarding.
 - The Angels Rest `/api/webhooks/stripe` endpoint is the single commerce-event
   owner for this spoke and future Stripe Connect clients.
-- This repository's `/api/webhooks/stripe` and `orderIntake.ts` are temporary
-  migration compatibility paths. Do not copy them into future client spokes;
-  remove them only after the live Stripe endpoint and hub delivery are verified.
+- This repository has no Stripe commerce webhook or outbound LumaPrints client.
+  Do not add either to a future client spoke.
+- Reflecting Pool remains pre-handoff and currently has no connected Stripe
+  account. Complete Connect onboarding and verify the hub's connected-account
+  webhook destination before enabling client-owned live orders.
 - `/api/webhooks/lumaprints` verifies the configured webhook secret/signature,
   atomically claims shipment notification in Convex, and records Resend delivery
   state.
@@ -99,8 +102,7 @@ See `LUMAPRINTS.md` before changing this flow.
 - Admin host config: `src/lib/config/admin.ts`, `admin.server.ts`
 - Sanity boundary: `src/lib/server/sanityClient.ts`, `src/lib/server/content/`
 - Checkout boundary: `src/lib/server/checkoutIntake.ts`, `checkoutBridge.ts`
-- Temporary Stripe order-intake compatibility path: `src/lib/server/orderIntake.ts`
-- LumaPrints client: `src/lib/server/lumaprints.ts`
+- LumaPrints shipment boundary: `src/routes/api/webhooks/lumaprints/+server.ts`
 - Gallery delivery helpers: `src/lib/galleryDelivery/`
 - Shared package aliases: `svelte.config.js`
 
