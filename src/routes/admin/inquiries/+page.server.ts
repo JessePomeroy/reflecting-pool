@@ -7,9 +7,8 @@ export const load: PageServerLoad = async ({ parent }): Promise<{ inquiries: Inq
 	const { adminSession } = await parent();
 	if (adminSession.status !== "authorized") return { inquiries: [] };
 
-	// Reflecting-pool inquiries belong in Convex, not Sanity. Until H42c ports
-	// the inquiries module into the shared CRM API, hand back an empty list so
-	// `<InquiriesPage>` renders without type errors. When H42c lands, mirror
-	// angelsrest's pattern and call `api.inquiries.list` here.
+	// Inquiries belong in shared Convex, not Sanity. This host has not wired the
+	// shared inquiry query yet, so the page is deliberately empty rather than
+	// reading from the wrong data source.
 	return { inquiries: [] };
 };

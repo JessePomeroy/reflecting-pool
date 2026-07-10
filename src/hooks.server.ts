@@ -4,8 +4,8 @@
  * Security headers, auth route handling, and server error capture through
  * @sentry/node.
  * Admin auth is enforced both server-side (via `$lib/server/adminAuth.ts`
- * called from admin loaders, audit C12) and client-side (via Better Auth
- * AuthGuard in the admin dashboard package).
+ * called from admin loaders) and client-side (via Better Auth AuthGuard in
+ * the admin dashboard package).
  *
  * The Sentry init itself lives in `src/instrumentation.server.ts` (loaded
  * by SvelteKit's experimental.instrumentation.server hook). This file only

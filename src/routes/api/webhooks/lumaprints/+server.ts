@@ -18,9 +18,9 @@ type ShipmentEmailDeliveryResult =
 /**
  * Shared secret between this webhook and the Convex mutations it calls.
  * Must be set on both sides (Vercel `WEBHOOK_SECRET` + `npx convex env
- * set WEBHOOK_SECRET`). Audit C4: Convex mutations
- * `requireWebhookCallerOrAuth` and reject on mismatch, so we fail loudly
- * here rather than silently sending unauth'd calls.
+ * set WEBHOOK_SECRET`). Convex mutations call
+ * `requireWebhookCallerOrAuth` and reject on mismatch, so this route fails
+ * loudly rather than silently sending unauthenticated calls.
  */
 function getWebhookSecret(): string {
 	const secret = env.WEBHOOK_SECRET;
@@ -73,10 +73,8 @@ function constantTimeEquals(a: string, b: string): boolean {
 }
 
 /**
- * Verify the LumaPrints webhook caller. Audit C9 — previously the handler
- * accepted any POST with a JSON body and trusted the event payload
- * directly, which meant an attacker could forge `shipment.created` events
- * to mark any order shipped with fake tracking.
+ * Verify the LumaPrints webhook caller before trusting shipment data that
+ * can change order state and trigger customer email.
  *
  * Gate strategy (layered, either passes):
  *   1. `X-Webhook-Signature` header — HMAC-SHA256 of the raw body using
