@@ -1,7 +1,5 @@
 import { json } from "@sveltejs/kit";
 import type Stripe from "stripe";
-import { getCommerceWebhookOwner } from "$lib/server/commerceWebhookOwnership";
-import { processStripeWebhookEvent } from "$lib/server/orderIntake";
 import { verifyWebhook } from "$lib/server/stripe";
 import type { RequestHandler } from "./$types";
 
@@ -21,13 +19,12 @@ export const POST: RequestHandler = async ({ request }) => {
 		return json({ error: "Invalid signature" }, { status: 400 });
 	}
 
-	if (event.type === "checkout.session.completed" && getCommerceWebhookOwner() === "hub") {
+	if (event.type === "checkout.session.completed") {
 		console.error(
-			"Received checkout.session.completed on the Reflecting Pool compatibility endpoint, but Angels Rest is configured as the commerce webhook owner.",
+			"Received checkout.session.completed on the non-authoritative Reflecting Pool endpoint; commerce events belong to the Angels Rest hub.",
 		);
 		return json({ error: "Commerce webhook is owned by the Angels Rest hub" }, { status: 409 });
 	}
 
-	const result = await processStripeWebhookEvent(event);
-	return json(result.body, { status: result.status });
+	return json({ received: true });
 };
