@@ -1,5 +1,6 @@
 <script lang="ts">
 import { formatPrice, getRetailPrice } from "$lib/shop/pricing";
+import { shopCollectionPath } from "$lib/shop/urls";
 import type { PageData } from "./$types";
 
 let { data }: { data: PageData } = $props();
@@ -89,7 +90,7 @@ async function handleCheckout() {
 	<nav class="breadcrumb">
 		<a href="/shop">shop</a>
 		<span class="sep">›</span>
-		<a href="/shop/collection/{data.product.gallerySlug}">{data.product.galleryTitle.toLowerCase()}</a>
+		<a href={shopCollectionPath(data.product.gallerySlug)}>{data.product.galleryTitle.toLowerCase()}</a>
 		<span class="sep">›</span>
 		<span class="current">{data.product.title.toLowerCase()}</span>
 	</nav>

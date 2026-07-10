@@ -1,4 +1,8 @@
-# Sanity Schema — Reflecting Pool
+# Archived Sanity schema proposal — Reflecting Pool
+
+> Historical schema proposal from before `reflecting-pool-studio` was
+> provisioned. The Studio repository and `sanity-studio-template` now own the
+> actual schema. Do not implement from this document.
 
 ## Overview
 

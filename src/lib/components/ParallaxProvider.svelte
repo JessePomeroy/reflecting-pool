@@ -89,6 +89,7 @@ onMount(() => {
 	if (!browser) return;
 
 	let rafId: number;
+	document.body.dataset.interactiveSurfaceReady = "true";
 
 	// Mouse tracking
 	function handleMouseMove(e: MouseEvent) {
@@ -178,6 +179,7 @@ onMount(() => {
 		window.removeEventListener("deviceorientation", handleOrientation);
 		window.removeEventListener("resize", handleResize);
 		document.removeEventListener("visibilitychange", handleVisibilityChange);
+		delete document.body.dataset.interactiveSurfaceReady;
 	};
 });
 </script>

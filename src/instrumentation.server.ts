@@ -18,10 +18,10 @@
  * route to the right Sentry project without code changes between clones.
  */
 
-import * as Sentry from "@sentry/sveltekit";
+import { init } from "@sentry/node";
 import { env } from "$env/dynamic/public";
 
-Sentry.init({
+init({
 	dsn: env.PUBLIC_SENTRY_DSN,
 	// Tag every event with which site it came from. Lets a single Sentry
 	// org filter issues by spoke if multiple deployments ever route to

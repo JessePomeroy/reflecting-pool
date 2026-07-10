@@ -1,3 +1,4 @@
+import { adminConfig } from "$lib/config/admin";
 import { createHubPrintCheckoutSession } from "$lib/server/checkoutBridge";
 import { getRetailPrice } from "$lib/shop/pricing";
 import type { CheckoutMetadata } from "$lib/shop/types";
@@ -35,7 +36,9 @@ export async function createPrintCheckout(
 	const normalized = normalizeCheckoutRequest(body);
 
 	const session = await createHubPrintCheckoutSession({
-		siteUrl: baseUrl,
+		// Convex tenant identity is the stored bare-domain key. Redirect URLs use
+		// the public origin below; these values are deliberately not interchangeable.
+		siteUrl: adminConfig.siteUrl,
 		amountCents: Math.round(normalized.expectedPrice * 100),
 		productName: `${normalized.imageTitle || "Fine Art Print"} — ${normalized.paperSizeLabel}`,
 		productDescription: `${normalized.paperName} print, ${normalized.paperSizeLabel} inches`,

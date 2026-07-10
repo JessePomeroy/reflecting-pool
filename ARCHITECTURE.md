@@ -1,187 +1,112 @@
 # Architecture — Reflecting Pool
 
-## Overview
+Reflecting Pool is a client spoke. It owns client presentation and HTTP
+composition while sharing operational backend and admin packages with the
+Angels Rest platform.
 
-A photography portfolio where images float at different depths, gently drifting like objects on still water. Clusters of photos wander the page, decorative leaves drift overhead, and subtle underwater caustics ripple across the background. Everything responds to the viewer's presence through parallax.
+## Dependency direction
 
-## Design Principles
-
-1. **Separation of animation concerns** — CSS for ambient motion, JS for interactive responses
-2. **Single source of truth for input** — one ParallaxProvider owns all mouse/gyro/touch state
-3. **No shared rAF loops** — each component that needs per-frame updates gets its own, but most don't (CSS handles it)
-4. **Generate, don't hardcode** — positions computed from viewport dimensions, not static percentages
-5. **Mobile-first interaction model** — touch/gyroscope is the baseline, mouse is the enhancement
-
-## Component Deep Dive
-
-### ParallaxProvider.svelte
-**Purpose:** Single mouse/gyroscope tracker that provides smoothed values to all children via Svelte context.
-
-**Owns:**
-- One rAF loop for lerp smoothing of raw input → smooth output
-- Raw mouse position (updated on mousemove)
-- Raw gyro orientation (updated on deviceorientation)
-- Touch vs mouse detection
-- Mobile/low-end device detection
-- Ripple event bus (children call `addRipple(x, y)`)
-
-**Provides via context:**
-```ts
-interface ParallaxContext {
-  // Smoothed normalized mouse position (-1 to 1)
-  readonly smoothX: number;
-  readonly smoothY: number;
-  // Smoothed pixel position
-  readonly smoothPixelX: number;
-  readonly smoothPixelY: number;
-  // Device info
-  readonly isTouch: boolean;
-  readonly isMobile: boolean;
-  readonly isLowEnd: boolean;
-  // Interaction
-  addRipple: (x: number, y: number) => void;
-}
+```text
+reflecting-pool (SvelteKit host)
+  ├── reflecting-pool-studio / Sanity (client editorial content)
+  ├── @jessepomeroy/crm-api / shared Convex (operations)
+  ├── @jessepomeroy/admin (shared admin UI and server handlers)
+  ├── @jessepomeroy/print-catalog (pure print metadata/pricing)
+  ├── angelsrest hub checkout bridge (Stripe session creation and tenant routing)
+  └── gallery-worker (R2 upload and delivery)
 ```
 
-**Why context, not props:** Avoids drilling smoothX/smoothY through 4+ component layers. Every component that needs parallax just calls `getContext('parallax')`.
+Shared packages and upstream services do not import this host. Per-client visual
+components and fallback content remain local.
 
-### WaterSurface.svelte
-**Purpose:** Background layer with caustics video and ripple ring animations.
+## Data ownership
 
-**Rendering:**
-- `<video>` element with looping caustics webm/gif, `mix-blend-mode: soft-light`, low opacity
-- Ripple rings: CSS-only expanding circles triggered by click events
-- No JS animation — ripples use CSS `@keyframes` with dynamic `--ripple-x` and `--ripple-y` custom properties
-
-**z-index:** 0 (behind everything)
-
-### ClusterField.svelte
-**Purpose:** Index view showing wandering photo clusters.
-
-**Animation model:**
-- **Wander:** Each cluster has a position offset computed from `sin(time * freq)` combinations
-- **Parallax:** Reads smoothX/smoothY from context, multiplied by cluster depth
-- **Collision:** Simple pairwise repulsion, runs only when positions change > 5px
-- **Boundary clamping:** Clusters can't leave viewport
-
-**CSS custom properties per cluster:**
-```css
-.cluster {
-  --cx: 0px;  /* JS writes: parallax + wander + collision offset */
-  --cy: 0px;
-  transform: translate(
-    calc(-50% + var(--cx)),
-    calc(-50% + var(--cy))
-  );
-  /* CSS float animation stacks on top without conflicting */
-}
-```
-
-**Key insight:** JS writes to `--cx`/`--cy` via `element.style.setProperty()`. CSS reads them. No fighting over `transform`.
-
-**Mobile:** Clusters arranged in a flowing layout, reduced wander, no collision (unnecessary when stacked).
-
-### GalleryView.svelte
-**Purpose:** Expanded view when a cluster is clicked. Shows individual photos scattered across the viewport.
-
-**Position generation:**
-```ts
-function generateGalleryPositions(imageCount: number, vw: number, vh: number) {
-  // Divide viewport into zones, place images with jitter
-  // Ensure no image starts above 30vh (below header)
-  // Ensure images don't overlap too much (min distance check)
-}
-```
-
-**Transition in:** Other clusters dismiss (fly outward + fade), then gallery images reveal with staggered opacity.
-
-**Mobile:** 2-column flowing layout with staggered y-positions.
-
-### PhotoCard.svelte
-**Purpose:** Single floating photo, used in both ClusterField and GalleryView.
-
-**CSS animations (ambient, GPU-composited):**
-- `float`: gentle vertical bob (3-6s cycle, randomized)
-- `drift`: slow horizontal meander (20-40s cycle, randomized)
-
-**JS-driven (via CSS custom properties):**
-- Parallax offset from ParallaxProvider context
-- Wobble from ripple wavefronts (temporary displacement)
-- Proximity brightness (subtle glow when cursor is near)
-
-**Depth effects (CSS):**
-- Scale: deeper = slightly smaller
-- Filter: deeper = subtle blur
-- Opacity: deeper = slightly faded
-- z-index: higher depth = on top
-
-### LeafLayer.svelte
-**Purpose:** Decorative floating leaves that drift across the page.
-
-**All CSS animation:**
-- Spin: `@keyframes leaf-spin` (15-40s, random direction)
-- Drift: `@keyframes leaf-drift` (6-14s, random amplitude)
-- Direction changes: smooth CSS transition on a correction wrapper, NOT restarting the animation
-
-**JS interaction:**
-- Click/tap to blow away: CSS transition (700ms fly + fade), then CSS transition back (2500ms)
-- Parallax: reads from context, applied as inline `transform: translate()`
-
-**Hidden during:** gallery view, lightbox open
-
-**Mobile:** 6 leaves instead of 12, larger touch targets
-
-### Lightbox.svelte
-**Purpose:** Fullscreen image viewer.
-
-**Features:**
-- Arrow key navigation (prev/next)
-- Escape to close
-- Click overlay to close
-- Swipe left/right on touch devices
-- Image counter (3 / 7)
-- Smooth scale+fade entry animation
-
-### StrokeTitle.svelte
-**Purpose:** "margaret helena" header with CSS stroke effect.
-
-**Ripple interaction:** On page click, letters wobble outward from click point and ease back. Uses batched `getBoundingClientRect()` reads (one layout pass, not per-letter).
-
-**Responsive:** `clamp()` font sizing, `nowrap` on mobile with tighter letter-spacing.
-
-### Navigation.svelte
-**Purpose:** Nav links on desktop, hamburger menu on mobile.
-
-**Desktop:** Fixed position links (photography · shop · about · book)
-**Mobile:** Hamburger icon → fullscreen overlay menu
-
-## z-index Stack
-
-| Layer | z-index | Element |
+| Domain | Owner | Local boundary |
 |---|---|---|
-| Caustics video | 0 | WaterSurface |
-| Gallery area | 1 | ClusterField / GalleryView |
-| Leaves (back) | 3-7 | LeafLayer (40% of leaves) |
-| Clusters/photos | 5-8 | ClusterField |
-| Leaves (front) | 8-12 | LeafLayer (60% of leaves) |
-| Header gradient | 15 | +layout.svelte |
-| Header content | 16 | StrokeTitle + Navigation |
-| Back button | 50 | GalleryView |
-| Lightbox | 100 | Lightbox |
-| Hamburger menu | 200 | Navigation (mobile overlay) |
+| Homepage, portfolio, about, modeling, shop catalog, site settings | Sanity | `src/lib/server/content/`, `sanityClient.ts` |
+| Orders and fulfillment state | Shared Convex | Angels Rest commerce webhook |
+| CRM, invoices, quotes, contracts, messages, board | Shared Convex | `@jessepomeroy/admin` pages |
+| Private delivery gallery metadata | Shared Convex | delivery page/admin package |
+| Delivery image/archive objects | Gallery Worker + R2 | `src/lib/galleryDelivery/`, admin server routes |
+| Print choices and wholesale/retail helpers | `@jessepomeroy/print-catalog` plus local pricing policy | `src/lib/shop/` |
 
-## Responsive Breakpoints
+Sanity loaders intentionally have local fallbacks. Fallbacks are resilience and
+development fixtures, not an alternate CMS.
 
-| Breakpoint | Label | Key Changes |
-|---|---|---|
-| < 768px | Mobile | Hamburger nav, stacked clusters, 6 leaves, gyro parallax, swipe lightbox |
-| 768-1023px | Tablet | Intermediate sizing, reduced parallax |
-| ≥ 1024px | Desktop | Full experience, mouse parallax, 12 leaves |
+## Public request flows
 
-## Performance Targets
+### Content
 
-- **60fps** on mid-range devices (no dropped frames during scroll/mouse)
-- **< 3s** first contentful paint
-- **< 500KB** total JS bundle
-- **< 2MB** total page weight (excluding gallery images)
-- Gallery images: lazy loaded, WebP, ~400-500px on long edge
+Public server loads call one content module. That module fetches and normalizes
+Sanity data or returns a typed fallback. Browser components receive normalized
+data rather than importing Sanity credentials or clients.
+
+### Print checkout
+
+1. Browser submits a product/material/size choice to `/api/checkout`.
+2. The route rate-limits the caller.
+3. `checkoutIntake.ts` validates dimensions, material ID, and server-owned price.
+4. `checkoutBridge.ts` sends a signed request to the Angels Rest hub.
+5. The request carries the bare-domain operational tenant key separately from
+   this site's public redirect origin.
+6. The hub resolves the tenant and creates Checkout. During pre-handoff testing,
+   Reflecting Pool has no connected Stripe account and uses the hub platform
+   account; client handoff requires completed Connect onboarding.
+7. Stripe sends the platform-account or connected-account event to the hub
+   commerce webhook.
+8. The hub creates/reuses the shared Convex order, submits LumaPrints, applies
+   refund recovery, and sends applicable notifications.
+
+This spoke has no Stripe webhook or outbound LumaPrints client. Future spokes use
+the bridge and hub webhook; they do not copy order-intake or fulfillment code.
+Before accepting client-owned live orders, verify the tenant has a connected
+account and the hub's Stripe Connect destination receives connected-account
+`checkout.session.completed` events.
+
+### Shipment webhook
+
+The LumaPrints webhook validates its configured authentication, looks up the
+shared Convex order, atomically claims the shipment-email side effect, sends the
+client-branded email, and records delivery status. Retryable claim failures must
+propagate so the upstream can retry.
+
+## Admin request flow
+
+1. Better Auth establishes the session.
+2. The server layout validates identity, checks the authenticated email against
+   this site's stored `adminEmails` membership, and loads the authorized tier.
+3. The browser WebSocket receives a JWT through `/api/admin/token` and
+   `setupAuth` for reactive queries.
+4. Mutations POST to `/api/admin/mutation`; the server creates a fresh
+   authenticated Convex HTTP client.
+5. Shared Convex functions enforce tenant membership.
+6. Shared HTTP handlers use the same per-request site membership check before
+   calling the gallery Worker or performing other server-side effects.
+
+The tenant key in `src/lib/config/admin.ts` is an operational identifier and
+must match the shared `platformClients.siteUrl` record exactly. Public canonical
+URLs are owned by `src/lib/config/site.ts` and deployment configuration; do not
+silently conflate the two when changing domains.
+
+## Visual architecture
+
+- `ParallaxProvider.svelte` is the shared interactive-input boundary.
+- CSS custom properties compose interactive offsets with ambient CSS motion.
+- `GalleryExperience`, `ClusterField`, `GalleryView`, `PhotoCard`,
+  `WaterSurface`, and `LeafLayer` own distinct visual behaviors.
+- Public visual state remains local to the Svelte tree; operational data does
+  not belong in animation components.
+- Mobile, reduced-motion, and input-capability paths are part of each behavior's
+  contract.
+
+The original visual concept is archived at
+`docs/archive/visual-architecture-concept.md`; it is not a source map for the
+current component tree.
+
+## Documentation ownership
+
+- `AGENTS.md`: repository rules and constraints.
+- `ARCHITECTURE.md`: current ownership and request flows.
+- `LUMAPRINTS.md`: current print/shipment integration.
+- `reflecting-pool-studio`: actual Sanity schema.
+- `docs/archive/`: historical audit/spec context only.

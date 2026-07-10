@@ -3,6 +3,8 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "$convex/api";
 import type { Id } from "$convex/dataModel";
 import { env as publicEnv } from "$env/dynamic/public";
+import { resolveGalleryDisplayImages } from "$lib/galleryDelivery/displayImages";
+import { galleryOriginalDownloadUrl } from "$lib/galleryDelivery/downloadUrls";
 import { getGalleryWorkerUrl } from "$lib/server/galleryWorkerUrl";
 import type { PageServerLoad } from "./$types";
 
@@ -64,6 +66,7 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	const images = await convex.query(api.galleries.getImages, {
 		galleryId: gallery._id,
+		token,
 	});
 
 	const workerUrl = getGalleryWorkerUrl();
@@ -71,12 +74,15 @@ export const load: PageServerLoad = async ({ params }) => {
 	return {
 		token,
 		gallery,
-		images: images.map((img) => ({
-			...img,
-			thumbUrl: `${workerUrl}/image/${img.r2Key.replace("/original/", "/thumb/")}`,
-			previewUrl: `${workerUrl}/image/${img.r2Key.replace("/original/", "/preview/")}`,
-			downloadUrl: `${workerUrl}/download/${img.r2Key}?token=${token}`,
-		})),
+		images: resolveGalleryDisplayImages(
+			images.map((img) => ({
+				...img,
+				downloadUrl: gallery.downloadEnabled
+					? galleryOriginalDownloadUrl(workerUrl, img.r2Key, token)
+					: null,
+			})),
+			workerUrl,
+		),
 		client: result.client,
 		workerUrl,
 	};

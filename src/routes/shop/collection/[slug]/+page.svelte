@@ -1,5 +1,6 @@
 <script lang="ts">
 import { formatPrice, getStartingPrice } from "$lib/shop/pricing";
+import { shopProductPath } from "$lib/shop/urls";
 import type { PageData } from "./$types";
 
 let { data }: { data: PageData } = $props();
@@ -41,7 +42,7 @@ const startingPrice = getStartingPrice();
 	{:else}
 		<div class="prints-grid">
 			{#each data.prints as print (print.id)}
-				<a href="/shop/{print.slug}" class="print-card">
+				<a href={shopProductPath(print.slug)} class="print-card">
 					<div class="print-image-wrapper">
 						<img
 							src={print.imageUrl}

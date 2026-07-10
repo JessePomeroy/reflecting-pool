@@ -1,61 +1,64 @@
-# reflecting-pool
+# Reflecting Pool
 
-Maggie's photography portfolio site — first paying-client deployment of the photographer CRM platform.
+Reflecting Pool is Maggie Pomeroy's photography portfolio and the first client
+spoke in the Angels Rest photographer platform.
 
-## What this is
+## System overview
 
-A SvelteKit spoke site that consumes shared platform packages from `angelsrest`:
+- **SvelteKit 5** owns the public site, client admin host, and HTTP routes.
+- **Sanity** owns portfolio, shop, about, modeling, and site-settings content.
+  The schema lives in the sibling `reflecting-pool-studio` repository.
+- **Convex** owns orders, CRM, invoices, quotes, contracts, messages, private
+  delivery galleries, and platform tenancy. This repository consumes the
+  shared `@jessepomeroy/crm-api`; it does not own a `convex/` tree.
+- **@jessepomeroy/admin** supplies the shared admin pages and server handlers.
+- **@jessepomeroy/print-catalog** supplies shared print metadata and pricing
+  helpers.
+- **Stripe Connect**, **LumaPrints**, **Resend**, and the shared gallery Worker
+  are external service boundaries.
 
-- `@jessepomeroy/admin` — full CRM admin dashboard (orders, inquiries, galleries, invoicing, quotes, contracts) gated by tier
-- `@jessepomeroy/crm-api` — Convex schema + generated types
+See [ARCHITECTURE.md](ARCHITECTURE.md) for current request flows and ownership.
 
-Plus:
+## Local development
 
-- Sanity-driven content (photos, products, site settings) — schema lives in [`reflecting-pool-studio`](https://github.com/JessePomeroy/reflecting-pool-studio)
-- Stripe Connect Express for print sales
-- LumaPrints fulfillment pipeline
-- Sentry for error capture (per-spoke project)
+Requirements are Node 22+ and the pnpm version declared in `package.json`.
 
-## Tech stack
-
-- SvelteKit + Svelte 5 (runes)
-- TypeScript strict
-- Vite + `@sveltejs/adapter-vercel`
-- Convex backend (shared schema with angelsrest)
-- Sanity CMS (per-client studio)
-- pnpm 10
-
-See `AGENTS.md` for architecture rules (CSS-for-ambient, JS-for-interactive) and runtime constraints.
-
-## Local dev
-
-```sh
+```bash
+pnpm config set --location user //npm.pkg.github.com/:_authToken "$GITHUB_TOKEN"
 pnpm install
-pnpm dev          # localhost:5173
-pnpm check        # svelte-check
-pnpm lint         # biome
-pnpm test         # vitest
-pnpm build        # production build
+cp .env.example .env.local
+pnpm dev
 ```
 
-Required env vars in `.env.local` — copy from `.env.example` and ask Jesse for current dev credentials.
+Use test-mode payment credentials and LumaPrints sandbox locally. Never put
+production credentials in the repository-root `.env` file.
 
-## Deploy
+## Checks
 
-Production: Vercel (project link pending; set during launch).
+```bash
+pnpm lint
+pnpm check
+pnpm test
+pnpm build
+```
 
-`adapter-vercel` is pinned with `runtime: "nodejs22.x"` and `maxDuration: 30` to guard against shifting Vercel defaults — see the comment in `svelte.config.js`.
+Browser smoke tests are available through `pnpm test:browser`. The gallery
+bulk-delete smoke command touches a configured Worker/R2 environment and should
+only be run deliberately.
 
-## Observability
+## Documentation
 
-Sentry wired via `src/instrumentation.server.ts` + `src/hooks.client.ts` + Sentry-wrapped `src/hooks.server.ts`, with `experimental.instrumentation.server: true` in `svelte.config.js`. Set `PUBLIC_SENTRY_DSN` in env to activate; missing DSN no-ops cleanly.
+- [AGENTS.md](AGENTS.md) — canonical repository rules
+- [ARCHITECTURE.md](ARCHITECTURE.md) — current system and dependency boundaries
+- [LUMAPRINTS.md](LUMAPRINTS.md) — current print and shipment integration
+- [docs/archive/README.md](docs/archive/README.md) — historical audits and specs
 
-Per-spoke project pattern: each spoke has its own Sentry project, so events filter by site automatically.
+## Related repositories
 
-## Related repos
-
-| Repo | Role |
+| Repository | Responsibility |
 |---|---|
-| [`angelsrest`](https://github.com/JessePomeroy/angelsrest) | Hub monorepo — owns shared `@jessepomeroy/admin` + `@jessepomeroy/crm-api` packages |
-| [`reflecting-pool-studio`](https://github.com/JessePomeroy/reflecting-pool-studio) | Sanity studio for this site (live at https://reflecting-pool.sanity.studio/) |
-| [`sanity-studio-template`](https://github.com/JessePomeroy/sanity-studio-template) | Template that reflecting-pool-studio was forked from |
+| `angelsrest` | Platform hub and owner of the shared Convex backend/package |
+| `reflecting-pool-studio` | Maggie's Sanity Studio instance |
+| `sanity-studio-template` | Upstream for shared Studio schemas/components |
+| `admin-dashboard` | Source for `@jessepomeroy/admin` |
+| `gallery-worker` | Shared Cloudflare Worker and R2 delivery boundary |

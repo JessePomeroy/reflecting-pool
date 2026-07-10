@@ -1,17 +1,76 @@
 <script lang="ts">
 import {
-	type AdminAuthClient,
 	AdminLayout,
 	AuthGuard,
 	isTenantAdminServerAuthorized,
+	LoadingState,
 	setAdminConfig,
 } from "@jessepomeroy/admin";
-import { setupAuth, setupConvex } from "@mmailaender/convex-svelte";
+import { setupAuth, setupConvex } from "convex-svelte";
+import { browser } from "$app/environment";
+import { invalidateAll } from "$app/navigation";
 import { PUBLIC_CONVEX_URL } from "$env/static/public";
+import {
+	shouldHoldAdminShellForServerSession,
+	shouldRefreshAdminServerSession,
+} from "$lib/adminServerSessionRecovery";
 import { authClient } from "$lib/auth/client";
 import { adminConfig } from "$lib/config/admin";
 
 let { data, children } = $props();
+
+let clientSessionPending = $state(Boolean(authClient));
+let clientSessionEmail = $state<string | null>(null);
+let serverSessionRefreshAttempted = $state(false);
+let serverSessionRefreshInFlight = $state(false);
+
+if (authClient) {
+	const sessionStore = authClient.useSession();
+	sessionStore.subscribe((val) => {
+		clientSessionEmail = val?.data?.user?.email ?? null;
+		clientSessionPending = val?.isPending ?? false;
+	});
+}
+
+let serverSessionAuthorized = $derived(
+	isTenantAdminServerAuthorized(data.adminSession),
+);
+let shouldRecoverServerSession = $derived(
+	shouldRefreshAdminServerSession({
+		hasBrowser: browser,
+		hasAuthClient: Boolean(authClient),
+		sessionPending: clientSessionPending,
+		sessionEmail: clientSessionEmail,
+		serverAuthorized: serverSessionAuthorized,
+		refreshAttempted: serverSessionRefreshAttempted,
+		refreshInFlight: serverSessionRefreshInFlight,
+	}),
+);
+let shouldHoldAdminShell = $derived(
+	shouldHoldAdminShellForServerSession({
+		hasAuthClient: Boolean(authClient),
+		sessionPending: clientSessionPending,
+		sessionEmail: clientSessionEmail,
+		serverAuthorized: serverSessionAuthorized,
+	}),
+);
+
+$effect(() => {
+	if (!shouldRecoverServerSession) return;
+
+	serverSessionRefreshAttempted = true;
+	serverSessionRefreshInFlight = true;
+	invalidateAll().finally(() => {
+		serverSessionRefreshInFlight = false;
+	});
+});
+
+$effect(() => {
+	if (!clientSessionEmail) {
+		serverSessionRefreshAttempted = false;
+		serverSessionRefreshInFlight = false;
+	}
+});
 
 // Authenticate the browser Convex WebSocket without re-introducing the
 // `createSvelteAuthClient` pause bug.
@@ -20,10 +79,8 @@ let { data, children } = $props();
 // `authClient.useSession()` and feeds its output to `setupAuth`. On
 // SvelteKit client-side nav, that subscription emits a transient
 // `{data: null}` which the adapter races against a fixed 150ms timer;
-// when `better-auth@1.5.x` re-settles past that window, the adapter
-// calls `clearAuth()` and the WebSocket stays paused until a full
-// reload. See
-// `~/Documents/quilt/00_inbox/2026-04-23 PR candidate — convex-better-auth-svelte pause bug.md`.
+// if the session re-settles past that window, the adapter calls
+// `clearAuth()` and the WebSocket stays paused until a full reload.
 //
 // The fix here: call the lower-level `setupAuth` primitive directly,
 // driven by `data.adminSession.status` from `+layout.server.ts` instead
@@ -41,8 +98,8 @@ let { data, children } = $props();
 // mutation path cookie-only for defence-in-depth.
 setupConvex(PUBLIC_CONVEX_URL);
 setupAuth(() => ({
-	isLoading: false,
-	isAuthenticated: isTenantAdminServerAuthorized(data.adminSession),
+	isLoading: serverSessionRefreshInFlight,
+	isAuthenticated: serverSessionAuthorized,
 	fetchAccessToken: async () => {
 		const res = await fetch("/api/admin/token");
 		if (!res.ok) return null;
@@ -51,11 +108,30 @@ setupAuth(() => ({
 	},
 }));
 
-setAdminConfig({ ...adminConfig, authClient: authClient as unknown as AdminAuthClient });
+setAdminConfig({
+	...adminConfig,
+	authClient,
+});
 </script>
 
 <AuthGuard>
-	<AdminLayout {data}>
-		{@render children()}
-	</AdminLayout>
+	{#if shouldHoldAdminShell}
+		<div class="admin-session-loading" data-admin>
+			<LoadingState />
+		</div>
+	{:else}
+		<AdminLayout {data}>
+			{@render children()}
+		</AdminLayout>
+	{/if}
 </AuthGuard>
+
+<style>
+	.admin-session-loading {
+		min-height: 100vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--admin-bg);
+	}
+</style>

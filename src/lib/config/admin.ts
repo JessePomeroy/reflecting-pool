@@ -4,16 +4,12 @@ import { api } from "$convex/api";
 // Map Convex `galleries` namespace to the admin package's `galleryDelivery` key.
 // Use a Proxy — never spread `api` (it's a Proxy with no own enumerable props).
 //
-// `AdminAPI` (from the admin package) enumerates every namespace a full-tier
-// admin can use, including `inquiries`. Reflecting-pool has not ported the
-// Convex `inquiries` module yet, so `typeof api` omits that key. The
-// underlying `api` Proxy DOES return a live reference for any property access
-// at runtime (that's how `anyApi` works), so the cast below is sound at the
-// call sites that actually use it; any missing module would throw at
-// invocation time, not at access. Cast through `unknown` to satisfy the
-// AdminAPI shape without falsely claiming we ship those modules. See audit
-// H42c; when that lands, port angelsrest's `convex/inquiries.ts` and drop
-// this cast.
+// `AdminAPI` enumerates every namespace a full-tier admin can use, including
+// `inquiries`. The generated shared package surface consumed here does not yet
+// expose a typed inquiry namespace for this host. Convex's `anyApi` Proxy can
+// resolve it dynamically, but invoking an absent function would still fail.
+// Keep the cast localized until the shared package and this loader use the
+// inquiry API directly.
 const apiWithAliases = new Proxy(api, {
 	get(target, prop, receiver) {
 		if (prop === "galleryDelivery") return target.galleries;
@@ -36,10 +32,8 @@ export const adminConfig: AdminConfig = {
 	boardProjectTypes: [
 		{ label: "photography", values: ["wedding", "portrait", "family", "commercial", "event"] },
 	],
-	// Route mutations through the SvelteKit proxy at /api/admin/mutation
-	// instead of the Convex WebSocket. The browser socket is intentionally
-	// unauthenticated (see admin/+layout.svelte) to avoid the pause bug in
-	// `@mmailaender/convex-better-auth-svelte@0.7.3` + `better-auth@1.5.x`
-	// during SvelteKit client-side navigation.
+	// Route mutations through the SvelteKit proxy at /api/admin/mutation.
+	// Queries use the manually authenticated WebSocket; HTTP mutations receive a
+	// fresh authenticated Convex client independent of socket navigation state.
 	mutationTransport: "http",
 };

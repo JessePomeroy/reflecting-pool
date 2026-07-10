@@ -105,7 +105,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 		return json({ error: "could not send message — please try again" }, { status: 500 });
 	}
 
-	// TODO(H42c): also persist this payload to Convex inquiries once the
+	// TODO: persist this payload to shared Convex inquiries once the
 	// inquiries module is ported into the shared CRM API. Sanity remains
 	// CMS-only and should not receive contact submissions.
 

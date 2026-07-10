@@ -1,104 +1,131 @@
-# AGENTS.md — Reflecting Pool
+# AGENTS.md — reflecting-pool
 
-Photography portfolio site with floating parallax galleries, decorative leaves, and underwater aesthetic.
+Canonical rules for this client-spoke repository.
 
-## Stack
-- **SvelteKit** (Svelte 5 with runes: `$state`, `$derived`, `$effect`)
-- **TypeScript** strict
-- **Tailwind CSS 4** (or plain CSS — TBD)
-- **Vite**
+## Project context
 
-## Architecture Rules
+- **Stack:** SvelteKit 5, Svelte runes, TypeScript, Vite, Sanity, shared Convex,
+  Stripe Connect, LumaPrints, Resend, and the gallery Worker
+- **Role:** Maggie Pomeroy's public site and tenant admin host
+- **Studio:** `../reflecting-pool-studio`
+- **Current architecture:** `ARCHITECTURE.md`
 
-### The Golden Rule: CSS for Ambient, JS for Interactive
-- **CSS animations** handle: float/bob, drift, leaf spin, caustics background
-- **JS (rAF)** handles: parallax (mouse/gyro), collision avoidance, ripple physics, blow-away
-- **NEVER** apply both CSS animations and JS transforms to the same `transform` property
-- Bridge via CSS custom properties: JS writes `--parallax-x`, CSS reads it in `calc()`
+## Ownership boundaries
 
-### Svelte 5 Reactivity Rules
-- Use `$state.raw()` for large mutable buffers (position arrays, wobble maps)
-- Trigger re-renders with a single `$state` tick counter, not by reassigning arrays
-- NEVER create new objects/arrays inside rAF — pre-allocate and mutate
-- NEVER write to `$state` more than once per frame
-- Template reads from plain buffers, keyed on tick counter
+- **Sanity owns content:** homepage, portfolio galleries, shop catalog,
+  collections, about, modeling, contact settings, and site settings.
+- **Shared Convex owns operations:** orders, CRM, board, invoices, quotes,
+  contracts, messages, platform tenancy, and private delivery galleries.
+- **This SvelteKit app owns composition:** public routes, admin host routes,
+  validated checkout requests, the LumaPrints shipment webhook, and per-client
+  presentation.
+- **The hub owns commerce execution:** connected-account Checkout creation,
+  Stripe commerce webhook intake, shared Convex order writes, fulfillment,
+  refunds, and order notifications belong in `../angelsrest`.
+- **The Studio template is upstream:** shared Studio schema/component changes
+  belong in `../sanity-studio-template`, then sync into
+  `../reflecting-pool-studio`.
 
-### Performance Budget
-- Max 1 rAF loop for the entire app (in ParallaxProvider)
-- CSS animations for anything ambient (float, drift, spin, caustics)
-- `will-change: transform` only on `:hover` or `.active`, never default
-- Throttle mouse events — only update state when delta > threshold
-- No `backdrop-filter` changes on mousemove (too expensive)
-- Caustics: video/gif background, not procedural
+Do not add a local `convex/` directory. Consume `@jessepomeroy/crm-api` through
+the `$convex` alias.
 
-### Mobile from Day One
-- Touch detection via shared context, not prop drilling
-- Gyroscope parallax for touch devices
-- Fewer particles (leaves, ripples) on mobile
-- All touch targets ≥ 44px
-- Responsive from the first component, not bolted on
+## Public-site design and performance
 
-## Component Structure
+- Preserve Reflecting Pool's ink/paper palette, Cormorant typography,
+  lowercase tone, and underwater/floating visual language unless the user asks
+  for an aesthetic change.
+- CSS owns ambient motion; JavaScript owns interactive physics and parallax.
+- Do not have CSS animation and JavaScript both write the same `transform`.
+  Bridge through CSS custom properties.
+- Use one shared input/parallax loop; avoid per-component pointer listeners and
+  allocations inside animation frames.
+- Touch targets are at least 44px and mobile behavior is designed with the
+  desktop behavior, not added later.
+- Use `will-change` only while an element is actively interactive.
 
-```
-src/
-├── lib/
-│   ├── components/
-│   │   ├── ParallaxProvider.svelte    # Single mouse/gyro tracker, provides context
-│   │   ├── WaterSurface.svelte        # Caustics bg video + ripple rings
-│   │   ├── ClusterField.svelte        # Index view: wandering photo clusters
-│   │   ├── GalleryView.svelte         # Expanded gallery: scattered photos
-│   │   ├── PhotoCard.svelte           # Single floating photo (used in both views)
-│   │   ├── LeafLayer.svelte           # Decorative floating leaves
-│   │   ├── Lightbox.svelte            # Fullscreen image viewer
-│   │   ├── StrokeTitle.svelte         # Header title with ripple effect
-│   │   └── Navigation.svelte          # Nav links (desktop) + hamburger (mobile)
-│   ├── stores/
-│   │   └── device.ts                  # Shared device/touch/mobile detection
-│   ├── utils/
-│   │   └── math.ts                    # lerp, clamp, normalize, easing functions
-│   └── types/
-│       └── gallery.ts                 # TypeScript interfaces
-├── routes/
-│   ├── +layout.svelte                 # Global styles, fonts, viewport meta
-│   └── +page.svelte                   # Assembles all components
-└── static/
-    ├── images/                        # Gallery photos + leaf PNGs
-    └── caustics.webm                  # Looping caustics video (added later)
-```
+## Content loading
 
-## Data Flow
+Server content modules live under `src/lib/server/content/` and use
+`fetchSanityOrFallback` from `sanityClient.ts`. The fallback keeps development
+and builds usable when Sanity is unavailable; it is not a second authoritative
+content store. New production content fields must be added upstream in the
+Studio schema and reflected in the GROQ/normalization boundary.
 
-```
-ParallaxProvider (context)
-  ├── smoothX, smoothY (normalized -1 to 1)
-  ├── smoothPixelX, smoothPixelY (raw px)
-  ├── isTouch, isMobile
-  └── addRipple(x, y)
+## Admin authentication and transport
 
-ClusterField reads context for parallax
-GalleryView reads context for parallax + surface tension
-LeafLayer reads context for parallax
-WaterSurface reads context for ripple events
-```
+- Better Auth owns the session.
+- `src/routes/admin/+layout.server.ts` validates the session, checks stored
+  `adminEmails` membership for this site, and returns authorized tier data
+  before child server loads run.
+- `src/routes/admin/+layout.svelte` authenticates the browser Convex WebSocket
+  manually with `setupAuth`.
+- Queries use the authenticated WebSocket.
+- Mutations use `/api/admin/mutation` and a fresh authenticated
+  `ConvexHttpClient` through `@jessepomeroy/admin`'s HTTP transport.
+- New tenant data access must authorize stored membership; `siteUrl` supplied by
+  the browser is not authorization.
+- Shared admin HTTP handlers use the host's per-request site-admin verifier;
+  never replace it with an identity-only session check.
 
-## Gallery Data
+Do not replace the manual WebSocket auth with `createSvelteAuthClient` without
+testing client navigation, refresh, expiry, and logout behavior.
 
-Cluster positions are **generated dynamically** based on viewport + cluster count.
-No hardcoded x/y percentages. Algorithm:
-1. Divide viewport into a grid (e.g., 3×2 for 5 clusters)
-2. Place clusters at grid centers with random jitter (±15%)
-3. Assign depths based on position (further from center = deeper)
+## Commerce and fulfillment
 
-Gallery image positions within a cluster: same approach — scatter algorithm, not hardcoded.
+- `/api/checkout` rate-limits and validates the requested print against local
+  shared pricing, then asks the Angels Rest hub to create the tenant's Stripe
+  session. It uses the platform account during controlled pre-handoff testing
+  and the connected account after onboarding.
+- The Angels Rest `/api/webhooks/stripe` endpoint is the single commerce-event
+  owner for this spoke and future Stripe Connect clients.
+- This repository has no Stripe commerce webhook or outbound LumaPrints client.
+  Do not add either to a future client spoke.
+- Reflecting Pool remains pre-handoff and currently has no connected Stripe
+  account. Complete Connect onboarding and verify the hub's connected-account
+  webhook destination before enabling client-owned live orders.
+- `/api/webhooks/lumaprints` verifies the configured webhook secret/signature,
+  atomically claims shipment notification in Convex, and records Resend delivery
+  state.
+- Checkout session and LumaPrints order identifiers are idempotency boundaries.
+  Never move email or physical-fulfillment side effects ahead of their claims.
 
-## Checks Before Done
+See `LUMAPRINTS.md` before changing this flow.
+
+## Gallery domains
+
+- Public portfolio galleries are Sanity content.
+- Private delivery galleries are shared Convex records plus R2 objects served by
+  `../gallery-worker`.
+- Admin gallery handlers come from `@jessepomeroy/admin/server` and must enforce
+  tenant scope before issuing Worker requests.
+
+## Key files
+
+- Site identity: `src/lib/config/site.ts`
+- Admin host config: `src/lib/config/admin.ts`, `admin.server.ts`
+- Sanity boundary: `src/lib/server/sanityClient.ts`, `src/lib/server/content/`
+- Checkout boundary: `src/lib/server/checkoutIntake.ts`, `checkoutBridge.ts`
+- LumaPrints shipment boundary: `src/routes/api/webhooks/lumaprints/+server.ts`
+- Gallery delivery helpers: `src/lib/galleryDelivery/`
+- Shared package aliases: `svelte.config.js`
+
+## Checks
+
 ```bash
-npx svelte-check          # Type errors
-pnpm biome check src/     # Lint (if configured)
+pnpm lint
+pnpm check
+pnpm test
+pnpm build
 ```
 
-## Git Rules
-- Work on branches, never main
-- Jesse reviews before merge
-- Commit frequently with clear messages
+Do not run formatting/write modes during a read-only task. Do not run live smoke
+commands unless the user explicitly places the configured external environment
+in scope.
+
+## Git rules
+
+- Use a focused branch unless the user specifies otherwise.
+- Do not commit, push, deploy, or change external configuration without explicit
+  permission.
+- Preserve unrelated worktree changes.
+- Do not add AI-assistant co-author trailers.

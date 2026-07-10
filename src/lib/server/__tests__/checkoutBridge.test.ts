@@ -26,7 +26,7 @@ describe("checkout bridge client", () => {
 		}) as unknown as typeof fetch;
 
 		const result = await createHubPrintCheckoutSession({
-			siteUrl: "https://reflecting-pool.vercel.app",
+			siteUrl: "zippymiggy.com",
 			amountCents: 3500,
 			productName: "Spring Meadow — 8×10",
 			productDescription: "Archival Matte print, 8×10 inches",
@@ -52,7 +52,7 @@ describe("checkout bridge client", () => {
 
 		const bodyText = String(init?.body);
 		expect(JSON.parse(bodyText)).toMatchObject({
-			siteUrl: "https://reflecting-pool.vercel.app",
+			siteUrl: "zippymiggy.com",
 			amountCents: 3500,
 			productName: "Spring Meadow — 8×10",
 			metadata,

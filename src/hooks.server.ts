@@ -1,20 +1,19 @@
 /**
  * SvelteKit Server Hooks
  *
- * Security headers, auth route handling, and Sentry request wrapping.
+ * Security headers, auth route handling, and server error capture through
+ * @sentry/node.
  * Admin auth is enforced both server-side (via `$lib/server/adminAuth.ts`
- * called from admin loaders, audit C12) and client-side (via Better Auth
- * AuthGuard in the admin dashboard package).
+ * called from admin loaders) and client-side (via Better Auth AuthGuard in
+ * the admin dashboard package).
  *
  * The Sentry init itself lives in `src/instrumentation.server.ts` (loaded
- * by SvelteKit's experimental.instrumentation.server hook). Here we just
- * wrap the request handler so Sentry can attach to spans/errors per
- * request.
+ * by SvelteKit's experimental.instrumentation.server hook). This file only
+ * captures unexpected server errors.
  */
 
-import * as Sentry from "@sentry/sveltekit";
-import type { Handle } from "@sveltejs/kit";
-import { sequence } from "@sveltejs/kit/hooks";
+import { captureException, flush, withIsolationScope } from "@sentry/node";
+import type { Handle, HandleServerError } from "@sveltejs/kit";
 
 function addSecurityHeaders(response: Response): Response {
 	const cloned = new Response(response.body, response);
@@ -38,6 +37,35 @@ const appHandle: Handle = async ({ event, resolve }) => {
 	return addSecurityHeaders(response);
 };
 
-export const handle = sequence(Sentry.sentryHandle(), appHandle);
+export const handle: Handle = (input) =>
+	withIsolationScope((scope) => {
+		scope.setTag("route", input.event.route.id ?? input.event.url.pathname);
+		scope.setTag("method", input.event.request.method);
+		return appHandle(input);
+	});
 
-export const handleError = Sentry.handleErrorWithSentry();
+function isExpectedClientError(input: Parameters<HandleServerError>[0]): boolean {
+	if (input.status >= 400 && input.status < 500) return true;
+
+	const hasNoRouteId = !input.event.route?.id;
+	const stack = input.error instanceof Error ? input.error.stack : "";
+	return hasNoRouteId && Boolean(stack?.startsWith("Error: Not found:"));
+}
+
+export const handleError: HandleServerError = async (input) => {
+	if (!isExpectedClientError(input)) {
+		captureException(input.error, {
+			mechanism: {
+				type: "auto.function.sveltekit.handle_error",
+				handled: false,
+			},
+		});
+		await flush(2000);
+	}
+
+	if (input.error instanceof Error) {
+		console.error(input.error.stack);
+	} else {
+		console.error(input.error);
+	}
+};

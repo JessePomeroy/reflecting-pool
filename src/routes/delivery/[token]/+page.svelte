@@ -1,8 +1,30 @@
 <script lang="ts">
-import { setupConvex, useConvexClient } from "@mmailaender/convex-svelte";
+import { onMount } from "svelte";
+import { setupConvex, useConvexClient } from "convex-svelte";
 import { api } from "$convex/api";
 import type { Id } from "$convex/dataModel";
 import { PUBLIC_CONVEX_URL } from "$env/static/public";
+import {
+	canSaveGalleryZipFile,
+	saveGalleryImagesAsZipFile,
+} from "$lib/galleryDelivery/downloadArchive";
+import {
+	canChooseGalleryDownloadDirectory,
+	saveGalleryImagesToDirectory,
+} from "$lib/galleryDelivery/downloadDestination";
+import {
+	createGalleryDownloadPlan,
+	type GalleryDownloadImage,
+	type GalleryDownloadPlan,
+	submitGalleryZipDownloadForm,
+} from "$lib/galleryDelivery/downloadPlan";
+import { chooseGalleryDownloadRoute } from "$lib/galleryDelivery/downloadRoute";
+import {
+	cancelPreparedZipDownload,
+	runPreparedZipDownload,
+	type PreparedZipDownloadStep,
+	type PreparedZipProgress,
+} from "$lib/galleryDelivery/preparedZip";
 
 let { data } = $props();
 
@@ -25,9 +47,33 @@ let lightboxIndex = $state(-1);
 let lightboxOpen = $derived(lightboxIndex >= 0);
 let downloading = $state(false);
 let downloadError = $state<string | null>(null);
+let folderDownloadsSupported = $state(false);
+let zipFileDownloadsSupported = $state(false);
+let chooseDownloadFolder = $state(false);
+let folderDownloadStatus = $state<string | null>(null);
+let folderDownloadAbortController = $state<AbortController | null>(null);
+let preparedZipCancelRequestId = $state<string | null>(null);
+let preparedZipCancelingRequestId = $state<string | null>(null);
+let folderDownloadStatusToken = 0;
+let selectedImageIds = $state(new Set<string>());
+let galleryView = $state<"grid" | "list">("grid");
+let selectedImages = $derived(images.filter((img) => selectedImageIds.has(img._id)));
+let selectedCount = $derived(selectedImages.length);
+let allImagesSelected = $derived(
+	images.length > 0 && selectedCount === images.length,
+);
+let folderDownloadInProgress = $derived(folderDownloadAbortController !== null);
+let chosenLocationDownloadsSupported = $derived(
+	folderDownloadsSupported || zipFileDownloadsSupported,
+);
 
 let dialogEl = $state<HTMLDivElement | undefined>(undefined);
 let previouslyFocused: HTMLElement | null = null;
+
+onMount(() => {
+	folderDownloadsSupported = canChooseGalleryDownloadDirectory(window);
+	zipFileDownloadsSupported = canSaveGalleryZipFile(window);
+});
 
 function openLightbox(index: number) {
 	previouslyFocused = document.activeElement as HTMLElement | null;
@@ -88,6 +134,7 @@ async function toggleFavorite(index: number) {
 	try {
 		await client.mutation(api.galleries.updateImage, {
 			id: image._id as Id<"galleryImages">,
+			token: data.token,
 			isFavorite: newVal,
 		});
 	} catch (err) {
@@ -100,56 +147,304 @@ async function toggleFavorite(index: number) {
 	}
 }
 
-async function zipDownload(imageKeys: string[], fileSuffix: string) {
-	if (imageKeys.length === 0) {
-		downloadError = "no photos selected.";
-		setTimeout(() => {
-			downloadError = null;
-		}, 4000);
+function showDownloadError(message: string, timeout = 4000) {
+	downloadError = message;
+	setTimeout(() => {
+		downloadError = null;
+	}, timeout);
+}
+
+function toggleImageSelection(imageId: string) {
+	const next = new Set(selectedImageIds);
+	if (next.has(imageId)) {
+		next.delete(imageId);
+	} else {
+		next.add(imageId);
+	}
+	selectedImageIds = next;
+}
+
+function selectAllImages() {
+	selectedImageIds = new Set(images.map((img) => img._id));
+}
+
+function clearSelection() {
+	selectedImageIds = new Set();
+}
+
+function triggerDownload(image: { downloadUrl: string | null; filename: string }) {
+	if (!image.downloadUrl) {
+		showDownloadError("downloads are disabled for this gallery.");
 		return;
 	}
+
+	const a = document.createElement("a");
+	a.href = image.downloadUrl;
+	a.download = image.filename;
+	a.rel = "noopener";
+	document.body.appendChild(a);
+	a.click();
+	a.remove();
+}
+
+function submitZipDownload(plan: Extract<GalleryDownloadPlan, { type: "zip" }>) {
+	submitGalleryZipDownloadForm({
+		plan,
+		document,
+		setTimeout: window.setTimeout,
+	});
+}
+
+function setFolderDownloadStatus(message: string | null) {
+	folderDownloadStatus = message;
+	folderDownloadStatusToken += 1;
+	return folderDownloadStatusToken;
+}
+
+function clearFolderDownloadStatusLater(token: number, delayMs: number) {
+	setTimeout(() => {
+		if (folderDownloadStatusToken === token) {
+			setFolderDownloadStatus(null);
+		}
+	}, delayMs);
+}
+
+async function saveImagesToFolder(targetImages: GalleryDownloadImage[]) {
+	const controller = new AbortController();
+	folderDownloadAbortController = controller;
+	setFolderDownloadStatus("choose a folder to save this download.");
+	try {
+		await saveGalleryImagesToDirectory({
+			images: targetImages,
+			window,
+			signal: controller.signal,
+			onProgress(progress) {
+				setFolderDownloadStatus(
+					`saving ${progress.completed}/${progress.total} · ${progress.filename}`,
+				);
+			},
+		});
+		const statusToken = setFolderDownloadStatus(
+			`saved ${targetImages.length} file${targetImages.length === 1 ? "" : "s"}.`,
+		);
+		clearFolderDownloadStatusLater(statusToken, 5000);
+	} finally {
+		if (folderDownloadAbortController === controller) {
+			folderDownloadAbortController = null;
+		}
+	}
+}
+
+async function saveImagesToZip(targetImages: GalleryDownloadImage[], galleryName: string) {
+	const controller = new AbortController();
+	folderDownloadAbortController = controller;
+	setFolderDownloadStatus("choose where to save this zip.");
+	try {
+		await saveGalleryImagesAsZipFile({
+			images: targetImages,
+			galleryName,
+			window,
+			signal: controller.signal,
+			onProgress(progress) {
+				setFolderDownloadStatus(
+					`zipping ${progress.completed}/${progress.total} · ${progress.filename}`,
+				);
+			},
+		});
+		const statusToken = setFolderDownloadStatus(
+			`saved ${targetImages.length} file${targetImages.length === 1 ? "" : "s"} as zip.`,
+		);
+		clearFolderDownloadStatusLater(statusToken, 5000);
+	} finally {
+		if (folderDownloadAbortController === controller) {
+			folderDownloadAbortController = null;
+		}
+	}
+}
+
+function preparedZipStatusMessage(status: PreparedZipProgress) {
+	if (status.status === "queued") return "queued zip build...";
+	if (status.status === "building") {
+		return `building zip ${status.processedBytes > 0 ? `${status.processedBytes} bytes processed` : `${status.imageCount} files`}`;
+	}
+	if (status.status === "ready") return "zip ready. starting download...";
+	return "preparing zip...";
+}
+
+function formatDownloadBytes(bytes: number) {
+	if (bytes >= 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} gb`;
+	if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} mb`;
+	if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} kb`;
+	return `${bytes} b`;
+}
+
+function preparedZipSaveProgressMessage({
+	filename,
+	savedBytes,
+	totalBytes,
+}: {
+	filename: string;
+	savedBytes: number;
+	totalBytes?: number;
+}) {
+	return totalBytes
+		? `saving ${filename} · ${formatDownloadBytes(savedBytes)} / ${formatDownloadBytes(totalBytes)}`
+		: `saving ${filename} · ${formatDownloadBytes(savedBytes)}`;
+}
+
+function preparedZipStepMessage(step: PreparedZipDownloadStep) {
+	if (step === "chooseArchiveFile") return "choose where to save this zip.";
+	if (step === "preparing") return "preparing zip...";
+	if (step === "savedToFile") return "zip saved.";
+	return "zip download started.";
+}
+
+async function savePreparedZip(
+	plan: Extract<GalleryDownloadPlan, { type: "tooLarge" }>,
+	galleryName: string,
+) {
+	let requestId: string | null = null;
+	let activeController: AbortController | null = null;
+	try {
+		const result = await runPreparedZipDownload({
+			document,
+			galleryName,
+			onController(controller) {
+				activeController = controller;
+				folderDownloadAbortController = controller;
+			},
+			onProgress(status) {
+				setFolderDownloadStatus(preparedZipStatusMessage(status));
+			},
+			onRequestId(nextRequestId) {
+				requestId = nextRequestId;
+				preparedZipCancelRequestId = nextRequestId;
+			},
+			onSaveProgress(progress) {
+				setFolderDownloadStatus(preparedZipSaveProgressMessage(progress));
+			},
+			onStep(step) {
+				setFolderDownloadStatus(preparedZipStepMessage(step));
+			},
+			plan,
+			saveToFile: chooseDownloadFolder && zipFileDownloadsSupported,
+			token: data.token,
+			window,
+			workerUrl: data.workerUrl,
+		});
+		const statusToken = setFolderDownloadStatus(
+			preparedZipStepMessage(result.mode === "file" ? "savedToFile" : "browserDownloadStarted"),
+		);
+		clearFolderDownloadStatusLater(statusToken, 5000);
+	} finally {
+		if (activeController && folderDownloadAbortController === activeController) {
+			folderDownloadAbortController = null;
+		}
+		if (requestId && preparedZipCancelRequestId === requestId) {
+			preparedZipCancelRequestId = null;
+		}
+	}
+}
+
+function isPickerAbort(error: unknown) {
+	return error instanceof DOMException && error.name === "AbortError";
+}
+
+function cancelFolderDownload() {
+	setFolderDownloadStatus("canceling download...");
+	const requestId = preparedZipCancelRequestId;
+	if (requestId) {
+		preparedZipCancelingRequestId = requestId;
+		void cancelPreparedZipDownload({
+				fetch: window.fetch.bind(window),
+				requestId,
+				token: data.token,
+			workerUrl: data.workerUrl,
+			})
+			.catch((error) => {
+				console.warn("prepared zip cancellation failed", error);
+				const statusToken = setFolderDownloadStatus(
+					"download stopped locally. server cancel failed.",
+				);
+				clearFolderDownloadStatusLater(statusToken, 5000);
+			})
+			.finally(() => {
+				if (preparedZipCancelingRequestId === requestId) {
+					preparedZipCancelingRequestId = null;
+				}
+			});
+	}
+	folderDownloadAbortController?.abort(new DOMException("Download canceled.", "AbortError"));
+}
+
+async function downloadImages(
+	targetImages: GalleryDownloadImage[],
+	emptyMessage: string,
+	galleryName = data.gallery.name,
+) {
+	const plan = createGalleryDownloadPlan({
+		images: targetImages,
+		emptyMessage,
+		galleryName,
+		token: data.token,
+		workerUrl: data.workerUrl,
+	});
+
+	if (plan.type === "empty") {
+		showDownloadError(plan.message);
+		return;
+	}
+
 	downloading = true;
 	downloadError = null;
 	try {
-		const res = await fetch(`${data.workerUrl}/download/zip`, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				token: data.token,
-				imageKeys,
-				galleryName: `${data.gallery.name}${fileSuffix}`,
-			}),
+		const route = chooseGalleryDownloadRoute({
+			chooseLocation: chooseDownloadFolder,
+			folderDownloadsSupported,
+			planType: plan.type,
+			targetCount: targetImages.length,
+			zipFileDownloadsSupported,
 		});
-		if (!res.ok) throw new Error("Download failed");
 
-		const blob = await res.blob();
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = `${data.gallery.name.replace(/[^a-zA-Z0-9._-]/g, "_")}${fileSuffix}.zip`;
-		a.click();
-		URL.revokeObjectURL(url);
-	} catch {
-		downloadError = "download failed. please try again.";
-		setTimeout(() => {
-			downloadError = null;
-		}, 6000);
+		if (route === "folder") {
+			await saveImagesToFolder(targetImages);
+		} else if (route === "browserZip") {
+			await saveImagesToZip(targetImages, galleryName);
+		} else if (route === "preparedZip" && plan.type === "tooLarge") {
+			await savePreparedZip(plan, galleryName);
+		} else if (plan.type === "single") {
+			triggerDownload(plan.image);
+		} else if (plan.type === "zip") {
+			submitZipDownload(plan);
+		}
+	} catch (error) {
+		if (isPickerAbort(error)) {
+			const statusToken = setFolderDownloadStatus("download canceled.");
+			clearFolderDownloadStatusLater(statusToken, 3000);
+		} else {
+			setFolderDownloadStatus(null);
+			showDownloadError("download failed. please try again.", 6000);
+		}
 	} finally {
-		downloading = false;
+		window.setTimeout(() => {
+			downloading = false;
+		}, 1500);
 	}
 }
 
 function downloadAll() {
-	return zipDownload(
-		images.map((img) => img.r2Key),
-		"",
-	);
+	return downloadImages(images, "no photographs are available to download yet.");
+}
+
+function downloadSelected() {
+	return downloadImages(selectedImages, "no photographs selected.");
 }
 
 function downloadFavorites() {
-	return zipDownload(
-		images.filter((img) => img.isFavorite).map((img) => img.r2Key),
-		"-favorites",
+	return downloadImages(
+		images.filter((img) => img.isFavorite),
+		"no favorite photographs selected.",
+		`${data.gallery.name}-favorites`,
 	);
 }
 
@@ -183,7 +478,15 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 					onclick={downloadAll}
 					disabled={downloading}
 				>
-					{downloading ? "preparing…" : "download all"}
+					{folderDownloadInProgress ? "saving…" : downloading ? "starting…" : "download all"}
+				</button>
+				<button
+					type="button"
+					class="ghost-btn muted"
+					onclick={downloadSelected}
+					disabled={downloading || selectedCount === 0}
+				>
+					download selected · {selectedCount}
 				</button>
 				{#if data.gallery.favoritesEnabled && favoriteCount > 0}
 					<button
@@ -195,43 +498,172 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 						download favorites · {favoriteCount}
 					</button>
 				{/if}
+				<button
+					type="button"
+					class="ghost-btn subtle"
+					onclick={allImagesSelected ? clearSelection : selectAllImages}
+					disabled={downloading || images.length === 0}
+				>
+					{allImagesSelected ? "clear selection" : "select all"}
+				</button>
+				<label class="folder-download-toggle" aria-disabled={!chosenLocationDownloadsSupported}>
+					<input
+						type="checkbox"
+						bind:checked={chooseDownloadFolder}
+						disabled={!chosenLocationDownloadsSupported || downloading}
+					/>
+					<span>choose location</span>
+				</label>
+				{#if folderDownloadInProgress}
+					<button
+						type="button"
+						class="ghost-btn danger"
+						onclick={cancelFolderDownload}
+						disabled={preparedZipCancelRequestId !== null &&
+							preparedZipCancelingRequestId === preparedZipCancelRequestId}
+					>
+						{preparedZipCancelRequestId !== null &&
+						preparedZipCancelingRequestId === preparedZipCancelRequestId
+							? "canceling..."
+							: "cancel download"}
+					</button>
+				{/if}
 			</div>
+		{/if}
+
+		{#if folderDownloadStatus}
+			<p class="download-status" role="status">{folderDownloadStatus}</p>
+		{:else if data.gallery.downloadEnabled && !chosenLocationDownloadsSupported}
+			<p class="download-status subtle">chosen-location downloads require a chromium browser.</p>
 		{/if}
 
 		{#if downloadError}
 			<p class="error-note" role="alert">{downloadError}</p>
 		{/if}
+		<div class="view-toggle" aria-label="gallery view">
+			<button
+				type="button"
+				class:active={galleryView === "grid"}
+				aria-pressed={galleryView === "grid"}
+				onclick={() => {
+					galleryView = "grid";
+				}}
+			>
+				grid
+			</button>
+			<button
+				type="button"
+				class:active={galleryView === "list"}
+				aria-pressed={galleryView === "list"}
+				onclick={() => {
+					galleryView = "list";
+				}}
+			>
+				list
+			</button>
+		</div>
 	</header>
 
-	<div class="image-grid">
-		{#each images as image, i (image._id)}
-			<div class="grid-cell">
-				<button
-					type="button"
-					class="thumb-btn"
-					onclick={() => openLightbox(i)}
-					aria-label="view photograph {i + 1} of {images.length}"
-				>
-					<img
-						src={image.thumbUrl}
-						alt="photograph {i + 1}: {image.filename}"
-						loading="lazy"
-					/>
-				</button>
-				{#if data.gallery.favoritesEnabled}
+	{#if galleryView === "grid"}
+		<div class="image-grid">
+			{#each images as image, i (image._id)}
+				<div class="grid-cell">
 					<button
 						type="button"
-						class="fav-btn"
-						class:is-fav={image.isFavorite}
-						onclick={() => toggleFavorite(i)}
-						aria-label={image.isFavorite ? "remove from favorites" : "add to favorites"}
+						class="thumb-btn"
+						onclick={() => openLightbox(i)}
+						aria-label="view photograph {i + 1} of {images.length}"
 					>
-						{image.isFavorite ? "♥" : "♡"}
+						{#if image.canPreview}
+							<img
+								src={image.thumbUrl}
+								alt="photograph {i + 1}: {image.filename}"
+								loading="lazy"
+							/>
+						{:else}
+							<span class="file-tile" aria-label={image.filename}>
+								<span>{image.fileLabel}</span>
+							</span>
+						{/if}
 					</button>
-				{/if}
-			</div>
-		{/each}
-	</div>
+					{#if data.gallery.favoritesEnabled}
+						<button
+							type="button"
+							class="fav-btn"
+							class:is-fav={image.isFavorite}
+							onclick={() => toggleFavorite(i)}
+							aria-label={image.isFavorite ? "remove from favorites" : "add to favorites"}
+						>
+							{image.isFavorite ? "♥" : "♡"}
+						</button>
+					{/if}
+					{#if data.gallery.downloadEnabled}
+						<label
+							class="select-photo"
+							class:selected={selectedImageIds.has(image._id)}
+							aria-label={"select " + image.filename}
+						>
+							<input
+								type="checkbox"
+								checked={selectedImageIds.has(image._id)}
+								onchange={() => toggleImageSelection(image._id)}
+							/>
+							<span aria-hidden="true"></span>
+						</label>
+					{/if}
+					<p class="image-filename">{image.filename}</p>
+				</div>
+			{/each}
+		</div>
+	{:else}
+		<div class="image-list">
+			{#each images as image, i (image._id)}
+				<div class="list-row">
+					<button
+						type="button"
+						class="list-thumb"
+						onclick={() => openLightbox(i)}
+						aria-label={"view " + image.filename}
+					>
+						{#if image.canPreview}
+							<img src={image.thumbUrl} alt="" loading="lazy" />
+						{:else}
+							<span class="file-tile" aria-label={image.filename}>
+								<span>{image.fileLabel}</span>
+							</span>
+						{/if}
+					</button>
+					<button type="button" class="list-info" onclick={() => openLightbox(i)}>
+						<span class="list-filename">{image.filename}</span>
+						<span class="list-meta">{image.fileLabel}</span>
+					</button>
+					<div class="list-actions">
+						{#if data.gallery.favoritesEnabled}
+							<button
+								type="button"
+								class="list-fav"
+								class:is-fav={image.isFavorite}
+								onclick={() => toggleFavorite(i)}
+								aria-label={image.isFavorite ? "remove from favorites" : "add to favorites"}
+							>
+								{image.isFavorite ? "♥" : "♡"}
+							</button>
+						{/if}
+						{#if data.gallery.downloadEnabled}
+							<label class="list-select" aria-label={"select " + image.filename}>
+								<input
+									type="checkbox"
+									checked={selectedImageIds.has(image._id)}
+									onchange={() => toggleImageSelection(image._id)}
+								/>
+								<span>select</span>
+							</label>
+						{/if}
+					</div>
+				</div>
+			{/each}
+		</div>
+	{/if}
 
 	{#if images.length === 0}
 		<p class="empty-note"><em>no photographs yet.</em></p>
@@ -257,11 +689,17 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="lightbox-content" onclick={(e) => e.stopPropagation()}>
-			<img
-				src={images[lightboxIndex].previewUrl}
-				alt={images[lightboxIndex].filename}
-				class="lightbox-image"
-			/>
+			{#if images[lightboxIndex].canPreview}
+				<img
+					src={images[lightboxIndex].previewUrl}
+					alt={images[lightboxIndex].filename}
+					class="lightbox-image"
+				/>
+			{:else}
+				<div class="lightbox-file">
+					<span>{images[lightboxIndex].fileLabel}</span>
+				</div>
+			{/if}
 			<div class="lightbox-meta">
 				<span class="filename">{images[lightboxIndex].filename}</span>
 				<span class="counter" aria-live="polite">{lightboxIndex + 1} / {images.length}</span>
@@ -423,6 +861,40 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 		border-color: rgba(var(--paper-rgb), 0.2);
 	}
 
+	.ghost-btn.subtle {
+		color: rgba(var(--paper-rgb), 0.48);
+		border-color: rgba(var(--paper-rgb), 0.16);
+	}
+
+	.ghost-btn.danger {
+		color: rgba(255, 128, 128, 0.9);
+		border-color: rgba(255, 128, 128, 0.45);
+	}
+
+	.folder-download-toggle {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		min-height: 44px;
+		font-family: var(--font-serif);
+		font-size: 0.78rem;
+		font-style: italic;
+		letter-spacing: 0.08em;
+		color: rgba(var(--paper-rgb), 0.58);
+		cursor: pointer;
+	}
+
+	.folder-download-toggle[aria-disabled="true"] {
+		cursor: not-allowed;
+		color: rgba(var(--paper-rgb), 0.34);
+	}
+
+	.folder-download-toggle input {
+		width: 0.9rem;
+		height: 0.9rem;
+		accent-color: rgba(var(--paper-rgb), 0.9);
+	}
+
 	.ghost-btn.small {
 		padding: 0.5rem 1.1rem;
 		font-size: 0.78rem;
@@ -443,6 +915,45 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 		margin-top: 1.25rem;
 	}
 
+	.download-status {
+		font-family: var(--font-serif);
+		font-size: 0.82rem;
+		font-style: italic;
+		letter-spacing: 0.05em;
+		color: rgba(var(--paper-rgb), 0.58);
+		margin: 1rem 0 0;
+	}
+
+	.download-status.subtle {
+		color: rgba(var(--paper-rgb), 0.38);
+	}
+
+	.view-toggle {
+		display: inline-flex;
+		gap: 0.25rem;
+		margin-top: 1rem;
+		border: 1px solid rgba(var(--paper-rgb), 0.16);
+		border-radius: 999px;
+		padding: 0.25rem;
+	}
+
+	.view-toggle button {
+		border: none;
+		background: transparent;
+		color: rgba(var(--paper-rgb), 0.52);
+		font-family: var(--font-sans);
+		font-size: 0.76rem;
+		letter-spacing: 0.07em;
+		padding: 0.35rem 0.85rem;
+		border-radius: 999px;
+		cursor: pointer;
+	}
+
+	.view-toggle button.active {
+		background: rgba(var(--paper-rgb), 0.1);
+		color: rgba(var(--paper-rgb), 0.92);
+	}
+
 	.empty-note {
 		font-family: var(--font-serif);
 		color: rgba(var(--paper-rgb), 0.55);
@@ -460,21 +971,20 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 
 	.grid-cell {
 		position: relative;
-		aspect-ratio: 1;
-		overflow: hidden;
 		border-radius: 2px;
-		background: rgba(var(--ink-rgb), 0.35);
 	}
 
 	.thumb-btn {
 		display: block;
 		width: 100%;
-		height: 100%;
+		aspect-ratio: 1;
 		padding: 0;
 		border: none;
 		background: none;
 		cursor: pointer;
 		overflow: hidden;
+		border-radius: 2px;
+		background: rgba(var(--ink-rgb), 0.35);
 	}
 
 	.thumb-btn img {
@@ -483,6 +993,25 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 		object-fit: cover;
 		display: block;
 		opacity: 0.92;
+	}
+
+	.file-tile {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(var(--paper-rgb), 0.08);
+		color: rgba(var(--paper-rgb), 0.7);
+	}
+
+	.file-tile span {
+		padding: 0.45rem 0.8rem;
+		border: 1px solid rgba(var(--paper-rgb), 0.24);
+		border-radius: 999px;
+		font-size: 0.72rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
@@ -496,6 +1025,16 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 			transform: scale(1.025);
 			opacity: 1;
 		}
+	}
+
+	.image-filename {
+		margin: 0.5rem 0 0;
+		font-size: 0.72rem;
+		line-height: 1.3;
+		color: rgba(var(--paper-rgb), 0.54);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.fav-btn {
@@ -541,6 +1080,151 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 		background: rgba(var(--ink-rgb), 0.75);
 	}
 
+	.select-photo {
+		position: absolute;
+		top: 0.6rem;
+		left: 0.6rem;
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		border: 1px solid rgba(var(--paper-rgb), 0.25);
+		background: rgba(var(--ink-rgb), 0.55);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		opacity: 0;
+		transition:
+			opacity 300ms ease,
+			background 300ms ease,
+			border-color 300ms ease;
+	}
+
+	.grid-cell:hover .select-photo,
+	.grid-cell:focus-within .select-photo,
+	.select-photo.selected {
+		opacity: 1;
+	}
+
+	.select-photo:hover,
+	.select-photo.selected {
+		background: rgba(var(--ink-rgb), 0.75);
+		border-color: rgba(var(--paper-rgb), 0.55);
+	}
+
+	.select-photo input {
+		position: absolute;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.select-photo span {
+		width: 15px;
+		height: 15px;
+		border: 1px solid rgba(var(--paper-rgb), 0.7);
+		border-radius: 2px;
+		background: rgba(var(--paper-rgb), 0.08);
+	}
+
+	.select-photo.selected span {
+		background: rgba(var(--paper-rgb), 0.9);
+		border-color: rgba(var(--paper-rgb), 0.95);
+		box-shadow: inset 0 0 0 3px rgba(var(--ink-rgb), 0.72);
+	}
+
+	.image-list {
+		display: flex;
+		flex-direction: column;
+		border-top: 1px solid rgba(var(--paper-rgb), 0.12);
+	}
+
+	.list-row {
+		display: grid;
+		grid-template-columns: 68px minmax(0, 1fr) auto;
+		gap: 1rem;
+		align-items: center;
+		padding: 0.75rem 0;
+		border-bottom: 1px solid rgba(var(--paper-rgb), 0.12);
+	}
+
+	.list-thumb {
+		width: 68px;
+		aspect-ratio: 1;
+		border: none;
+		border-radius: 2px;
+		padding: 0;
+		overflow: hidden;
+		background: rgba(var(--ink-rgb), 0.35);
+		cursor: pointer;
+	}
+
+	.list-thumb img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+	}
+
+	.list-info {
+		min-width: 0;
+		border: none;
+		background: transparent;
+		color: inherit;
+		font-family: var(--font-sans);
+		text-align: left;
+		cursor: pointer;
+	}
+
+	.list-filename,
+	.list-meta {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.list-filename {
+		color: rgba(var(--paper-rgb), 0.84);
+	}
+
+	.list-meta {
+		margin-top: 0.25rem;
+		color: rgba(var(--paper-rgb), 0.42);
+		font-size: 0.72rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+	}
+
+	.list-actions {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.list-fav {
+		border: none;
+		background: transparent;
+		color: rgba(var(--paper-rgb), 0.48);
+		font-family: var(--font-serif);
+		font-size: 1rem;
+		cursor: pointer;
+	}
+
+	.list-fav.is-fav {
+		color: rgba(var(--paper-rgb), 0.95);
+	}
+
+	.list-select {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		color: rgba(var(--paper-rgb), 0.58);
+		font-family: var(--font-sans);
+		font-size: 0.76rem;
+		letter-spacing: 0.05em;
+		cursor: pointer;
+	}
+
 	/* ─── Lightbox ──────────────────────────────────────── */
 	.lightbox {
 		position: fixed;
@@ -575,6 +1259,27 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 		object-fit: contain;
 		border-radius: 2px;
 		box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+	}
+
+	.lightbox-file {
+		width: min(520px, 80vw);
+		aspect-ratio: 4 / 3;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 2px;
+		background: rgba(var(--paper-rgb), 0.08);
+		color: rgba(var(--paper-rgb), 0.72);
+		box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+	}
+
+	.lightbox-file span {
+		padding: 0.5rem 0.9rem;
+		border: 1px solid rgba(var(--paper-rgb), 0.24);
+		border-radius: 999px;
+		font-size: 0.75rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
 	}
 
 	.lightbox-meta {
@@ -672,7 +1377,20 @@ let favoriteCount = $derived(images.filter((img) => img.isFavorite).length);
 			grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
 			gap: 0.5rem;
 		}
+		.list-row {
+			grid-template-columns: 54px minmax(0, 1fr);
+		}
+		.list-thumb {
+			width: 54px;
+		}
+		.list-actions {
+			grid-column: 2;
+			justify-content: space-between;
+		}
 		.fav-btn {
+			opacity: 1;
+		}
+		.select-photo {
 			opacity: 1;
 		}
 		.lightbox {
