@@ -17,9 +17,11 @@ Canonical rules for this client-spoke repository.
 - **Shared Convex owns operations:** orders, CRM, board, invoices, quotes,
   contracts, messages, platform tenancy, and private delivery galleries.
 - **This SvelteKit app owns composition:** public routes, admin host routes,
-  checkout intake, webhooks, and per-client presentation.
-- **The hub owns shared checkout/backend contracts:** changes to the shared
-  Convex schema or hub checkout bridge belong in `../angelsrest`.
+  validated checkout requests, the LumaPrints shipment webhook, and per-client
+  presentation.
+- **The hub owns commerce execution:** connected-account Checkout creation,
+  Stripe commerce webhook intake, shared Convex order writes, fulfillment,
+  refunds, and order notifications belong in `../angelsrest`.
 - **The Studio template is upstream:** shared Studio schema/component changes
   belong in `../sanity-studio-template`, then sync into
   `../reflecting-pool-studio`.
@@ -70,8 +72,11 @@ testing client navigation, refresh, expiry, and logout behavior.
 - `/api/checkout` rate-limits and validates the requested print against local
   shared pricing, then asks the Angels Rest hub to create the connected-account
   Stripe session.
-- `/api/webhooks/stripe` verifies Stripe events and records orders in shared
-  Convex before submitting eligible prints to LumaPrints.
+- The Angels Rest `/api/webhooks/stripe` endpoint is the single commerce-event
+  owner for this spoke and future Stripe Connect clients.
+- This repository's `/api/webhooks/stripe` and `orderIntake.ts` are temporary
+  migration compatibility paths. Do not copy them into future client spokes;
+  remove them only after the live Stripe endpoint and hub delivery are verified.
 - `/api/webhooks/lumaprints` verifies the configured webhook secret/signature,
   atomically claims shipment notification in Convex, and records Resend delivery
   state.
@@ -94,7 +99,7 @@ See `LUMAPRINTS.md` before changing this flow.
 - Admin host config: `src/lib/config/admin.ts`, `admin.server.ts`
 - Sanity boundary: `src/lib/server/sanityClient.ts`, `src/lib/server/content/`
 - Checkout boundary: `src/lib/server/checkoutIntake.ts`, `checkoutBridge.ts`
-- Stripe order intake: `src/lib/server/orderIntake.ts`
+- Temporary Stripe order-intake compatibility path: `src/lib/server/orderIntake.ts`
 - LumaPrints client: `src/lib/server/lumaprints.ts`
 - Gallery delivery helpers: `src/lib/galleryDelivery/`
 - Shared package aliases: `svelte.config.js`

@@ -7,6 +7,7 @@ const mockConvexMutation = vi.fn();
 const mockCreateLumaOrder = vi.fn();
 const mockBuildLumaOrder = vi.fn();
 const mockVerifyWebhook = vi.fn();
+const mockGetCommerceWebhookOwner = vi.fn();
 
 // Intercept the ConvexHttpClient singleton. The webhook imports
 // `getConvex()` which returns the client; we replace `mutation()` so
@@ -25,6 +26,10 @@ vi.mock("../../lib/server/lumaprints", () => ({
 vi.mock("../../lib/server/stripe", () => ({
 	verifyWebhook: mockVerifyWebhook,
 	stripe: {},
+}));
+
+vi.mock("../../lib/server/commerceWebhookOwnership", () => ({
+	getCommerceWebhookOwner: mockGetCommerceWebhookOwner,
 }));
 
 vi.mock("$env/dynamic/private", () => ({
@@ -116,6 +121,7 @@ describe("POST /api/webhooks/stripe", () => {
 	beforeEach(async () => {
 		vi.clearAllMocks();
 		vi.resetModules();
+		mockGetCommerceWebhookOwner.mockReturnValue("spoke");
 
 		// Top-level vi.mock() calls above are hoisted by Vitest and stay
 		// active across resetModules() — they only need to be declared once.
@@ -138,6 +144,21 @@ describe("POST /api/webhooks/stripe", () => {
 		expect(response.status).toBe(400);
 		const data = await response.json();
 		expect(data.error).toMatch(/signature/i);
+	});
+
+	it("fails loudly without side effects when the hub is configured as owner", async () => {
+		const session = makeCheckoutSession();
+		mockVerifyWebhook.mockResolvedValue(makeStripeEvent("checkout.session.completed", session));
+		mockGetCommerceWebhookOwner.mockReturnValue("hub");
+
+		const response = await POST(makeRequest("{}", "valid-sig") as never);
+
+		expect(response.status).toBe(409);
+		expect(await response.json()).toEqual({
+			error: "Commerce webhook is owned by the Angels Rest hub",
+		});
+		expect(mockConvexMutation).not.toHaveBeenCalled();
+		expect(mockCreateLumaOrder).not.toHaveBeenCalled();
 	});
 
 	it("creates a Convex order on valid checkout.session.completed", async () => {

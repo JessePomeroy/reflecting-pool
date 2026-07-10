@@ -11,8 +11,8 @@ LumaPrints owns production/shipment.
   → checkoutIntake.ts (rate, shape, and server-price validation)
   → checkoutBridge.ts (signed request to Angels Rest hub)
   → Stripe Connect Checkout
-  → /api/webhooks/stripe (signature verification)
-  → orderIntake.ts (Convex order + LumaPrints + email)
+  → Angels Rest /api/webhooks/stripe (tenant resolution + signature verification)
+  → hub orderIntake.ts (Convex order + LumaPrints + refund recovery + email)
 ```
 
 The Convex order is idempotent by Stripe checkout session. A persisted
@@ -37,8 +37,12 @@ Resend remains an external side effect whose outcome must be observable.
 | Papers, sizes, frames, canvas, Luma IDs | `@jessepomeroy/print-catalog` |
 | Retail pricing policy | `src/lib/shop/pricing.ts` |
 | Order and shipment-email state | shared Convex `orders` |
-| Luma HTTP client and payload builder | `src/lib/server/lumaprints.ts` |
-| Checkout/order orchestration | `checkoutIntake.ts`, `orderIntake.ts` |
+| Luma HTTP client and payload builder | Angels Rest hub for outbound orders; this spoke for shipment lookup |
+| Checkout request validation | `checkoutIntake.ts`, `checkoutBridge.ts` |
+| Order/refund orchestration | Angels Rest commerce webhook and `orderIntake.ts` |
+
+The spoke's Stripe `orderIntake.ts` remains temporarily for a staged endpoint
+migration and must not be copied into future client repositories.
 
 ## Image constraints
 

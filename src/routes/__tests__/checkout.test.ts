@@ -156,6 +156,7 @@ describe("POST /api/checkout", () => {
 
 		expect(mockCreateHubPrintCheckoutSession).toHaveBeenCalledWith(
 			expect.objectContaining({
+				siteUrl: "zippymiggy.com",
 				amountCents: 1800,
 				productName: "Peony Blush — 4×6",
 				metadata: expect.objectContaining({
