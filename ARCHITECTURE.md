@@ -73,13 +73,15 @@ propagate so the upstream can retry.
 ## Admin request flow
 
 1. Better Auth establishes the session.
-2. The server layout validates identity and loads tenant tier.
+2. The server layout validates identity, checks the authenticated email against
+   this site's stored `adminEmails` membership, and loads the authorized tier.
 3. The browser WebSocket receives a JWT through `/api/admin/token` and
    `setupAuth` for reactive queries.
 4. Mutations POST to `/api/admin/mutation`; the server creates a fresh
    authenticated Convex HTTP client.
 5. Shared Convex functions enforce tenant membership.
-6. Gallery HTTP handlers separately authorize and call the gallery Worker.
+6. Shared HTTP handlers use the same per-request site membership check before
+   calling the gallery Worker or performing other server-side effects.
 
 The tenant key in `src/lib/config/admin.ts` is an operational identifier and
 must match the shared `platformClients.siteUrl` record exactly. Public canonical

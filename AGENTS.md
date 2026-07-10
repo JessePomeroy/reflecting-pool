@@ -54,8 +54,9 @@ Studio schema and reflected in the GROQ/normalization boundary.
 ## Admin authentication and transport
 
 - Better Auth owns the session.
-- `src/routes/admin/+layout.server.ts` validates the session and returns tier
-  data before child server loads run.
+- `src/routes/admin/+layout.server.ts` validates the session, checks stored
+  `adminEmails` membership for this site, and returns authorized tier data
+  before child server loads run.
 - `src/routes/admin/+layout.svelte` authenticates the browser Convex WebSocket
   manually with `setupAuth`.
 - Queries use the authenticated WebSocket.
@@ -63,6 +64,8 @@ Studio schema and reflected in the GROQ/normalization boundary.
   `ConvexHttpClient` through `@jessepomeroy/admin`'s HTTP transport.
 - New tenant data access must authorize stored membership; `siteUrl` supplied by
   the browser is not authorization.
+- Shared admin HTTP handlers use the host's per-request site-admin verifier;
+  never replace it with an identity-only session check.
 
 Do not replace the manual WebSocket auth with `createSvelteAuthClient` without
 testing client navigation, refresh, expiry, and logout behavior.
