@@ -12,7 +12,7 @@ reflecting-pool (SvelteKit host)
   ├── @jessepomeroy/crm-api / shared Convex (operations)
   ├── @jessepomeroy/admin (shared admin UI and server handlers)
   ├── @jessepomeroy/print-catalog (pure print metadata/pricing)
-  ├── angelsrest hub checkout bridge (Stripe Connect session creation)
+  ├── angelsrest hub checkout bridge (Stripe session creation and tenant routing)
   └── gallery-worker (R2 upload and delivery)
 ```
 
@@ -24,7 +24,7 @@ components and fallback content remain local.
 | Domain | Owner | Local boundary |
 |---|---|---|
 | Homepage, portfolio, about, modeling, shop catalog, site settings | Sanity | `src/lib/server/content/`, `sanityClient.ts` |
-| Orders and fulfillment state | Shared Convex | `$convex/api`, `orderIntake.ts` |
+| Orders and fulfillment state | Shared Convex | Angels Rest commerce webhook |
 | CRM, invoices, quotes, contracts, messages, board | Shared Convex | `@jessepomeroy/admin` pages |
 | Private delivery gallery metadata | Shared Convex | delivery page/admin package |
 | Delivery image/archive objects | Gallery Worker + R2 | `src/lib/galleryDelivery/`, admin server routes |
@@ -47,10 +47,21 @@ data rather than importing Sanity credentials or clients.
 2. The route rate-limits the caller.
 3. `checkoutIntake.ts` validates dimensions, material ID, and server-owned price.
 4. `checkoutBridge.ts` sends a signed request to the Angels Rest hub.
-5. The hub creates a Stripe Connect Checkout session for this tenant.
-6. Stripe events return through the configured commerce webhook.
-7. `orderIntake.ts` creates/reuses the shared Convex order, submits LumaPrints,
-   and sends applicable notifications.
+5. The request carries the bare-domain operational tenant key separately from
+   this site's public redirect origin.
+6. The hub resolves the tenant and creates Checkout. During pre-handoff testing,
+   Reflecting Pool has no connected Stripe account and uses the hub platform
+   account; client handoff requires completed Connect onboarding.
+7. Stripe sends the platform-account or connected-account event to the hub
+   commerce webhook.
+8. The hub creates/reuses the shared Convex order, submits LumaPrints, applies
+   refund recovery, and sends applicable notifications.
+
+This spoke has no Stripe webhook or outbound LumaPrints client. Future spokes use
+the bridge and hub webhook; they do not copy order-intake or fulfillment code.
+Before accepting client-owned live orders, verify the tenant has a connected
+account and the hub's Stripe Connect destination receives connected-account
+`checkout.session.completed` events.
 
 ### Shipment webhook
 
