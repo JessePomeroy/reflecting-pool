@@ -3,6 +3,7 @@ import { env as privateEnv } from "$env/dynamic/private";
 import { env as publicEnv } from "$env/dynamic/public";
 import { adminAuth } from "$lib/server/adminAuth";
 import { getGalleryWorkerUrl } from "$lib/server/galleryWorkerUrl";
+import { verifySiteAdminRequest } from "$lib/server/siteAdminAuthorization";
 import { adminConfig } from "./admin";
 
 export const adminServerConfig: AdminServerConfig = {
@@ -11,6 +12,6 @@ export const adminServerConfig: AdminServerConfig = {
 	resendApiKey: privateEnv.RESEND_API_KEY ?? "",
 	galleryWorkerUrl: getGalleryWorkerUrl(),
 	galleryAdminSecret: privateEnv.GALLERY_ADMIN_SECRET ?? "",
-	verifyAdmin: adminAuth.verifyRequest,
+	verifyAdmin: verifySiteAdminRequest,
 	getConvexToken: adminAuth.getTokenFromRequest,
 };
