@@ -1,4 +1,7 @@
 <script lang="ts">
+import { tick } from "svelte";
+import { TURNSTILE_SITE_KEY } from "$lib/config/turnstile";
+
 type FormState = "idle" | "sending" | "success" | "error";
 
 let formStatus: FormState = $state("idle");
@@ -9,16 +12,44 @@ let email = $state("");
 let subject = $state("");
 let message = $state("");
 
+type TurnstileWindow = Window & {
+	turnstile?: {
+		reset: (widget?: HTMLElement) => void;
+		render: (
+			widget: HTMLElement,
+			options: { sitekey: string; theme: "auto"; action: string },
+		) => string;
+	};
+};
+
+function resetTurnstile(form: HTMLFormElement) {
+	const widget = form.querySelector<HTMLElement>(".cf-turnstile") ?? undefined;
+	(window as TurnstileWindow).turnstile?.reset(widget);
+}
+
 async function handleSubmit(e: SubmitEvent) {
 	e.preventDefault();
 	formStatus = "sending";
 	errorMessage = "";
+	const form = e.currentTarget as HTMLFormElement;
+	const turnstileToken = new FormData(form).get("cf-turnstile-response");
+	if (typeof turnstileToken !== "string" || turnstileToken.length === 0) {
+		formStatus = "error";
+		errorMessage = "please complete the verification";
+		return;
+	}
 
 	try {
 		const res = await fetch("/api/contact", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ name, email, subject, message }),
+			body: JSON.stringify({
+				name,
+				email,
+				subject,
+				message,
+				"cf-turnstile-response": turnstileToken,
+			}),
 		});
 
 		if (!res.ok) {
@@ -27,6 +58,7 @@ async function handleSubmit(e: SubmitEvent) {
 		}
 
 		formStatus = "success";
+		resetTurnstile(form);
 		name = "";
 		email = "";
 		subject = "";
@@ -34,14 +66,29 @@ async function handleSubmit(e: SubmitEvent) {
 	} catch (err) {
 		formStatus = "error";
 		errorMessage = err instanceof Error ? err.message : "something went wrong";
+		resetTurnstile(form);
 	}
 }
 
-function reset() {
+async function reset() {
 	formStatus = "idle";
 	errorMessage = "";
+	await tick();
+	const widget = document.querySelector<HTMLElement>(".cf-turnstile");
+	const turnstile = (window as TurnstileWindow).turnstile;
+	if (widget && !widget.querySelector("iframe") && turnstile) {
+		turnstile.render(widget, {
+			sitekey: TURNSTILE_SITE_KEY,
+			theme: "auto",
+			action: "turnstile-spin-v1",
+		});
+	}
 }
 </script>
+
+<svelte:head>
+	<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</svelte:head>
 
 <div class="contact-form-wrapper">
 	{#if formStatus === 'success'}
@@ -104,6 +151,13 @@ function reset() {
 			{#if formStatus === 'error'}
 				<p class="error-message">{errorMessage}</p>
 			{/if}
+
+			<div
+				class="cf-turnstile"
+				data-sitekey={TURNSTILE_SITE_KEY}
+				data-theme="auto"
+				data-action="turnstile-spin-v1"
+			></div>
 
 			<button type="submit" class="submit-btn" disabled={formStatus === 'sending'}>
 				{formStatus === 'sending' ? 'sending…' : 'send message'}

@@ -70,6 +70,11 @@ Studio schema and reflected in the GROQ/normalization boundary.
 Do not replace the manual WebSocket auth with `createSvelteAuthClient` without
 testing client navigation, refresh, expiry, and logout behavior.
 
+Public contact submissions must keep Turnstile verification in
+`/api/contact`, ahead of email or persistence side effects. The browser may
+collect the challenge token but is not the trusted verification boundary. New
+client hostnames must be added to the shared widget before launch.
+
 ## Commerce and fulfillment
 
 - `/api/checkout` rate-limits and validates the requested print against local
