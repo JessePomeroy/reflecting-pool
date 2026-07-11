@@ -41,6 +41,21 @@ Public server loads call one content module. That module fetches and normalizes
 Sanity data or returns a typed fallback. Browser components receive normalized
 data rather than importing Sanity credentials or clients.
 
+### Contact inquiries
+
+The contact form renders the platform Turnstile widget and submits its
+short-lived response token to `/api/contact`. The server keeps the existing
+per-IP rate limit, validates the payload, and verifies the token through the
+managed Angels Rest siteverify Worker before sending email. The widget secret
+exists only as a Cloudflare Worker binding; the site contains only the public
+site key and Worker URL. Browser-only verification is not an authorization
+boundary.
+
+The managed Worker can be shared by future client spokes after their production
+hostnames are added to the widget. Contact persistence, when enabled for this
+spoke, must enter shared Convex through the hub's webhook-secret boundary rather
+than a browser-writable mutation.
+
 ### Print checkout
 
 1. Browser submits a product/material/size choice to `/api/checkout`.

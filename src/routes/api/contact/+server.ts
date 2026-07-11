@@ -4,6 +4,7 @@ import { env } from "$env/dynamic/private";
 import { PUBLIC_SITE_URL } from "$env/static/public";
 import { escapeHtml } from "$lib/server/html";
 import { rateLimit } from "$lib/server/rate-limit";
+import { verifyTurnstileToken } from "$lib/server/turnstile";
 import type { RequestHandler } from "./$types";
 
 // Resend is lazy-initialized to keep builds green while per-tenant email
@@ -78,6 +79,16 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	const validation = validatePayload(body);
 	if (!validation.valid) {
 		return json({ error: validation.error }, { status: 422 });
+	}
+
+	const payload = body as Record<string, unknown>;
+	const verification = await verifyTurnstileToken({
+		token: payload["cf-turnstile-response"],
+		remoteIp: ip,
+	});
+	if (!verification.success) {
+		const status = verification.reason === "unavailable" ? 503 : 403;
+		return json({ error: "verification failed — please try again" }, { status });
 	}
 
 	const { name, email, subject, message } = validation.data;
