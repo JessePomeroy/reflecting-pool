@@ -12,7 +12,14 @@ import { api } from "$convex/api";
 // inquiry API directly.
 const apiWithAliases = new Proxy(api, {
 	get(target, prop, receiver) {
-		if (prop === "galleryDelivery") return target.galleries;
+		if (prop === "galleryDelivery") {
+			return new Proxy(target.galleries, {
+				get(galleries, galleryProp, galleryReceiver) {
+					if (galleryProp === "setPassword") return target.galleryPassword.setPassword;
+					return Reflect.get(galleries, galleryProp, galleryReceiver);
+				},
+			});
+		}
 		return Reflect.get(target, prop, receiver);
 	},
 }) as unknown as AdminAPI;
