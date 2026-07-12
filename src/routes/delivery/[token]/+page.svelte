@@ -7,41 +7,41 @@ import { PUBLIC_CONVEX_URL } from "$env/static/public";
 import {
 	canSaveGalleryZipFile,
 	saveGalleryImagesAsZipFile,
-} from "$lib/galleryDelivery/downloadArchive";
+} from "@jessepomeroy/gallery-delivery/download-archive";
 import {
 	canChooseGalleryDownloadDirectory,
 	saveGalleryImagesToDirectory,
-} from "$lib/galleryDelivery/downloadDestination";
+} from "@jessepomeroy/gallery-delivery/download-destination";
 import {
 	createGalleryDownloadPlan,
 	type GalleryDownloadImage,
 	type GalleryDownloadPlan,
 	submitGalleryZipDownloadForm,
-} from "$lib/galleryDelivery/downloadPlan";
-import { chooseGalleryDownloadRoute } from "$lib/galleryDelivery/downloadRoute";
+} from "@jessepomeroy/gallery-delivery/download-plan";
+import { chooseGalleryDownloadRoute } from "@jessepomeroy/gallery-delivery/download-route";
+import {
+	applyGalleryFavoriteOverrides,
+	beginGalleryFavoriteMutation,
+	completeGalleryFavoriteMutation,
+	createGalleryFavoriteState,
+	rollbackGalleryFavoriteMutation,
+} from "@jessepomeroy/gallery-delivery/favorite-state";
 import {
 	cancelPreparedZipDownload,
 	runPreparedZipDownload,
 	type PreparedZipDownloadStep,
 	type PreparedZipProgress,
-} from "$lib/galleryDelivery/preparedZip";
+} from "@jessepomeroy/gallery-delivery/prepared-zip";
 
 let { data, form } = $props();
 
 setupConvex(PUBLIC_CONVEX_URL);
 const client = useConvexClient();
 
-// The server is the source of truth for images. We overlay optimistic
-// favorite toggles via a per-image override map so that navigations
-// naturally flow through without clobbering user intent, and the read
-// path stays derived from props instead of stale-captured state.
-let favoriteOverrides = $state(new Map<string, boolean>());
-let images = $derived(
-	data.images.map((img) => ({
-		...img,
-		isFavorite: favoriteOverrides.get(img._id) ?? img.isFavorite,
-	})),
-);
+// The server remains the source of truth; shared per-image optimistic state
+// preserves unrelated concurrent favorite mutations when one request fails.
+let favoriteState = $state(createGalleryFavoriteState());
+let images = $derived(applyGalleryFavoriteOverrides(data.images, favoriteState));
 
 let lightboxIndex = $state(-1);
 let lightboxOpen = $derived(lightboxIndex >= 0);
@@ -122,25 +122,31 @@ function handleKeydown(e: KeyboardEvent) {
 async function toggleFavorite(index: number) {
 	if (!data.gallery.favoritesEnabled) return;
 	const image = images[index];
-	const newVal = !image.isFavorite;
-
-	// Snapshot overrides for rollback on failure. Capture the whole map so
-	// parallel writes on other keys aren't clobbered.
-	const previousOverrides = favoriteOverrides;
-	const next = new Map(favoriteOverrides);
-	next.set(image._id, newVal);
-	favoriteOverrides = next;
+	const started = beginGalleryFavoriteMutation(
+		favoriteState,
+		image._id,
+		image.isFavorite,
+	);
+	if (!started) return;
+	favoriteState = started.state;
 
 	try {
 		await client.mutation(api.galleries.updateImage, {
 			id: image._id as Id<"galleryImages">,
 			token: data.token,
 			accessGrant: data.accessGrant || undefined,
-			isFavorite: newVal,
+			isFavorite: started.mutation.nextValue,
 		});
+		favoriteState = completeGalleryFavoriteMutation(
+			favoriteState,
+			started.mutation,
+		);
 	} catch (err) {
 		console.error("favorite toggle failed", err);
-		favoriteOverrides = previousOverrides;
+		favoriteState = rollbackGalleryFavoriteMutation(
+			favoriteState,
+			started.mutation,
+		);
 		downloadError = "couldn't update favorite.";
 		setTimeout(() => {
 			downloadError = null;

@@ -1,1 +1,0 @@
-export const DEFAULT_MAX_ON_DEMAND_ZIP_BYTES = 1024 * 1024 * 1024;
