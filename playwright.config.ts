@@ -27,12 +27,13 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: `pnpm dev --host 127.0.0.1 --port ${PORT}`,
+		command: `corepack pnpm dev --host 127.0.0.1 --port ${PORT}`,
 		url: baseURL,
 		reuseExistingServer: !process.env.CI,
 		timeout: 120_000,
 		env: {
 			PUBLIC_CONVEX_URL: process.env.PUBLIC_CONVEX_URL ?? "https://placeholder.convex.cloud",
+			PUBLIC_SITE_URL: process.env.PUBLIC_SITE_URL ?? baseURL,
 		},
 	},
 });
