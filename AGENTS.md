@@ -88,9 +88,9 @@ client hostnames must be added to the shared widget before launch.
 - Reflecting Pool remains pre-handoff and currently has no connected Stripe
   account. Complete Connect onboarding and verify the hub's connected-account
   webhook destination before enabling client-owned live orders.
-- `/api/webhooks/lumaprints` verifies the configured webhook secret/signature,
-  atomically claims shipment notification in Convex, and records Resend delivery
-  state.
+- The Angels Rest `/api/webhooks/lumaprints` endpoint is the single shipment-event
+  owner for this spoke and future clients. This repository must not hold the
+  platform `WEBHOOK_SECRET` or provider webhook credentials.
 - Checkout session and LumaPrints order identifiers are idempotency boundaries.
   Never move email or physical-fulfillment side effects ahead of their claims.
 
@@ -110,7 +110,7 @@ See `LUMAPRINTS.md` before changing this flow.
 - Admin host config: `src/lib/config/admin.ts`, `admin.server.ts`
 - Sanity boundary: `src/lib/server/sanityClient.ts`, `src/lib/server/content/`
 - Checkout boundary: `src/lib/server/checkoutIntake.ts`, `checkoutBridge.ts`
-- LumaPrints shipment boundary: `src/routes/api/webhooks/lumaprints/+server.ts`
+- LumaPrints ownership and handoff notes: `LUMAPRINTS.md`
 - Gallery delivery browser behavior: `@jessepomeroy/gallery-delivery`
 - Shared package aliases: `svelte.config.js`
 
