@@ -81,6 +81,9 @@ client hostnames must be added to the shared widget before launch.
   shared pricing, then asks the Angels Rest hub to create the tenant's Stripe
   session. It uses the platform account during controlled pre-handoff testing
   and the connected account after onboarding.
+- `CHECKOUT_BRIDGE_SECRET` is unique to this tenant. The hub binds it to the
+  canonical `zippymiggy.com` tenant and explicit public redirect origins; never
+  copy it to another client repository.
 - The Angels Rest `/api/webhooks/stripe` endpoint is the single commerce-event
   owner for this spoke and future Stripe Connect clients.
 - This repository has no Stripe commerce webhook or outbound LumaPrints client.

@@ -64,11 +64,14 @@ bearer. Client branding comes from the hub's stored commerce profile.
 ## Environment
 
 The authoritative variable list is `.env.example`. The only fulfillment-related
-spoke variables are the checkout bridge URL and its spoke-to-hub signing secret:
+spoke variables are the checkout bridge URL and its unique tenant-specific
+spoke-to-hub signing secret:
 
 - Checkout bridge
 
 There are no LumaPrints or shared Convex webhook variables in this repository.
+Do not reuse the checkout bridge secret for another client; the hub binds this
+value to `zippymiggy.com` and its explicit redirect-origin allowlist.
 
 Use `.env.local` for local development. Do not run external shipment or email
 smoke tests against production without explicit scope.

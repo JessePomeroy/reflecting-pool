@@ -13,7 +13,7 @@ const metadata = {
 };
 
 describe("checkout bridge client", () => {
-	it("signs server-to-server print checkout requests to the hub", async () => {
+	it("signs with this tenant's unique server-to-server secret", async () => {
 		const fetchMock = vi.fn(async () => {
 			return new Response(
 				JSON.stringify({
