@@ -6,6 +6,7 @@ import { relative, sep } from "node:path";
 //    requires an adapter that explicitly declares instrumentation
 //    support — adapter-auto cannot promise that at build time.
 import adapter from "@sveltejs/adapter-vercel";
+import { contentSecurityPolicy } from "./src/lib/config/securityPolicy.js";
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -20,6 +21,13 @@ const config = {
 		},
 	},
 	kit: {
+		// SvelteKit can nonce dynamic HTML and hash prerendered HTML. Keep this
+		// resource policy here rather than weakening script-src for a static
+		// deployment header; universal response headers live in vercel.json.
+		csp: {
+			mode: "auto",
+			directives: contentSecurityPolicy,
+		},
 		// Pin runtime + maxDuration explicitly so Vercel defaults cannot change
 		// webhook behavior. Node 22 matches package/CI requirements; the longer
 		// request budget covers Stripe and LumaPrints round trips.

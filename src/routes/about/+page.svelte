@@ -1,4 +1,6 @@
 <script lang="ts">
+import { onMount } from "svelte";
+import { initializeCalEmbed } from "$lib/client/calEmbed";
 import ContactForm from "$lib/components/ContactForm.svelte";
 import SEO from "$lib/components/SEO.svelte";
 import type { PageData } from "./$types";
@@ -6,6 +8,10 @@ import type { PageData } from "./$types";
 let { data }: { data: PageData } = $props();
 
 let booking = $derived(data.settings.contact.booking);
+
+onMount(() => {
+	if (booking.enabled && booking.calLink) initializeCalEmbed();
+});
 </script>
 
 <SEO
@@ -13,50 +19,6 @@ let booking = $derived(data.settings.contact.booking);
 	description={data.about.seo.description}
 	image={data.about.seo.ogImage}
 />
-
-<svelte:head>
-	{#if booking.enabled && booking.calLink}
-		<!-- Cal.com embed script -->
-		<script>
-			(function (C, A, L) {
-				let p = function (a, ar) {
-					a.q.push(ar);
-				};
-				let d = C.document;
-				C.Cal =
-					C.Cal ||
-					function () {
-						let cal = C.Cal;
-						let ar = arguments;
-						if (!cal.loaded) {
-							cal.ns = {};
-							cal.q = cal.q || [];
-							d.head.appendChild(d.createElement('script')).src = A;
-							cal.loaded = true;
-						}
-						if (ar[0] === L) {
-							const api = function () {
-								p(api, arguments);
-							};
-							const namespace = ar[1];
-							api.q = api.q || [];
-							if (typeof namespace === 'string') {
-								cal.ns[namespace] = cal.ns[namespace] || api;
-								p(cal.ns[namespace], ar);
-								p(cal, ['-ready', namespace]);
-							} else {
-								p(cal, ar);
-								p(cal, ['-ready']);
-							}
-							return;
-						}
-						p(cal, ar);
-					};
-				C.Cal('init', { origin: 'https://cal.com' });
-			})(window, 'https://app.cal.com/embed/embed.js', 'init');
-		</script>
-	{/if}
-</svelte:head>
 
 <div class="about-page">
 	<header class="page-header">
