@@ -1,8 +1,11 @@
 /**
  * SvelteKit Server Hooks
  *
- * Security headers, auth route handling, and server error capture through
- * @sentry/node.
+ * Request scoping and server error capture through @sentry/node.
+ *
+ * Universal response headers live in vercel.json so the same policy covers
+ * prerendered files, dynamic pages, and Better Auth API responses. SvelteKit's
+ * CSP configuration separately owns per-page nonces and hashes.
  * Admin auth is enforced both server-side (via `$lib/server/adminAuth.ts`
  * called from admin loaders) and client-side (via Better Auth AuthGuard in
  * the admin dashboard package).
@@ -15,33 +18,11 @@
 import { captureException, flush, withIsolationScope } from "@sentry/node";
 import type { Handle, HandleServerError } from "@sveltejs/kit";
 
-function addSecurityHeaders(response: Response): Response {
-	const cloned = new Response(response.body, response);
-	cloned.headers.set("X-Frame-Options", "DENY");
-	cloned.headers.set("X-Content-Type-Options", "nosniff");
-	cloned.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-	cloned.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-	return cloned;
-}
-
-const appHandle: Handle = async ({ event, resolve }) => {
-	const response = await resolve(event);
-
-	// Skip security headers for auth API routes. Better Auth sets its own
-	// response headers and consumes the body; wrapping here would double-set
-	// or corrupt them.
-	if (event.url.pathname.startsWith("/api/auth")) {
-		return response;
-	}
-
-	return addSecurityHeaders(response);
-};
-
 export const handle: Handle = (input) =>
 	withIsolationScope((scope) => {
 		scope.setTag("route", input.event.route.id ?? input.event.url.pathname);
 		scope.setTag("method", input.event.request.method);
-		return appHandle(input);
+		return input.resolve(input.event);
 	});
 
 function isExpectedClientError(input: Parameters<HandleServerError>[0]): boolean {

@@ -56,6 +56,23 @@ hostnames are added to the widget. Contact persistence, when enabled for this
 spoke, must enter shared Convex through the hub's webhook-secret boundary rather
 than a browser-writable mutation.
 
+### Browser response policy
+
+Vercel owns the universal response headers in `vercel.json` so prerendered
+pages, dynamic routes, and Better Auth/API responses receive the same framing,
+MIME-sniffing, referrer, and browser-capability policy. SvelteKit owns the
+resource CSP in `src/lib/config/securityPolicy.js`: `auto` mode hashes the
+prerendered bootstrap and nonces dynamic HTML without allowing arbitrary inline
+scripts. The same policy carries `frame-ancestors` on dynamic HTML; Vercel
+enforces that directive on prerendered and API responses where a CSP meta
+element cannot. Runtime style attributes remain explicitly allowed because the
+public visual system and shared Admin package use them.
+
+Every external CSP origin maps to an active browser boundary: Google Fonts,
+Turnstile, the optional Cal.com embed, Convex, Sentry, Sanity images, or the
+Gallery Worker. Server-only providers do not belong in this browser policy.
+Cal.com's bootstrap is bundled client code; do not restore a raw inline loader.
+
 ### Print checkout
 
 1. Browser submits a product/material/size choice to `/api/checkout`.
