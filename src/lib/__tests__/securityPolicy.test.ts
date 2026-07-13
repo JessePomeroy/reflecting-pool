@@ -32,6 +32,7 @@ describe("production security policy", () => {
 	});
 
 	it("keeps executable scripts nonce/hash compatible", () => {
+		expect(contentSecurityPolicy["frame-ancestors"]).toEqual(["none"]);
 		expect(contentSecurityPolicy["script-src"]).toEqual([
 			"self",
 			"https://challenges.cloudflare.com",

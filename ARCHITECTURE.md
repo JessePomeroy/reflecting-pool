@@ -63,8 +63,10 @@ pages, dynamic routes, and Better Auth/API responses receive the same framing,
 MIME-sniffing, referrer, and browser-capability policy. SvelteKit owns the
 resource CSP in `src/lib/config/securityPolicy.js`: `auto` mode hashes the
 prerendered bootstrap and nonces dynamic HTML without allowing arbitrary inline
-scripts. Runtime style attributes remain explicitly allowed because the public
-visual system and shared Admin package use them.
+scripts. The same policy carries `frame-ancestors` on dynamic HTML; Vercel
+enforces that directive on prerendered and API responses where a CSP meta
+element cannot. Runtime style attributes remain explicitly allowed because the
+public visual system and shared Admin package use them.
 
 Every external CSP origin maps to an active browser boundary: Google Fonts,
 Turnstile, the optional Cal.com embed, Convex, Sentry, Sanity images, or the

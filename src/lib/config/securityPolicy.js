@@ -14,6 +14,8 @@ export const contentSecurityPolicy = {
 	"default-src": ["self"],
 	"base-uri": ["none"],
 	"object-src": ["none"],
+	// Ignored in prerendered CSP meta elements; vercel.json enforces it there.
+	"frame-ancestors": ["none"],
 	"script-src": ["self", "https://challenges.cloudflare.com", "https://app.cal.com"],
 	"script-src-attr": ["none"],
 	"style-src": ["self", "unsafe-inline", "https://fonts.googleapis.com"],
