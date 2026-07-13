@@ -26,10 +26,11 @@ delivery to the hub first.
 
 ## Inbound shipment flow
 
-`/api/webhooks/lumaprints` accepts the configured LumaPrints webhook
-authentication, resolves the order through shared Convex, claims the one-time
-shipment email, sends through Resend, and records whether delivery was sent,
-failed, or skipped.
+LumaPrints sends its authenticated `shipping` event to the Angels Rest hub at
+`/api/webhooks/lumaprints`. The hub resolves the globally unique LumaPrints
+order number through shared Convex, claims the one-time shipment email, resolves
+the stored tenant notification profile, sends through Resend, and records
+whether delivery was sent, failed, or skipped.
 
 Keep claim and delivery recording separate: Convex provides the atomic claim;
 Resend remains an external side effect whose outcome must be observable.
@@ -43,12 +44,13 @@ Resend remains an external side effect whose outcome must be observable.
 | Retail pricing policy | `src/lib/shop/pricing.ts` |
 | Order and shipment-email state | shared Convex `orders` |
 | Luma HTTP client and payload builder | Angels Rest hub |
+| Luma shipment webhook and shipment email | Angels Rest hub |
 | Checkout request validation | `checkoutIntake.ts`, `checkoutBridge.ts` |
 | Order/refund orchestration | Angels Rest commerce webhook and `orderIntake.ts` |
 
-This spoke owns only the authenticated inbound shipment callback and its
-client-branded shipment email. It has no outbound LumaPrints credentials or
-order-submission client.
+This spoke owns neither inbound nor outbound LumaPrints credentials. It has no
+shipment callback, order-submission client, or platform-wide Convex webhook
+bearer. Client branding comes from the hub's stored commerce profile.
 
 ## Image constraints
 
@@ -61,12 +63,12 @@ order-submission client.
 
 ## Environment
 
-The authoritative variable list is `.env.example`. Relevant groups include:
+The authoritative variable list is `.env.example`. The only fulfillment-related
+spoke variables are the checkout bridge URL and its spoke-to-hub signing secret:
 
 - Checkout bridge
-- `WEBHOOK_SECRET`
-- LumaPrints webhook secret/signing secret
-- Resend sender/recipient configuration
+
+There are no LumaPrints or shared Convex webhook variables in this repository.
 
 Use `.env.local` for local development. Do not run external shipment or email
 smoke tests against production without explicit scope.
@@ -74,7 +76,6 @@ smoke tests against production without explicit scope.
 ## Verification
 
 ```bash
-pnpm exec vitest run src/routes/__tests__/webhook-lumaprints.test.ts
 pnpm test
 ```
 
