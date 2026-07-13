@@ -32,6 +32,16 @@ export function hasSanityConfig() {
 	return Boolean(sanityProjectId && sanityDataset);
 }
 
+export function safeSanityFetchFailure(error: unknown) {
+	const name = error instanceof Error ? error.name : "UnknownError";
+	const rawCode =
+		typeof error === "object" && error !== null && "code" in error ? error.code : undefined;
+	const code =
+		typeof rawCode === "string" || typeof rawCode === "number" ? String(rawCode) : undefined;
+
+	return code ? { name, code } : { name };
+}
+
 export async function fetchSanityOrFallback<T>(
 	query: string,
 	fallback: T,
@@ -43,7 +53,7 @@ export async function fetchSanityOrFallback<T>(
 		const result = await sanityClient().fetch<T | null>(query, params ?? {});
 		return result ?? fallback;
 	} catch (err) {
-		console.error("[sanity] Falling back after fetch failed:", err);
+		console.error("[sanity] Falling back after fetch failed:", safeSanityFetchFailure(err));
 		return fallback;
 	}
 }
