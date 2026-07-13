@@ -1,11 +1,11 @@
+import { resolveGalleryDisplayImages } from "@jessepomeroy/gallery-delivery/display-images";
+import { galleryOriginalDownloadUrl } from "@jessepomeroy/gallery-delivery/download-urls";
 import { error, fail, redirect } from "@sveltejs/kit";
 import { ConvexHttpClient } from "convex/browser";
 import { dev } from "$app/environment";
 import { api } from "$convex/api";
 import type { Id } from "$convex/dataModel";
 import { env as publicEnv } from "$env/dynamic/public";
-import { resolveGalleryDisplayImages } from "$lib/galleryDelivery/displayImages";
-import { galleryOriginalDownloadUrl } from "$lib/galleryDelivery/downloadUrls";
 import { getGalleryWorkerUrl } from "$lib/server/galleryWorkerUrl";
 import type { Actions, PageServerLoad } from "./$types";
 

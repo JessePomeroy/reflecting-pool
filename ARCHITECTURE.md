@@ -27,7 +27,7 @@ components and fallback content remain local.
 | Orders and fulfillment state | Shared Convex | Angels Rest commerce webhook |
 | CRM, invoices, quotes, contracts, messages, board | Shared Convex | `@jessepomeroy/admin` pages |
 | Private delivery gallery metadata | Shared Convex | delivery page/admin package |
-| Delivery image/archive objects | Gallery Worker + R2 | `src/lib/galleryDelivery/`, admin server routes |
+| Delivery image/archive objects | Gallery Worker + R2 | `@jessepomeroy/gallery-delivery`, delivery page, admin server routes |
 | Print choices and wholesale/retail helpers | `@jessepomeroy/print-catalog` plus local pricing policy | `src/lib/shop/` |
 
 Sanity loaders intentionally have local fallbacks. Fallbacks are resilience and

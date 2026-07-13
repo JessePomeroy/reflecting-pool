@@ -111,7 +111,7 @@ See `LUMAPRINTS.md` before changing this flow.
 - Sanity boundary: `src/lib/server/sanityClient.ts`, `src/lib/server/content/`
 - Checkout boundary: `src/lib/server/checkoutIntake.ts`, `checkoutBridge.ts`
 - LumaPrints shipment boundary: `src/routes/api/webhooks/lumaprints/+server.ts`
-- Gallery delivery helpers: `src/lib/galleryDelivery/`
+- Gallery delivery browser behavior: `@jessepomeroy/gallery-delivery`
 - Shared package aliases: `svelte.config.js`
 
 ## Checks

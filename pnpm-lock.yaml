@@ -30,6 +30,9 @@ importers:
       '@jessepomeroy/crm-api':
         specifier: ^1.7.0
         version: 1.7.0(@types/node@25.5.2)(convex@1.42.1(react@19.2.7))
+      '@jessepomeroy/gallery-delivery':
+        specifier: ^0.1.0
+        version: 0.1.0
       '@jessepomeroy/print-catalog':
         specifier: ^0.2.0
         version: 0.2.0
@@ -873,6 +876,9 @@ packages:
     resolution: {integrity: sha512-tOhOAcLIMQpH6Ok0N4sEbhVxytET/0wUNOWnQF4jLIw/L97xR5FoyGZb1RPDO+XSD5UD06WgcV1QJb3RhN2xLA==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/crm-api/1.7.0/22511a2f260a3fbd4fd6e8a35f4b6faa4b1c8084}
     peerDependencies:
       convex: ^1.30.0
+
+  '@jessepomeroy/gallery-delivery@0.1.0':
+    resolution: {integrity: sha512-wFT5u+CtG0ObbCnTMgEliuRRYQHpshsRjcOicEzHxQkMmIS8v8UCgWpqNG8Pmwq0LIEuPU0NzzZm/UyglgnjNw==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/gallery-delivery/0.1.0/7d1b8cdbcd06e7244d260f0a89f9b8c8ca28ce5f}
 
   '@jessepomeroy/print-catalog@0.2.0':
     resolution: {integrity: sha512-s8lwY4L1kQLQT+1YzZoXl1R+Vvhno8oFN7PpYAzX/QYcWMWcJI8qZAE4VgtUug8BvOZTwqPTULHBlOWa955EWA==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/print-catalog/0.2.0/b4e56fd5f4f62e2be99753e349031b134e291f82}
@@ -3304,6 +3310,8 @@ snapshots:
       stripe: 20.4.1(@types/node@25.5.2)
     transitivePeerDependencies:
       - '@types/node'
+
+  '@jessepomeroy/gallery-delivery@0.1.0': {}
 
   '@jessepomeroy/print-catalog@0.2.0': {}
 
