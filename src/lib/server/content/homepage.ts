@@ -1,3 +1,4 @@
+import { homepageQuoteSeed } from "$lib/content/homepageQuoteSeed";
 import { fetchSanityOrFallback } from "$lib/server/sanityClient";
 
 export interface HomepageContent {
@@ -61,8 +62,7 @@ export function getFallbackHomepageContent(): HomepageContent {
 		practiceLine:
 			"Exploring light, movement, and sound as a photographer, director, model, and musician.",
 		quote: {
-			text: "The camera does not know what it takes; it captures materials with which you reconstruct, not so much what you saw as what you thought you saw. Hence the best photography is aware, mindful, of illusion and uses illusion, permitting and encouraging it - especially unconscious and powerful illusions that are not usually admitted on the scene.",
-			attribution: "Thomas Merton",
+			...homepageQuoteSeed,
 		},
 		navLinks: [
 			{ label: "about", href: "/about" },

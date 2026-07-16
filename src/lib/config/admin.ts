@@ -1,5 +1,6 @@
 import type { AdminAPI, AdminConfig } from "@jessepomeroy/admin";
 import { api } from "$convex/api";
+import { homepageQuoteSeed } from "$lib/content/homepageQuoteSeed";
 
 // Map Convex `galleries` namespace to the admin package's `galleryDelivery` key.
 // Map Convex `content` namespace to the admin package's `siteEditor` key.
@@ -57,9 +58,10 @@ export const adminConfig: AdminConfig = {
 	// fresh authenticated Convex client independent of socket navigation state.
 	mutationTransport: "http",
 	editor: {
-		// Preview stays disabled until CMS-2.5d adds a server-validated draft
-		// preview grant. The public site remains on its rollback-safe provider.
 		siteSettings: {},
+		homepageQuote: {
+			initialPayload: homepageQuoteSeed,
+		},
 		portfolio: {
 			mediaBaseUrl: "https://media.angelsrest.online",
 			uploadEndpoint: "/api/admin/media",
