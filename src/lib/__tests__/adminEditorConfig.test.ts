@@ -47,6 +47,7 @@ describe("admin Editor configuration", () => {
 			portfolio: {
 				mediaBaseUrl: "https://media.angelsrest.online",
 				uploadEndpoint: "/api/admin/media",
+				previewEndpoint: "/api/admin/preview/portfolio",
 			},
 		});
 		expect(adminConfig.mutationTransport).toBe("http");

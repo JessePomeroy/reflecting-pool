@@ -63,6 +63,7 @@ export const adminConfig: AdminConfig = {
 		portfolio: {
 			mediaBaseUrl: "https://media.angelsrest.online",
 			uploadEndpoint: "/api/admin/media",
+			previewEndpoint: "/api/admin/preview/portfolio",
 		},
 	},
 };
