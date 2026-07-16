@@ -11,6 +11,10 @@ const { contentApi, portfolioApi, mediaApi } = vi.hoisted(() => ({
 		saveHomepageQuoteDraft: "content.saveHomepageQuoteDraft",
 		publishHomepageQuote: "content.publishHomepageQuote",
 		discardHomepageQuoteDraft: "content.discardHomepageQuoteDraft",
+		getContactPageEditorState: "content.getContactPageEditorState",
+		saveContactPageDraft: "content.saveContactPageDraft",
+		publishContactPage: "content.publishContactPage",
+		discardContactPageDraft: "content.discardContactPageDraft",
 	},
 	portfolioApi: {
 		listForEditor: "portfolioGalleries.listForEditor",
@@ -40,6 +44,9 @@ describe("admin Editor configuration", () => {
 		expect(adminConfig.api.siteEditor?.getHomepageQuoteEditorState).toBe(
 			contentApi.getHomepageQuoteEditorState,
 		);
+		expect(adminConfig.api.siteEditor?.getContactPageEditorState).toBe(
+			contentApi.getContactPageEditorState,
+		);
 		const portfolioEditor = adminConfig.api.portfolioEditor;
 		expect(portfolioEditor?.listForEditor).toBe(portfolioApi.listForEditor);
 		expect(portfolioEditor?.getEditorState).toBe(portfolioApi.getEditorState);
@@ -57,6 +64,20 @@ describe("admin Editor configuration", () => {
 					attribution: "Thomas Merton",
 				},
 				previewEndpoint: "/api/admin/preview/homepage-quote",
+			},
+			contactPage: {
+				initialPayload: {
+					heading: "get in touch",
+					intro:
+						"questions about prints, sessions, or just want to say hello — i'd love to hear from you.",
+					email: "hello.margarethelena@gmail.com",
+					confirmationMessage: "message received — i'll be in touch soon.",
+					bookingEnabled: false,
+					bookingLabel: "book a session",
+					bookingIntro:
+						"portrait sessions, editorial work, and botanical commissions. let's make something together.",
+					inquiryChoices: ["portrait session", "print inquiry"],
+				},
 			},
 			portfolio: {
 				mediaBaseUrl: "https://media.angelsrest.online",
