@@ -18,6 +18,7 @@ const { contentApi, portfolioApi, mediaApi } = vi.hoisted(() => ({
 	mediaApi: {
 		listForEditor: "mediaAssets.listForEditor",
 		getManyForEditor: "mediaAssets.getManyForEditor",
+		registerReadyWebAsset: "mediaAssets.registerReadyWebAsset",
 	},
 }));
 
@@ -40,9 +41,13 @@ describe("admin Editor configuration", () => {
 		expect(portfolioEditor?.reorder).toBe(portfolioApi.reorder);
 		expect(portfolioEditor?.listMediaAssets).toBe(mediaApi.listForEditor);
 		expect(portfolioEditor?.getPlacedMediaAssets).toBe(mediaApi.getManyForEditor);
+		expect(portfolioEditor?.registerReadyWebAsset).toBe(mediaApi.registerReadyWebAsset);
 		expect(adminConfig.editor).toEqual({
 			siteSettings: {},
-			portfolio: { mediaBaseUrl: "https://media.angelsrest.online" },
+			portfolio: {
+				mediaBaseUrl: "https://media.angelsrest.online",
+				uploadEndpoint: "/api/admin/media",
+			},
 		});
 		expect(adminConfig.mutationTransport).toBe("http");
 	});

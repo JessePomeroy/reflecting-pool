@@ -12,6 +12,8 @@ export const adminServerConfig: AdminServerConfig = {
 	resendApiKey: privateEnv.RESEND_API_KEY ?? "",
 	galleryWorkerUrl: getGalleryWorkerUrl(),
 	galleryAdminSecret: privateEnv.GALLERY_ADMIN_SECRET ?? "",
+	cmsMediaWorkerUrl: "https://cms-media-worker.thinkingofview.workers.dev",
+	cmsMediaTenantSecret: privateEnv.CMS_MEDIA_WORKER_SECRET ?? "",
 	verifyAdmin: verifySiteAdminRequest,
 	getConvexToken: adminAuth.getTokenFromRequest,
 };
