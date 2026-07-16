@@ -4,7 +4,8 @@
 import { fetchSanityOrFallback, hasSanityConfig, sanityClient } from "$lib/server/sanityClient";
 
 export { type AboutContent, fetchAboutContent } from "$lib/server/content/about";
-export { fetchHomepageContent, type HomepageContent } from "$lib/server/content/homepage";
+export type { HomepageContent } from "$lib/server/content/homepage";
+export { fetchHomepageContent } from "$lib/server/content/homepageQuoteProvider";
 export {
 	fetchModelingPageContent,
 	type ModelingGallery,

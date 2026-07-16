@@ -1,9 +1,8 @@
-import { fetchHomepageContent } from "$lib/server/content/homepage";
+import { fetchHomepageContent } from "$lib/server/content/homepageQuoteProvider";
 import type { PageServerLoad } from "./$types";
 
-export const prerender = true;
-
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ setHeaders }) => {
+	setHeaders({ "Cache-Control": "no-store" });
 	return {
 		homepage: await fetchHomepageContent(),
 	};

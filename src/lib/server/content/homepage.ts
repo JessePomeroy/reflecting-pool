@@ -32,7 +32,7 @@ const HOMEPAGE_QUERY = `
 }
 `;
 
-export async function fetchHomepageContent(): Promise<HomepageContent> {
+export async function fetchLegacyHomepageContent(): Promise<HomepageContent> {
 	const content = await fetchSanityOrFallback<Partial<HomepageContent>>(
 		HOMEPAGE_QUERY,
 		getFallbackHomepageContent(),
