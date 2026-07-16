@@ -12,10 +12,18 @@ import { api } from "$convex/api";
 // resolve it dynamically, but invoking an absent function would still fail.
 // Keep the cast localized until the shared package and this loader use the
 // inquiry API directly.
+const portfolioEditorApi = new Proxy(api.portfolioGalleries, {
+	get(portfolio, prop, receiver) {
+		if (prop === "listMediaAssets") return api.mediaAssets.listForEditor;
+		if (prop === "getPlacedMediaAssets") return api.mediaAssets.getManyForEditor;
+		return Reflect.get(portfolio, prop, receiver);
+	},
+});
+
 const apiWithAliases = new Proxy(api, {
 	get(target, prop, receiver) {
 		if (prop === "siteEditor") return target.content;
-		if (prop === "portfolioEditor") return target.portfolioGalleries;
+		if (prop === "portfolioEditor") return portfolioEditorApi;
 		if (prop === "galleryDelivery") {
 			return new Proxy(target.galleries, {
 				get(galleries, galleryProp, galleryReceiver) {
@@ -51,6 +59,8 @@ export const adminConfig: AdminConfig = {
 		// Preview stays disabled until CMS-2.5d adds a server-validated draft
 		// preview grant. The public site remains on its rollback-safe provider.
 		siteSettings: {},
-		portfolio: {},
+		portfolio: {
+			mediaBaseUrl: "https://media.angelsrest.online",
+		},
 	},
 };
