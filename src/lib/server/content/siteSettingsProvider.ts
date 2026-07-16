@@ -1,7 +1,10 @@
 import { api } from "$convex/api";
 import { env } from "$env/dynamic/private";
 import { adminConfig } from "$lib/config/admin";
-import { applyContactPageProvider } from "$lib/server/content/contactPageProvider";
+import {
+	applyContactPageProviderWithDependencies,
+	type ContactPageReadTelemetry,
+} from "$lib/server/content/contactPageProvider";
 import {
 	fetchLegacySiteSettings,
 	type SiteSettingsContent,
@@ -181,9 +184,10 @@ export async function resolveSiteSettings(
 }
 
 export async function fetchSiteSettings(): Promise<SiteSettingsResult> {
+	const entries: Array<CmsReadTelemetry | ContactPageReadTelemetry> = [];
 	const parsed = parseSiteSettingsProviderMode(env.SITE_SETTINGS_PROVIDER);
 	if (parsed.invalid) {
-		defaultDependencies.log({
+		entries.push({
 			event: "cms.provider_config_invalid",
 			site: defaultDependencies.siteUrl,
 			kind: "siteSettings",
@@ -193,5 +197,16 @@ export async function fetchSiteSettings(): Promise<SiteSettingsResult> {
 			code: "unsupported_provider",
 		});
 	}
-	return await applyContactPageProvider(await resolveSiteSettings(parsed.mode));
+	try {
+		const siteSettings = await resolveSiteSettings(parsed.mode, {
+			log: (entry) => entries.push(entry),
+		});
+		return await applyContactPageProviderWithDependencies(siteSettings, {
+			log: (entry) => entries.push(entry),
+		});
+	} finally {
+		// Vercel may retain only one application log per request. Emit the two
+		// independent provider events in one content-free structured record.
+		console.info("[cms]", entries);
+	}
 }
