@@ -1,4 +1,5 @@
 <script lang="ts">
+import { MODELING_CATEGORY_IMAGE_LIMIT } from "$lib/config/modeling";
 import type { ModelingGallery } from "$lib/server/sanity";
 
 type OrbitSlot = {
@@ -11,18 +12,16 @@ type OrbitSlot = {
 };
 
 let {
-	eyebrow,
 	heading,
 	intro,
 	galleries,
 }: {
-	eyebrow: string;
 	heading: string;
 	intro?: string;
 	galleries: ModelingGallery[];
 } = $props();
 
-const slots: OrbitSlot[] = [
+const standardSlots: OrbitSlot[] = [
 	{ name: "hero", x: 36, y: 61, width: 23, rotate: -2, z: 7 },
 	{ name: "top", x: 71, y: 30, width: 10.5, rotate: 4, z: 5 },
 	{ name: "upper", x: 83, y: 40, width: 10, rotate: -5, z: 4 },
@@ -31,15 +30,36 @@ const slots: OrbitSlot[] = [
 	{ name: "bottom", x: 67, y: 77, width: 10.5, rotate: 5, z: 5 },
 ];
 
+const denseSlots: OrbitSlot[] = [
+	{ name: "hero", x: 35, y: 61, width: 22, rotate: -2, z: 10 },
+	{ name: "top-left", x: 65, y: 24, width: 10.5, rotate: 4, z: 6 },
+	{ name: "top-center", x: 77, y: 25, width: 10.3, rotate: -4, z: 5 },
+	{ name: "top-right", x: 89, y: 30, width: 10, rotate: 3, z: 4 },
+	{ name: "middle-left", x: 64, y: 49, width: 10.3, rotate: -3, z: 5 },
+	{ name: "middle-center", x: 77, y: 48, width: 10.2, rotate: 5, z: 6 },
+	{ name: "middle-right", x: 90, y: 51, width: 9.8, rotate: -5, z: 4 },
+	{ name: "lower-left", x: 64, y: 74, width: 10.2, rotate: 4, z: 4 },
+	{ name: "lower-center", x: 77, y: 73, width: 10, rotate: -4, z: 5 },
+	{ name: "lower-right", x: 90, y: 71, width: 9.6, rotate: 3, z: 3 },
+];
+
 let activeIndex = $state(0);
 let activeGalleryIndex = $state(0);
 let direction = $state<"next" | "prev">("next");
 
 const activeGallery = $derived(galleries[activeGalleryIndex] ?? galleries[0]);
 const images = $derived(activeGallery?.images ?? []);
-const visibleCount = $derived(Math.min(images.length, slots.length));
+const visibleCount = $derived(Math.min(images.length, MODELING_CATEGORY_IMAGE_LIMIT));
 const visibleImages = $derived(images.slice(0, visibleCount));
 const activeImage = $derived(visibleImages[activeIndex] ?? visibleImages[0]);
+const activeSlots = $derived(visibleCount > standardSlots.length ? denseSlots : standardSlots);
+const thumbnailScale = $derived(
+	visibleCount <= standardSlots.length ? 1 : Math.max(0.775, 1 - (visibleCount - 7) * 0.075),
+);
+
+function getSlotWidth(slot: OrbitSlot) {
+	return slot.name === "hero" ? slot.width : slot.width * thumbnailScale;
+}
 
 function getSlotIndex(imageIndex: number) {
 	if (visibleCount === 0) return 0;
@@ -49,13 +69,13 @@ function getSlotIndex(imageIndex: number) {
 function next() {
 	if (visibleCount < 2) return;
 	direction = "next";
-	activeIndex = (activeIndex - 1 + visibleCount) % visibleCount;
+	activeIndex = (activeIndex + 1) % visibleCount;
 }
 
 function previous() {
 	if (visibleCount < 2) return;
 	direction = "prev";
-	activeIndex = (activeIndex + 1) % visibleCount;
+	activeIndex = (activeIndex - 1 + visibleCount) % visibleCount;
 }
 
 function selectGallery(index: number) {
@@ -68,7 +88,6 @@ function selectGallery(index: number) {
 
 <section class="orbit-shell" aria-labelledby="modeling-heading">
 	<div class="copy">
-		<p class="eyebrow">{eyebrow}</p>
 		<h1 id="modeling-heading">{heading}</h1>
 		{#if intro}
 			<p class="intro">{intro}</p>
@@ -89,9 +108,13 @@ function selectGallery(index: number) {
 		</nav>
 	{/if}
 
-	<div class="orbit-stage" data-direction={direction}>
+	<div
+		class="orbit-stage"
+		data-density={visibleCount > standardSlots.length ? "dense" : "standard"}
+		data-direction={direction}
+	>
 		{#each visibleImages as image, imageIndex (image.id)}
-			{@const slot = slots[getSlotIndex(imageIndex)]}
+			{@const slot = activeSlots[getSlotIndex(imageIndex)]}
 			<button
 				type="button"
 				class="orbit-photo"
@@ -100,7 +123,7 @@ function selectGallery(index: number) {
 				style="
 					--slot-x: {slot.x}%;
 					--slot-y: {slot.y}%;
-					--slot-width: {slot.width}%;
+					--slot-width: {getSlotWidth(slot)}%;
 					--slot-rotate: {slot.rotate}deg;
 					--slot-z: {slot.z};
 				"
@@ -141,22 +164,15 @@ function selectGallery(index: number) {
 		text-shadow: 0 1px 18px rgba(var(--ink-rgb), 0.36);
 	}
 
-	.eyebrow,
-	.copy p {
+	.intro {
 		margin: 0;
 		font-family: var(--font-serif);
 		font-weight: 300;
 		color: rgba(var(--paper-rgb), 0.62);
 	}
 
-	.eyebrow {
-		font-size: clamp(0.85rem, 1vw, 1rem);
-		letter-spacing: 0.22em;
-		text-transform: lowercase;
-	}
-
 	.copy h1 {
-		margin: 0.4rem 0 0.75rem;
+		margin: 0 0 0.75rem;
 		font-family: var(--font-serif);
 		font-size: clamp(1.7rem, 2.8vw, 3.15rem);
 		font-weight: 300;
@@ -165,7 +181,7 @@ function selectGallery(index: number) {
 		color: rgba(var(--paper-rgb), 0.9);
 	}
 
-	.copy p:last-child {
+	.intro {
 		max-width: 31rem;
 		font-size: clamp(0.95rem, 1.25vw, 1.12rem);
 		line-height: 1.55;
@@ -347,6 +363,10 @@ function selectGallery(index: number) {
 		.orbit-photo {
 			width: calc(var(--slot-width) * 1.55);
 		}
+
+		.orbit-stage[data-density="dense"] .orbit-photo {
+			width: calc(var(--slot-width) * 1.28);
+		}
 	}
 
 	@media (max-width: 640px) {
@@ -364,19 +384,14 @@ function selectGallery(index: number) {
 			text-align: right;
 		}
 
-		.eyebrow {
-			font-size: 0.72rem;
-			letter-spacing: 0.18em;
-		}
-
 		.copy h1 {
-			margin: 0.15rem 0 0;
+			margin: 0;
 			font-size: clamp(1.1rem, 6vw, 1.45rem);
 			line-height: 1.05;
 			letter-spacing: 0.16em;
 		}
 
-		.copy p:last-child {
+		.intro {
 			display: none;
 		}
 
@@ -411,7 +426,8 @@ function selectGallery(index: number) {
 			padding: 28vh 1rem 7rem;
 		}
 
-		.orbit-photo {
+		.orbit-photo,
+		.orbit-stage[data-density="dense"] .orbit-photo {
 			position: relative;
 			top: auto;
 			left: auto;
@@ -423,7 +439,8 @@ function selectGallery(index: number) {
 				filter 400ms ease;
 		}
 
-		.orbit-photo.is-hero {
+		.orbit-photo.is-hero,
+		.orbit-stage[data-density="dense"] .orbit-photo.is-hero {
 			width: clamp(220px, 74vw, 330px);
 			transform: rotate(var(--slot-rotate)) scale(1.04);
 			filter: drop-shadow(0 8px 24px rgba(var(--ink-rgb), 0.34));
