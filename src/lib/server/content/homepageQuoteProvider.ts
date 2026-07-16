@@ -131,7 +131,8 @@ export async function resolveHomepageContent(
 	if (mode === "shadow") {
 		telemetry(deps, startedAt, {
 			event:
-				JSON.stringify(legacy.quote) === JSON.stringify(cms.quote)
+				legacy.quote.text === cms.quote.text &&
+				legacy.quote.attribution === cms.quote.attribution
 					? "cms.shadow_match"
 					: "cms.shadow_mismatch",
 			provider: mode,

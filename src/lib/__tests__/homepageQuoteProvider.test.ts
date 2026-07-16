@@ -64,6 +64,27 @@ describe("Homepage Quote provider", () => {
 		expect(JSON.stringify(deps.log.mock.calls)).not.toContain(published.payload.text);
 	});
 
+	it("matches named quote fields regardless of provider object key order", async () => {
+		const deps = dependencies({
+			fetchPublishedCms: vi.fn().mockResolvedValue({
+				revisionId: "revision-same",
+				publishedAt: 100,
+				payload: {
+					attribution: legacy.quote.attribution,
+					text: legacy.quote.text,
+				},
+			}),
+		});
+
+		await expect(resolveHomepageContent("shadow", deps)).resolves.toBe(legacy);
+		expect(deps.log).toHaveBeenCalledWith(
+			expect.objectContaining({
+				event: "cms.shadow_match",
+				revisionId: "revision-same",
+			}),
+		);
+	});
+
 	it("keeps serving legacy content when the shadow read is unavailable", async () => {
 		const deps = dependencies({
 			fetchPublishedCms: vi.fn().mockRejectedValue(new Error("upstream details must not log")),
