@@ -1,5 +1,6 @@
 import type { AdminAPI, AdminConfig } from "@jessepomeroy/admin";
 import { api } from "$convex/api";
+import { contactPageSeed } from "$lib/content/contactPageSeed";
 import { homepageQuoteSeed } from "$lib/content/homepageQuoteSeed";
 
 // Map Convex `galleries` namespace to the admin package's `galleryDelivery` key.
@@ -62,6 +63,9 @@ export const adminConfig: AdminConfig = {
 		homepageQuote: {
 			initialPayload: homepageQuoteSeed,
 			previewEndpoint: "/api/admin/preview/homepage-quote",
+		},
+		contactPage: {
+			initialPayload: contactPageSeed,
 		},
 		portfolio: {
 			mediaBaseUrl: "https://media.angelsrest.online",
