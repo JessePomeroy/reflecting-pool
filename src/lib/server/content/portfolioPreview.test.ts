@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { portfolioDraftPreviewCluster } from "$lib/server/content/portfolioPreview";
 
+function derivatives(prefix: string) {
+	return {
+		thumb: { key: `${prefix}/thumb.webp`, width: 320, height: 213 },
+		card: { key: `${prefix}/card.webp`, width: 768, height: 512 },
+		display1280: { key: `${prefix}/display-1280.webp`, width: 1280, height: 853 },
+		display2048: { key: `${prefix}/display-2048.webp`, width: 2048, height: 1365 },
+		display2560: { key: `${prefix}/display-2560.webp`, width: 2560, height: 1707 },
+	};
+}
+
 describe("portfolio draft preview projection", () => {
 	it("preserves deliberate order and emits immutable public image URLs", () => {
 		const input = {
@@ -15,16 +25,12 @@ describe("portfolio draft preview projection", () => {
 				{
 					_id: "media-1",
 					assetId: "asset-1",
-					derivatives: {
-						display1280: { key: "sites/zippymiggy.com/web/asset-1/display-1280.webp" },
-					},
+					derivatives: derivatives("sites/zippymiggy.com/web/asset-1"),
 				},
 				{
 					_id: "media-2",
 					assetId: "asset-2",
-					derivatives: {
-						display1280: { key: "sites/zippymiggy.com/web/asset 2/display-1280.webp" },
-					},
+					derivatives: derivatives("sites/zippymiggy.com/web/asset 2"),
 				},
 			],
 		};
@@ -34,6 +40,9 @@ describe("portfolio draft preview projection", () => {
 		expect(first.images.map(({ alt }) => alt)).toEqual(["", "A portrait"]);
 		expect(first.images[0].src).toBe(
 			"https://media.angelsrest.online/sites/zippymiggy.com/web/asset%202/display-1280.webp",
+		);
+		expect(first.images[0].srcset).toContain(
+			"https://media.angelsrest.online/sites/zippymiggy.com/web/asset%202/thumb.webp 320w",
 		);
 		expect(retry).toEqual(first);
 	});

@@ -317,6 +317,8 @@ function handleClusterClick(cluster: GalleryCluster) {
                         >
                             <img
                                 src={img.src}
+                                srcset={img.srcset}
+                                sizes="(max-width: 767px) 70vw, 220px"
                                 alt={img.alt}
                                 loading="lazy"
                                 draggable="false"

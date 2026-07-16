@@ -23,7 +23,8 @@ function getInitialIndex() {
 
 let index = $state(getInitialIndex());
 let visible = $state(false);
-let currentSrc = $derived(images[index]?.src ?? src);
+let currentImage = $derived(images[index]);
+let currentSrc = $derived(currentImage?.src ?? src);
 
 // DOM refs for focus management
 let dialogEl = $state<HTMLDivElement | undefined>(undefined);
@@ -112,7 +113,14 @@ $effect(() => {
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="lightbox-content" onclick={(e) => e.stopPropagation()}>
-		<img src={currentSrc} alt="" role="presentation" class="lightbox-image" />
+		<img
+			src={currentSrc}
+			srcset={currentImage?.srcset}
+			sizes="90vw"
+			alt=""
+			role="presentation"
+			class="lightbox-image"
+		/>
 	</div>
 
 	<div class="lightbox-controls">

@@ -4,6 +4,8 @@ import type { ParallaxContext } from "$lib/types/gallery";
 
 interface Props {
 	src: string;
+	srcset?: string;
+	sizes?: string;
 	alt?: string;
 	depth?: number;
 	rotation?: number;
@@ -15,6 +17,8 @@ interface Props {
 
 let {
 	src,
+	srcset,
+	sizes,
 	alt = "",
 	depth = 0.5,
 	rotation = 0,
@@ -64,7 +68,7 @@ const driftDelay = Math.random() * -30;
 	style:z-index={Math.round(depth * 10)}
 	onclick={onclick}
 >
-	<img {src} {alt} loading="lazy" decoding="async" draggable="false" />
+	<img {src} {srcset} {sizes} {alt} loading="lazy" decoding="async" draggable="false" />
 </div>
 
 <style>
