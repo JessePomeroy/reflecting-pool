@@ -1,9 +1,22 @@
 import { describe, expect, it } from "vitest";
+import { siteSettingsEditorSeed } from "$lib/content/siteSettingsSeed";
 import { getFallbackSiteSettings, normalizeSiteSettings } from "$lib/server/content/siteSettings";
 
 describe("normalizeSiteSettings", () => {
 	it("uses fallback content when Sanity settings are missing", () => {
 		expect(normalizeSiteSettings({})).toEqual(getFallbackSiteSettings());
+	});
+
+	it("keeps the explicit Editor seed aligned with the public fallback", () => {
+		const fallback = getFallbackSiteSettings().site;
+
+		expect(siteSettingsEditorSeed).toEqual({
+			artistName: fallback.artistName,
+			siteTitle: fallback.siteTitle,
+			tagline: fallback.tagline,
+			socialLinks: fallback.socialLinks,
+			seoDescription: fallback.seo.description,
+		});
 	});
 
 	it("preserves site settings and filters incomplete social links", () => {
