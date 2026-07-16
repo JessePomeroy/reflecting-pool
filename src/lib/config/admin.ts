@@ -16,6 +16,7 @@ const portfolioEditorApi = new Proxy(api.portfolioGalleries, {
 	get(portfolio, prop, receiver) {
 		if (prop === "listMediaAssets") return api.mediaAssets.listForEditor;
 		if (prop === "getPlacedMediaAssets") return api.mediaAssets.getManyForEditor;
+		if (prop === "registerReadyWebAsset") return api.mediaAssets.registerReadyWebAsset;
 		return Reflect.get(portfolio, prop, receiver);
 	},
 });
@@ -61,6 +62,7 @@ export const adminConfig: AdminConfig = {
 		siteSettings: {},
 		portfolio: {
 			mediaBaseUrl: "https://media.angelsrest.online",
+			uploadEndpoint: "/api/admin/media",
 		},
 	},
 };

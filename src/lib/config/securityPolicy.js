@@ -1,4 +1,6 @@
 const GALLERY_WORKER_ORIGIN = "https://gallery-worker.thinkingofview.workers.dev";
+const CMS_MEDIA_WORKER_ORIGIN = "https://cms-media-worker.thinkingofview.workers.dev";
+const CMS_MEDIA_PUBLIC_ORIGIN = "https://media.angelsrest.online";
 
 /**
  * Browser resource policy for Reflecting Pool HTML responses.
@@ -20,7 +22,14 @@ export const contentSecurityPolicy = {
 	"script-src-attr": ["none"],
 	"style-src": ["self", "unsafe-inline", "https://fonts.googleapis.com"],
 	"font-src": ["self", "https://fonts.gstatic.com"],
-	"img-src": ["self", "data:", "blob:", "https://cdn.sanity.io", GALLERY_WORKER_ORIGIN],
+	"img-src": [
+		"self",
+		"data:",
+		"blob:",
+		"https://cdn.sanity.io",
+		GALLERY_WORKER_ORIGIN,
+		CMS_MEDIA_PUBLIC_ORIGIN,
+	],
 	"media-src": ["self"],
 	"connect-src": [
 		"self",
@@ -30,6 +39,7 @@ export const contentSecurityPolicy = {
 		"wss://*.convex.cloud",
 		"https://*.sentry.io",
 		GALLERY_WORKER_ORIGIN,
+		CMS_MEDIA_WORKER_ORIGIN,
 	],
 	"frame-src": ["https://challenges.cloudflare.com", "https://cal.com", "https://app.cal.com"],
 	"form-action": ["self", GALLERY_WORKER_ORIGIN],
