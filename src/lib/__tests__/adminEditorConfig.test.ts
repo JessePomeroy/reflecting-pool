@@ -12,6 +12,8 @@ const { contentApi, portfolioApi, mediaApi } = vi.hoisted(() => ({
 		listForEditor: "portfolioGalleries.listForEditor",
 		getEditorState: "portfolioGalleries.getEditorState",
 		saveDraft: "portfolioGalleries.saveDraft",
+		publish: "portfolioGalleries.publish",
+		reorder: "portfolioGalleries.reorder",
 	},
 	mediaApi: {
 		listForEditor: "mediaAssets.listForEditor",
@@ -34,6 +36,8 @@ describe("admin Editor configuration", () => {
 		expect(portfolioEditor?.listForEditor).toBe(portfolioApi.listForEditor);
 		expect(portfolioEditor?.getEditorState).toBe(portfolioApi.getEditorState);
 		expect(portfolioEditor?.saveDraft).toBe(portfolioApi.saveDraft);
+		expect(portfolioEditor?.publish).toBe(portfolioApi.publish);
+		expect(portfolioEditor?.reorder).toBe(portfolioApi.reorder);
 		expect(portfolioEditor?.listMediaAssets).toBe(mediaApi.listForEditor);
 		expect(portfolioEditor?.getPlacedMediaAssets).toBe(mediaApi.getManyForEditor);
 		expect(adminConfig.editor).toEqual({
