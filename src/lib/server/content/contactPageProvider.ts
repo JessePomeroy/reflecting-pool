@@ -222,11 +222,19 @@ export async function resolveContactPageSettings(
 }
 
 export async function applyContactPageProvider(legacy: SiteSettingsResult) {
+	return await applyContactPageProviderWithDependencies(legacy);
+}
+
+export async function applyContactPageProviderWithDependencies(
+	legacy: SiteSettingsResult,
+	dependencies: Partial<ContactPageProviderDependencies> = {},
+) {
+	const deps = { ...defaultDependencies, ...dependencies };
 	const parsed = parseContactPageProviderMode(env.CONTACT_PAGE_PROVIDER);
 	if (parsed.invalid) {
-		defaultDependencies.log({
+		deps.log({
 			event: "cms.provider_config_invalid",
-			site: defaultDependencies.siteUrl,
+			site: deps.siteUrl,
 			kind: "contactPage",
 			provider: "fallback",
 			revisionId: null,
@@ -234,5 +242,5 @@ export async function applyContactPageProvider(legacy: SiteSettingsResult) {
 			code: "unsupported_provider",
 		});
 	}
-	return await resolveContactPageSettings(parsed.mode, legacy);
+	return await resolveContactPageSettings(parsed.mode, legacy, deps);
 }
