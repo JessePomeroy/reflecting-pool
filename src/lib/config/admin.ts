@@ -61,6 +61,7 @@ export const adminConfig: AdminConfig = {
 		siteSettings: {},
 		homepageQuote: {
 			initialPayload: homepageQuoteSeed,
+			previewEndpoint: "/api/admin/preview/homepage-quote",
 		},
 		portfolio: {
 			mediaBaseUrl: "https://media.angelsrest.online",
