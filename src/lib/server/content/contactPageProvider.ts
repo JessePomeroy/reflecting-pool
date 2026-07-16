@@ -10,7 +10,24 @@ export type ContactPageProviderMode = "fallback" | "shadow" | "convex";
 export interface PublishedContactPageState {
 	revisionId: string;
 	publishedAt: number;
-	payload: ContactPageDraftPayload;
+	payload: PublishedContactPagePayload;
+}
+
+export interface PublishedContactPagePayload {
+	heading: string;
+	intro: string;
+	email: string;
+	phone?: string;
+	availability?: string;
+	responseTime?: string;
+	confirmationMessage: string;
+	booking: {
+		enabled: boolean;
+		url?: string;
+		label: string;
+		intro: string;
+	};
+	inquiryChoices: string[];
 }
 
 export interface ContactPageReadTelemetry {
@@ -87,23 +104,45 @@ export function composeContactPageResult(
 	legacy: SiteSettingsResult,
 	payload: ContactPageDraftPayload,
 ): SiteSettingsResult {
-	const bookingUrl = payload.bookingEnabled ? publicUrl(payload.bookingUrl) : undefined;
+	return composePublishedContactPageResult(legacy, {
+		heading: payload.heading?.trim() ?? "",
+		intro: payload.intro?.trim() ?? "",
+		email: payload.email?.trim() ?? "",
+		phone: optionalText(payload.phone),
+		availability: optionalText(payload.availability),
+		responseTime: optionalText(payload.responseTime),
+		confirmationMessage: payload.confirmationMessage?.trim() ?? "",
+		booking: {
+			enabled: payload.bookingEnabled === true,
+			url: payload.bookingUrl,
+			label: payload.bookingLabel?.trim() ?? "",
+			intro: payload.bookingIntro?.trim() ?? "",
+		},
+		inquiryChoices: (payload.inquiryChoices ?? []).map((choice) => choice.trim()),
+	});
+}
+
+export function composePublishedContactPageResult(
+	legacy: SiteSettingsResult,
+	payload: PublishedContactPagePayload,
+): SiteSettingsResult {
+	const bookingUrl = payload.booking.enabled ? publicUrl(payload.booking.url) : undefined;
 	return {
 		...legacy,
 		contact: {
-			heading: payload.heading?.trim() ?? "",
-			intro: payload.intro?.trim() ?? "",
-			email: payload.email?.trim() ?? "",
+			heading: payload.heading.trim(),
+			intro: payload.intro.trim(),
+			email: payload.email.trim(),
 			phone: optionalText(payload.phone),
 			availability: optionalText(payload.availability),
 			responseTime: optionalText(payload.responseTime),
-			confirmationMessage: payload.confirmationMessage?.trim() ?? "",
-			inquiryChoices: (payload.inquiryChoices ?? []).map((choice) => choice.trim()),
+			confirmationMessage: payload.confirmationMessage.trim(),
+			inquiryChoices: payload.inquiryChoices.map((choice) => choice.trim()),
 			booking: {
-				enabled: Boolean(payload.bookingEnabled && bookingUrl),
+				enabled: Boolean(payload.booking.enabled && bookingUrl),
 				url: bookingUrl,
-				label: payload.bookingLabel?.trim() ?? "",
-				intro: payload.bookingIntro?.trim() ?? "",
+				label: payload.booking.label.trim(),
+				intro: payload.booking.intro.trim(),
 				calLink: calLink(bookingUrl),
 				calConfig: legacy.contact.booking.calConfig,
 			},
@@ -201,7 +240,7 @@ export async function resolveContactPageSettings(
 		throw new Error("Published CMS Contact page is unavailable");
 	}
 
-	const cms = composeContactPageResult(legacy, published.payload);
+	const cms = composePublishedContactPageResult(legacy, published.payload);
 	if (mode === "shadow") {
 		telemetry(deps, startedAt, {
 			event: matchesMigratedFields(legacy.contact, cms.contact)

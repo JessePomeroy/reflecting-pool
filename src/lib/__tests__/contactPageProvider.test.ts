@@ -41,10 +41,12 @@ const published: PublishedContactPageState = {
 		responseTime: "Within two business days",
 		confirmationMessage: "CMS confirmation",
 		inquiryChoices: ["Editorial", "Print"],
-		bookingEnabled: true,
-		bookingUrl: "https://cal.com/maggie/session?month=2026-08",
-		bookingLabel: "Choose a time",
-		bookingIntro: "Book directly or send a note.",
+		booking: {
+			enabled: true,
+			url: "https://cal.com/maggie/session?month=2026-08",
+			label: "Choose a time",
+			intro: "Book directly or send a note.",
+		},
 	},
 };
 
@@ -91,14 +93,16 @@ describe("Contact page provider", () => {
 				revisionId: "revision-same",
 				publishedAt: 100,
 				payload: {
-					bookingIntro: legacy.contact.booking.intro,
 					inquiryChoices: [...legacy.contact.inquiryChoices],
 					heading: legacy.contact.heading,
 					confirmationMessage: legacy.contact.confirmationMessage,
 					email: legacy.contact.email,
-					bookingLabel: legacy.contact.booking.label,
 					intro: legacy.contact.intro,
-					bookingEnabled: false,
+					booking: {
+						enabled: false,
+						label: legacy.contact.booking.label,
+						intro: legacy.contact.booking.intro,
+					},
 				},
 			}),
 		});
@@ -115,7 +119,10 @@ describe("Contact page provider", () => {
 		const deps = dependencies({
 			fetchPublishedCms: vi.fn().mockResolvedValue({
 				...published,
-				payload: { ...published.payload, bookingEnabled: false },
+				payload: {
+					...published.payload,
+					booking: { ...published.payload.booking, enabled: false },
+				},
 			}),
 		});
 		const result = await resolveContactPageSettings("convex", legacy, deps);
