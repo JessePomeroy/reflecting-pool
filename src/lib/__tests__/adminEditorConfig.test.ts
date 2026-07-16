@@ -7,6 +7,10 @@ const { contentApi, portfolioApi, mediaApi } = vi.hoisted(() => ({
 		saveSiteSettingsDraft: "content.saveSiteSettingsDraft",
 		publishSiteSettings: "content.publishSiteSettings",
 		discardSiteSettingsDraft: "content.discardSiteSettingsDraft",
+		getHomepageQuoteEditorState: "content.getHomepageQuoteEditorState",
+		saveHomepageQuoteDraft: "content.saveHomepageQuoteDraft",
+		publishHomepageQuote: "content.publishHomepageQuote",
+		discardHomepageQuoteDraft: "content.discardHomepageQuoteDraft",
 	},
 	portfolioApi: {
 		listForEditor: "portfolioGalleries.listForEditor",
@@ -33,6 +37,9 @@ vi.mock("$convex/api", () => ({
 describe("admin Editor configuration", () => {
 	it("keeps site content and public Portfolio contracts distinct", () => {
 		expect(adminConfig.api.siteEditor).toBe(contentApi);
+		expect(adminConfig.api.siteEditor?.getHomepageQuoteEditorState).toBe(
+			contentApi.getHomepageQuoteEditorState,
+		);
 		const portfolioEditor = adminConfig.api.portfolioEditor;
 		expect(portfolioEditor?.listForEditor).toBe(portfolioApi.listForEditor);
 		expect(portfolioEditor?.getEditorState).toBe(portfolioApi.getEditorState);
@@ -44,6 +51,12 @@ describe("admin Editor configuration", () => {
 		expect(portfolioEditor?.registerReadyWebAsset).toBe(mediaApi.registerReadyWebAsset);
 		expect(adminConfig.editor).toEqual({
 			siteSettings: {},
+			homepageQuote: {
+				initialPayload: {
+					text: "The camera does not know what it takes; it captures materials with which you reconstruct, not so much what you saw as what you thought you saw. Hence the best photography is aware, mindful, of illusion and uses illusion, permitting and encouraging it - especially unconscious and powerful illusions that are not usually admitted on the scene.",
+					attribution: "Thomas Merton",
+				},
+			},
 			portfolio: {
 				mediaBaseUrl: "https://media.angelsrest.online",
 				uploadEndpoint: "/api/admin/media",

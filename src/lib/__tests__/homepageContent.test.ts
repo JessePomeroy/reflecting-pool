@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { homepageQuoteSeed } from "$lib/content/homepageQuoteSeed";
 import {
 	getFallbackHomepageContent,
 	type HomepageContent,
@@ -8,6 +9,7 @@ import {
 describe("normalizeHomepageContent", () => {
 	it("uses fallback content when Sanity fields are missing", () => {
 		expect(normalizeHomepageContent({})).toEqual(getFallbackHomepageContent());
+		expect(getFallbackHomepageContent().quote).toEqual(homepageQuoteSeed);
 	});
 
 	it("preserves provided Sanity content while filling missing nested fields", () => {
