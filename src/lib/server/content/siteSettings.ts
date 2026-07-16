@@ -1,3 +1,4 @@
+import { contactPageSeed } from "$lib/content/contactPageSeed";
 import { siteSettingsEditorSeed } from "$lib/content/siteSettingsSeed";
 import { fetchSanityOrFallback } from "$lib/server/sanityClient";
 
@@ -21,6 +22,11 @@ export interface ContactSettingsContent {
 	heading: string;
 	intro: string;
 	email: string;
+	phone?: string;
+	availability?: string;
+	responseTime?: string;
+	confirmationMessage: string;
+	inquiryChoices: string[];
 	booking: {
 		enabled: boolean;
 		url?: string;
@@ -105,6 +111,11 @@ export function normalizeSiteSettings(result: SettingsSanityResult): SiteSetting
 			heading: contact?.heading || fallback.contact.heading,
 			intro: contact?.introText || fallback.contact.intro,
 			email: contact?.email || fallback.contact.email,
+			phone: fallback.contact.phone,
+			availability: fallback.contact.availability,
+			responseTime: fallback.contact.responseTime,
+			confirmationMessage: fallback.contact.confirmationMessage,
+			inquiryChoices: [...fallback.contact.inquiryChoices],
 			booking: {
 				enabled: Boolean(contact?.bookingEnabled && bookingUrl),
 				url: bookingUrl,
@@ -129,15 +140,19 @@ export function getFallbackSiteSettings(): SiteSettingsResult {
 			},
 		},
 		contact: {
-			heading: "get in touch",
-			intro:
-				"questions about prints, sessions, or just want to say hello — i'd love to hear from you.",
-			email: "hello.margarethelena@gmail.com",
+			heading: contactPageSeed.heading ?? "",
+			intro: contactPageSeed.intro ?? "",
+			email: contactPageSeed.email ?? "",
+			phone: contactPageSeed.phone,
+			availability: contactPageSeed.availability,
+			responseTime: contactPageSeed.responseTime,
+			confirmationMessage: contactPageSeed.confirmationMessage ?? "",
+			inquiryChoices: [...(contactPageSeed.inquiryChoices ?? [])],
 			booking: {
-				enabled: false,
-				label: "book a session",
-				intro:
-					"portrait sessions, editorial work, and botanical commissions. let's make something together.",
+				enabled: Boolean(contactPageSeed.bookingEnabled && contactPageSeed.bookingUrl),
+				url: contactPageSeed.bookingEnabled ? normalizeUrl(contactPageSeed.bookingUrl) : undefined,
+				label: contactPageSeed.bookingLabel ?? "",
+				intro: contactPageSeed.bookingIntro ?? "",
 				calConfig: '{"layout":"month_view"}',
 			},
 		},

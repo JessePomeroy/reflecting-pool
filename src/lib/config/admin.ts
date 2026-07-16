@@ -66,6 +66,7 @@ export const adminConfig: AdminConfig = {
 		},
 		contactPage: {
 			initialPayload: contactPageSeed,
+			previewEndpoint: "/api/admin/preview/contact",
 		},
 		portfolio: {
 			mediaBaseUrl: "https://media.angelsrest.online",

@@ -1,6 +1,7 @@
 import { api } from "$convex/api";
 import { env } from "$env/dynamic/private";
 import { adminConfig } from "$lib/config/admin";
+import { applyContactPageProvider } from "$lib/server/content/contactPageProvider";
 import {
 	fetchLegacySiteSettings,
 	type SiteSettingsContent,
@@ -192,5 +193,5 @@ export async function fetchSiteSettings(): Promise<SiteSettingsResult> {
 			code: "unsupported_provider",
 		});
 	}
-	return resolveSiteSettings(parsed.mode);
+	return await applyContactPageProvider(await resolveSiteSettings(parsed.mode));
 }
