@@ -3,6 +3,7 @@ import { api } from "$convex/api";
 
 // Map Convex `galleries` namespace to the admin package's `galleryDelivery` key.
 // Map Convex `content` namespace to the admin package's `siteEditor` key.
+// Map public portfolio authoring separately from private delivery galleries.
 // Use a Proxy — never spread `api` (it's a Proxy with no own enumerable props).
 //
 // `AdminAPI` enumerates every namespace a full-tier admin can use, including
@@ -14,6 +15,7 @@ import { api } from "$convex/api";
 const apiWithAliases = new Proxy(api, {
 	get(target, prop, receiver) {
 		if (prop === "siteEditor") return target.content;
+		if (prop === "portfolioEditor") return target.portfolioGalleries;
 		if (prop === "galleryDelivery") {
 			return new Proxy(target.galleries, {
 				get(galleries, galleryProp, galleryReceiver) {
@@ -46,8 +48,9 @@ export const adminConfig: AdminConfig = {
 	// fresh authenticated Convex client independent of socket navigation state.
 	mutationTransport: "http",
 	editor: {
-		// Preview remains disabled until CMS-1.4 gives the public site an explicit
-		// Convex provider switch. Linking to `/` here would only show Sanity data.
+		// Preview stays disabled until CMS-2.5d adds a server-validated draft
+		// preview grant. The public site remains on its rollback-safe provider.
 		siteSettings: {},
+		portfolio: {},
 	},
 };
