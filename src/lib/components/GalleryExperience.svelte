@@ -6,8 +6,10 @@ import Lightbox from "$lib/components/Lightbox.svelte";
 import Navigation from "$lib/components/Navigation.svelte";
 import StrokeTitle from "$lib/components/StrokeTitle.svelte";
 import WaterSurface from "$lib/components/WaterSurface.svelte";
-import { clusters } from "$lib/data/galleries";
+import { clusters as defaultClusters } from "$lib/data/galleries";
 import type { ClusterImage, GalleryCluster } from "$lib/types/gallery";
+
+let { clusters = defaultClusters }: { clusters?: GalleryCluster[] } = $props();
 
 type View = "index" | "gallery";
 
