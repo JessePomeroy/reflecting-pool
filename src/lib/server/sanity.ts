@@ -22,10 +22,11 @@ export {
 } from "$lib/server/content/shopCatalog";
 export {
 	type ContactSettingsContent,
-	fetchSiteSettings,
+	fetchLegacySiteSettings,
 	getFallbackSiteSettings,
 	normalizeSiteSettings,
 	type SiteSettingsContent,
 	type SiteSettingsResult,
 } from "$lib/server/content/siteSettings";
+export { fetchSiteSettings } from "$lib/server/content/siteSettingsProvider";
 export { fetchSanityOrFallback, hasSanityConfig, sanityClient };

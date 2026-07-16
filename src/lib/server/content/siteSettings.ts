@@ -78,7 +78,8 @@ const SETTINGS_QUERY = `
 }
 `;
 
-export async function fetchSiteSettings(): Promise<SiteSettingsResult> {
+/** Existing Sanity-or-local-fallback provider retained for rollback and shadow reads. */
+export async function fetchLegacySiteSettings(): Promise<SiteSettingsResult> {
 	const result = await fetchSanityOrFallback<SettingsSanityResult>(SETTINGS_QUERY, {});
 	return normalizeSiteSettings(result);
 }

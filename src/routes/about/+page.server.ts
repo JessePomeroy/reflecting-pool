@@ -1,5 +1,5 @@
 import { fetchAboutContent } from "$lib/server/content/about";
-import { fetchSiteSettings } from "$lib/server/content/siteSettings";
+import { fetchSiteSettings } from "$lib/server/content/siteSettingsProvider";
 import type { PageServerLoad } from "./$types";
 
 export const prerender = true;

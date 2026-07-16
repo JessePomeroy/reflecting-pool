@@ -23,7 +23,8 @@ components and fallback content remain local.
 
 | Domain | Owner | Local boundary |
 |---|---|---|
-| Homepage, portfolio, about, modeling, shop catalog, site settings | Sanity | `src/lib/server/content/`, `sanityClient.ts` |
+| Homepage, portfolio, about, modeling, shop catalog | Sanity | `src/lib/server/content/`, `sanityClient.ts` |
+| Site settings text fields | Sanity/fallback or published shared Convex, selected server-side | `siteSettingsProvider.ts` |
 | Orders and fulfillment state | Shared Convex | Angels Rest commerce webhook |
 | CRM, invoices, quotes, contracts, messages, board | Shared Convex | `@jessepomeroy/admin` pages |
 | Private delivery gallery metadata | Shared Convex | delivery page/admin package |
@@ -40,6 +41,28 @@ development fixtures, not an alternate CMS.
 Public server loads call one content module. That module fetches and normalizes
 Sanity data or returns a typed fallback. Browser components receive normalized
 data rather than importing Sanity credentials or clients.
+
+The text-only Site settings pilot is the first controlled exception. The
+server-only `SITE_SETTINGS_PROVIDER` selects:
+
+- `fallback` (default): the existing normalized Sanity-or-local-fallback result;
+- `shadow`: the same public result plus a content-free comparison with the
+  published Convex projection;
+- `convex`: published Convex text fields combined with the legacy contact and
+  OG-image fields that are outside CMS-1.
+
+Only `content.getPublishedSiteSettings` is used for public Convex reads. A
+missing publication fails closed in `convex` mode; the editor draft query is
+never part of the public provider. Safe telemetry includes the tenant, content
+kind, provider, duration, opaque published revision ID when available, and
+bounded status code. It excludes content bodies, credentials, and raw upstream
+errors.
+
+`/about` is prerendered, so Vercel provider changes require a deployment. To
+roll back, set the Production `SITE_SETTINGS_PROVIDER` value to `fallback`,
+redeploy the current `main` commit, verify the public About page and metadata,
+and leave Convex revisions intact for diagnosis. No content mutation is part of
+the rollback.
 
 ### Contact inquiries
 
