@@ -1,3 +1,4 @@
+import { siteSettingsEditorSeed } from "$lib/content/siteSettingsSeed";
 import { fetchSanityOrFallback } from "$lib/server/sanityClient";
 
 export interface SocialLink {
@@ -118,14 +119,12 @@ export function normalizeSiteSettings(result: SettingsSanityResult): SiteSetting
 export function getFallbackSiteSettings(): SiteSettingsResult {
 	return {
 		site: {
-			artistName: "margaret helena",
-			siteTitle: "margaret helena · photography",
-			tagline:
-				"Fine art photography prints, portfolio galleries, booking, and botanical commissions.",
-			socialLinks: [{ platform: "instagram", url: "https://www.instagram.com/zippymiggy/" }],
+			artistName: siteSettingsEditorSeed.artistName ?? "",
+			siteTitle: siteSettingsEditorSeed.siteTitle ?? "",
+			tagline: siteSettingsEditorSeed.tagline ?? "",
+			socialLinks: (siteSettingsEditorSeed.socialLinks ?? []).map((link) => ({ ...link })),
 			seo: {
-				description:
-					"Margaret Helena photography, portfolio galleries, booking, and fine art prints.",
+				description: siteSettingsEditorSeed.seoDescription ?? "",
 			},
 		},
 		contact: {
