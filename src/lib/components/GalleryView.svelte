@@ -110,6 +110,8 @@ onMount(() => {
 				>
 					<PhotoCard
 						src={img.src}
+						srcset={img.srcset}
+						sizes="(max-width: 767px) 70vw, 260px"
 						alt={img.alt}
 						depth={depth}
 						rotation={rot}

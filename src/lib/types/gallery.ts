@@ -2,6 +2,7 @@
 
 export interface GalleryImage {
 	src: string;
+	srcset?: string;
 	alt: string;
 	width?: number;
 	height?: number;
