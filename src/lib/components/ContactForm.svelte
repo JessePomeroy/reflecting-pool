@@ -2,6 +2,10 @@
 import { tick } from "svelte";
 import { TURNSTILE_SITE_KEY } from "$lib/config/turnstile";
 
+let {
+	confirmationMessage = "message received — i'll be in touch soon.",
+}: { confirmationMessage?: string } = $props();
+
 type FormState = "idle" | "sending" | "success" | "error";
 
 let formStatus: FormState = $state("idle");
@@ -93,7 +97,7 @@ async function reset() {
 <div class="contact-form-wrapper">
 	{#if formStatus === 'success'}
 		<div class="form-success">
-			<p class="success-message">message received — i'll be in touch soon.</p>
+			<p class="success-message">{confirmationMessage}</p>
 			<button class="reset-btn" onclick={reset}>send another message</button>
 		</div>
 	{:else}

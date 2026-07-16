@@ -78,6 +78,7 @@ describe("admin Editor configuration", () => {
 						"portrait sessions, editorial work, and botanical commissions. let's make something together.",
 					inquiryChoices: ["portrait session", "print inquiry"],
 				},
+				previewEndpoint: "/api/admin/preview/contact",
 			},
 			portfolio: {
 				mediaBaseUrl: "https://media.angelsrest.online",

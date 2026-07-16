@@ -22,6 +22,8 @@ const legacyResult: SiteSettingsResult = {
 		heading: "Contact",
 		intro: "Legacy contact remains",
 		email: "hello@example.com",
+		confirmationMessage: "Message received",
+		inquiryChoices: [],
 		booking: {
 			enabled: false,
 			label: "book",
