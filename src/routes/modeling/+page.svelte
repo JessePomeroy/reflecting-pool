@@ -35,7 +35,6 @@ let { data }: { data: PageData } = $props();
 </header>
 
 <HeadshotOrbitGallery
-	eyebrow={data.modeling.eyebrow}
 	heading={data.modeling.heading}
 	intro={data.modeling.intro}
 	galleries={data.modeling.galleries}

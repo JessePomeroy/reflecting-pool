@@ -1,3 +1,4 @@
+import { MODELING_CATEGORY_IMAGE_LIMIT } from "$lib/config/modeling";
 import { fetchSanityOrFallback } from "$lib/server/sanityClient";
 
 export interface ModelingImage {
@@ -14,7 +15,6 @@ export interface ModelingGallery {
 }
 
 export interface ModelingPageContent {
-	eyebrow: string;
 	heading: string;
 	intro?: string;
 	galleries: ModelingGallery[];
@@ -26,7 +26,6 @@ export interface ModelingPageContent {
 
 const MODELING_PAGE_QUERY = `
 *[_type == "modelingPage"][0] {
-  eyebrow,
   heading,
   intro,
   galleries[isVisible != false] {
@@ -62,7 +61,6 @@ export function normalizeModelingPageContent(
 	const galleries = normalizeModelingGalleries(content.galleries);
 
 	return {
-		eyebrow: content.eyebrow || fallback.eyebrow,
 		heading: content.heading || fallback.heading,
 		intro: content.intro || fallback.intro,
 		galleries: galleries.length ? galleries : fallback.galleries,
@@ -75,7 +73,6 @@ export function normalizeModelingPageContent(
 
 export function getFallbackModelingPageContent(): ModelingPageContent {
 	return {
-		eyebrow: "modeling & acting",
 		heading: "digital headshots",
 		intro: "placeholder selects for maggie's modeling, acting, and portrait work.",
 		galleries: [
@@ -112,6 +109,26 @@ export function getFallbackModelingPageContent(): ModelingPageContent {
 						id: "fashion-06",
 						src: "/images/flower-06.jpg",
 						alt: "placeholder editorial headshot six",
+					},
+					{
+						id: "fashion-07",
+						src: "/images/flower-20.jpg",
+						alt: "placeholder editorial headshot seven",
+					},
+					{
+						id: "fashion-08",
+						src: "/images/flower-21.jpg",
+						alt: "placeholder editorial headshot eight",
+					},
+					{
+						id: "fashion-09",
+						src: "/images/flower-22.jpg",
+						alt: "placeholder editorial headshot nine",
+					},
+					{
+						id: "fashion-10",
+						src: "/images/flower-24.jpg",
+						alt: "placeholder editorial headshot ten",
 					},
 				],
 			},
@@ -208,7 +225,8 @@ function normalizeModelingGalleries(galleries?: Partial<ModelingGallery>[]) {
 							src: image.src ?? "",
 							alt: image.alt || gallery.title || "modeling portfolio image",
 						}))
-						.filter((image) => image.id && image.src) ?? [],
+						.filter((image) => image.id && image.src)
+						.slice(0, MODELING_CATEGORY_IMAGE_LIMIT) ?? [],
 			}))
 			.filter((gallery) => gallery.title && gallery.slug && gallery.images.length) ?? []
 	);

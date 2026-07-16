@@ -1,0 +1,1 @@
+export const MODELING_CATEGORY_IMAGE_LIMIT = 10;

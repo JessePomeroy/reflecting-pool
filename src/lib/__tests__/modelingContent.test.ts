@@ -12,7 +12,6 @@ describe("normalizeModelingPageContent", () => {
 
 	it("preserves valid Sanity galleries and filters incomplete galleries/images", () => {
 		const result = normalizeModelingPageContent({
-			eyebrow: "portfolio",
 			heading: "fashion editorial",
 			intro: "Custom intro",
 			galleries: [
@@ -45,7 +44,6 @@ describe("normalizeModelingPageContent", () => {
 			},
 		} satisfies Partial<ModelingPageContent>);
 
-		expect(result.eyebrow).toBe("portfolio");
 		expect(result.heading).toBe("fashion editorial");
 		expect(result.intro).toBe("Custom intro");
 		expect(result.galleries).toEqual([
@@ -66,6 +64,21 @@ describe("normalizeModelingPageContent", () => {
 			description: "Custom SEO",
 			ogImage: "https://cdn.sanity.io/og.jpg",
 		});
+	});
+
+	it("keeps at most ten ordered images per modeling category", () => {
+		const images = Array.from({ length: 12 }, (_, index) => ({
+			id: `image-${index + 1}`,
+			src: `/image-${index + 1}.jpg`,
+			alt: `Image ${index + 1}`,
+		}));
+
+		const result = normalizeModelingPageContent({
+			galleries: [{ title: "Editorial", slug: "editorial", images }],
+		});
+
+		expect(result.galleries[0]?.images).toHaveLength(10);
+		expect(result.galleries[0]?.images.at(-1)?.id).toBe("image-10");
 	});
 
 	it("falls back to default galleries when Sanity galleries normalize to empty", () => {
