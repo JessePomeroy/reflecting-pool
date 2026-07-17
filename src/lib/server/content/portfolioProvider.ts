@@ -12,7 +12,6 @@ interface PublishedPortfolioPlacement {
 	key: string;
 	order: number;
 	altText: string;
-	decorative: boolean;
 	asset: PortfolioClusterAsset;
 }
 
@@ -95,7 +94,6 @@ export function publishedPortfolioClusters(
 					.map((placement) => ({
 						key: placement.key,
 						altText: placement.altText,
-						decorative: placement.decorative,
 						asset: placement.asset,
 					})),
 			}),

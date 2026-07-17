@@ -3,7 +3,6 @@ import { type PortfolioClusterAsset, portfolioCluster } from "$lib/server/conten
 interface PreviewPlacement {
 	key: string;
 	altText?: string | null;
-	decorative: boolean;
 	assetId: string;
 }
 

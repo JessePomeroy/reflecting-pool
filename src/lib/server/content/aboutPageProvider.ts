@@ -45,14 +45,12 @@ export interface PublishedAboutPageState {
 		portraits: Array<{
 			key: string;
 			order: number;
-			altText?: string;
-			decorative: boolean;
+			altText: string;
 			asset: ResolvedAboutAsset;
 		}>;
 		sections: Array<{ key: string; title: string; items: string[] }>;
 		highlights: Array<{ key: string; label: string; value: string }>;
 		seoDescription: string;
-		seoImage?: ResolvedAboutAsset;
 	};
 }
 
@@ -110,7 +108,6 @@ function assetUrl(key: string) {
 function portraitFromAsset(input: {
 	key: string;
 	altText?: string;
-	decorative: boolean;
 	asset: ResolvedAboutAsset;
 }): AboutPortraitContent {
 	const derivatives = input.asset.derivatives;
@@ -124,8 +121,7 @@ function portraitFromAsset(input: {
 		].join(", "),
 		width: derivatives.display1280.width,
 		height: derivatives.display1280.height,
-		altText: input.decorative ? "" : (input.altText ?? ""),
-		decorative: input.decorative,
+		altText: input.altText ?? "",
 	};
 }
 
@@ -147,9 +143,7 @@ export function composePublishedAboutPageResult(
 		highlights: payload.highlights.map(({ label, value }) => ({ label, value })),
 		seo: {
 			description: payload.seoDescription,
-			ogImage: payload.seoImage
-				? assetUrl(payload.seoImage.derivatives.display2048.key)
-				: legacy.seo.ogImage,
+			ogImage: legacy.seo.ogImage,
 		},
 	};
 }
@@ -164,7 +158,6 @@ export function composeAboutPageDraftResult(
 		const asset = assetMap.get(portrait.assetId);
 		return asset ? [portraitFromAsset({ ...portrait, asset })] : [];
 	});
-	const seoAsset = payload.seoImageAssetId ? assetMap.get(payload.seoImageAssetId) : undefined;
 	return {
 		...legacy,
 		heading: payload.heading?.trim() ?? "",
@@ -183,7 +176,7 @@ export function composeAboutPageDraftResult(
 		})),
 		seo: {
 			description: payload.seoDescription?.trim() ?? "",
-			ogImage: seoAsset ? assetUrl(seoAsset.derivatives.display2048.key) : legacy.seo.ogImage,
+			ogImage: legacy.seo.ogImage,
 		},
 	};
 }
@@ -200,7 +193,6 @@ function migratedFields(content: AboutContent) {
 		seoDescription: content.seo.description,
 		portraits: content.portraits.map((portrait) => ({
 			altText: portrait.altText,
-			decorative: portrait.decorative,
 		})),
 	};
 }

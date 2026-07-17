@@ -8,7 +8,6 @@ export interface ModelingImage {
 	width?: number;
 	height?: number;
 	alt: string;
-	decorative?: boolean;
 }
 
 export interface ModelingGallery {

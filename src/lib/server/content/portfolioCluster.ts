@@ -20,7 +20,6 @@ export interface PortfolioClusterAsset {
 export interface PortfolioClusterPlacement {
 	key: string;
 	altText?: string | null;
-	decorative: boolean;
 	asset: PortfolioClusterAsset;
 }
 
@@ -75,7 +74,7 @@ export function portfolioCluster(input: {
 			return {
 				src: mediaUrl(display.key),
 				srcset: responsiveSources(placement.asset),
-				alt: placement.decorative ? "" : (placement.altText?.trim() ?? ""),
+				alt: placement.altText?.trim() ?? "",
 				width: display.width,
 				height: display.height,
 				depth: 0.25 + random() * 0.65,

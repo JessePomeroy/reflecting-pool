@@ -71,7 +71,7 @@ onMount(() => {
 							sizes="(max-width: 700px) 100vw, (max-width: 1000px) 40vw, 360px"
 							width={currentPortrait.width}
 							height={currentPortrait.height}
-							alt={currentPortrait.decorative ? "" : currentPortrait.altText}
+							alt={currentPortrait.altText}
 							class="portrait-img"
 							loading="eager"
 						/>

@@ -33,7 +33,6 @@ describe("normalizeAboutContent", () => {
 		expect(result.portraits[0]).toMatchObject({
 			src: "https://cdn.sanity.io/portrait.jpg",
 			altText: "Maggie",
-			decorative: false,
 		});
 		expect(result.sections).toEqual([{ title: "valid", items: ["one"] }]);
 		expect(result.highlights).toEqual([{ label: "based in", value: "chicago" }]);
