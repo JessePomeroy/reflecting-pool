@@ -69,7 +69,7 @@
 	"dependencies": {
 		"@convex-dev/better-auth": "^0.12.5",
 		"@jessepomeroy/admin": "^3.12.1",
-		"@jessepomeroy/crm-api": "^2.9.0",
+		"@jessepomeroy/crm-api": "^2.9.1",
 		"@jessepomeroy/gallery-delivery": "^0.1.0",
 		"@jessepomeroy/print-catalog": "^0.2.0",
 		"@mmailaender/convex-better-auth-svelte": "^0.8.0",
