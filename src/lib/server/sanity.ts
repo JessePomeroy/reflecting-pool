@@ -7,12 +7,12 @@ export type { AboutContent } from "$lib/server/content/about";
 export { fetchAboutContent } from "$lib/server/content/aboutPageProvider";
 export type { HomepageContent } from "$lib/server/content/homepage";
 export { fetchHomepageContent } from "$lib/server/content/homepageQuoteProvider";
-export {
-	fetchModelingPageContent,
-	type ModelingGallery,
-	type ModelingImage,
-	type ModelingPageContent,
+export type {
+	ModelingGallery,
+	ModelingImage,
+	ModelingPageContent,
 } from "$lib/server/content/modeling";
+export { fetchModelingPageContent } from "$lib/server/content/modelingPageProvider";
 export {
 	fetchCollections,
 	fetchCollectionWithPrints,
