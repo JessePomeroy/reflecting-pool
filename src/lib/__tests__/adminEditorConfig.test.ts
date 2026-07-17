@@ -15,6 +15,10 @@ const { contentApi, portfolioApi, mediaApi } = vi.hoisted(() => ({
 		saveContactPageDraft: "content.saveContactPageDraft",
 		publishContactPage: "content.publishContactPage",
 		discardContactPageDraft: "content.discardContactPageDraft",
+		getAboutPageEditorState: "content.getAboutPageEditorState",
+		saveAboutPageDraft: "content.saveAboutPageDraft",
+		publishAboutPage: "content.publishAboutPage",
+		discardAboutPageDraft: "content.discardAboutPageDraft",
 	},
 	portfolioApi: {
 		listForEditor: "portfolioGalleries.listForEditor",
@@ -40,13 +44,18 @@ vi.mock("$convex/api", () => ({
 
 describe("admin Editor configuration", () => {
 	it("keeps site content and public Portfolio contracts distinct", () => {
-		expect(adminConfig.api.siteEditor).toBe(contentApi);
+		expect(adminConfig.api.siteEditor).not.toBe(contentApi);
 		expect(adminConfig.api.siteEditor?.getHomepageQuoteEditorState).toBe(
 			contentApi.getHomepageQuoteEditorState,
 		);
 		expect(adminConfig.api.siteEditor?.getContactPageEditorState).toBe(
 			contentApi.getContactPageEditorState,
 		);
+		expect(adminConfig.api.siteEditor?.getAboutPageEditorState).toBe(
+			contentApi.getAboutPageEditorState,
+		);
+		expect(adminConfig.api.siteEditor?.listMediaAssets).toBe(mediaApi.listForEditor);
+		expect(adminConfig.api.siteEditor?.getPlacedMediaAssets).toBe(mediaApi.getManyForEditor);
 		const portfolioEditor = adminConfig.api.portfolioEditor;
 		expect(portfolioEditor?.listForEditor).toBe(portfolioApi.listForEditor);
 		expect(portfolioEditor?.getEditorState).toBe(portfolioApi.getEditorState);
@@ -79,6 +88,22 @@ describe("admin Editor configuration", () => {
 					inquiryChoices: ["portrait session", "print inquiry"],
 				},
 				previewEndpoint: "/api/admin/preview/contact",
+			},
+			aboutPage: {
+				initialPayload: {
+					heading: "about",
+					displayName: "margaret helena / maggie mac / zippymiggy",
+					sections: expect.arrayContaining([
+						expect.objectContaining({ key: "background", title: "background" }),
+					]),
+					highlights: expect.arrayContaining([
+						expect.objectContaining({ key: "based-in", label: "based in" }),
+					]),
+					portraits: [],
+					seoDescription: expect.stringMatching(/margaret helena/i),
+				},
+				mediaBaseUrl: "https://media.angelsrest.online",
+				uploadEndpoint: "/api/admin/media",
 			},
 			portfolio: {
 				mediaBaseUrl: "https://media.angelsrest.online",

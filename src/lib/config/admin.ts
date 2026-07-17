@@ -1,5 +1,6 @@
 import type { AdminAPI, AdminConfig } from "@jessepomeroy/admin";
 import { api } from "$convex/api";
+import { aboutPageSeed } from "$lib/content/aboutPageSeed";
 import { contactPageSeed } from "$lib/content/contactPageSeed";
 import { homepageQuoteSeed } from "$lib/content/homepageQuoteSeed";
 
@@ -23,9 +24,17 @@ const portfolioEditorApi = new Proxy(api.portfolioGalleries, {
 	},
 });
 
+const siteEditorApi = new Proxy(api.content, {
+	get(content, prop, receiver) {
+		if (prop === "listMediaAssets") return api.mediaAssets.listForEditor;
+		if (prop === "getPlacedMediaAssets") return api.mediaAssets.getManyForEditor;
+		return Reflect.get(content, prop, receiver);
+	},
+});
+
 const apiWithAliases = new Proxy(api, {
 	get(target, prop, receiver) {
-		if (prop === "siteEditor") return target.content;
+		if (prop === "siteEditor") return siteEditorApi;
 		if (prop === "portfolioEditor") return portfolioEditorApi;
 		if (prop === "galleryDelivery") {
 			return new Proxy(target.galleries, {
@@ -67,6 +76,11 @@ export const adminConfig: AdminConfig = {
 		contactPage: {
 			initialPayload: contactPageSeed,
 			previewEndpoint: "/api/admin/preview/contact",
+		},
+		aboutPage: {
+			initialPayload: aboutPageSeed,
+			mediaBaseUrl: "https://media.angelsrest.online",
+			uploadEndpoint: "/api/admin/media",
 		},
 		portfolio: {
 			mediaBaseUrl: "https://media.angelsrest.online",
