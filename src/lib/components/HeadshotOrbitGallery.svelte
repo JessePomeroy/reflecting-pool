@@ -1,15 +1,7 @@
 <script lang="ts">
 import { MODELING_CATEGORY_IMAGE_LIMIT } from "$lib/config/modeling";
 import type { ModelingGallery } from "$lib/server/sanity";
-
-type OrbitSlot = {
-	name: string;
-	x: number;
-	y: number;
-	width: number;
-	rotate: number;
-	z: number;
-};
+import { createHeadshotOrbitSlots } from "./headshotOrbit";
 
 let {
 	heading,
@@ -21,28 +13,6 @@ let {
 	galleries: ModelingGallery[];
 } = $props();
 
-const standardSlots: OrbitSlot[] = [
-	{ name: "hero", x: 36, y: 61, width: 23, rotate: -2, z: 7 },
-	{ name: "top", x: 71, y: 30, width: 10.5, rotate: 4, z: 5 },
-	{ name: "upper", x: 83, y: 40, width: 10, rotate: -5, z: 4 },
-	{ name: "middle", x: 86, y: 55, width: 10.5, rotate: 3, z: 3 },
-	{ name: "lower", x: 79, y: 70, width: 10, rotate: -4, z: 4 },
-	{ name: "bottom", x: 67, y: 77, width: 10.5, rotate: 5, z: 5 },
-];
-
-const denseSlots: OrbitSlot[] = [
-	{ name: "hero", x: 35, y: 61, width: 22, rotate: -2, z: 10 },
-	{ name: "top-left", x: 65, y: 24, width: 10.5, rotate: 4, z: 6 },
-	{ name: "top-center", x: 77, y: 25, width: 10.3, rotate: -4, z: 5 },
-	{ name: "top-right", x: 89, y: 30, width: 10, rotate: 3, z: 4 },
-	{ name: "middle-left", x: 64, y: 49, width: 10.3, rotate: -3, z: 5 },
-	{ name: "middle-center", x: 77, y: 48, width: 10.2, rotate: 5, z: 6 },
-	{ name: "middle-right", x: 90, y: 51, width: 9.8, rotate: -5, z: 4 },
-	{ name: "lower-left", x: 64, y: 74, width: 10.2, rotate: 4, z: 4 },
-	{ name: "lower-center", x: 77, y: 73, width: 10, rotate: -4, z: 5 },
-	{ name: "lower-right", x: 90, y: 71, width: 9.6, rotate: 3, z: 3 },
-];
-
 let activeIndex = $state(0);
 let activeGalleryIndex = $state(0);
 let direction = $state<"next" | "prev">("next");
@@ -52,14 +22,7 @@ const images = $derived(activeGallery?.images ?? []);
 const visibleCount = $derived(Math.min(images.length, MODELING_CATEGORY_IMAGE_LIMIT));
 const visibleImages = $derived(images.slice(0, visibleCount));
 const activeImage = $derived(visibleImages[activeIndex] ?? visibleImages[0]);
-const activeSlots = $derived(visibleCount > standardSlots.length ? denseSlots : standardSlots);
-const thumbnailScale = $derived(
-	visibleCount <= standardSlots.length ? 1 : Math.max(0.775, 1 - (visibleCount - 7) * 0.075),
-);
-
-function getSlotWidth(slot: OrbitSlot) {
-	return slot.name === "hero" ? slot.width : slot.width * thumbnailScale;
-}
+const activeSlots = $derived(createHeadshotOrbitSlots(visibleCount));
 
 function getSlotIndex(imageIndex: number) {
 	if (visibleCount === 0) return 0;
@@ -76,6 +39,13 @@ function previous() {
 	if (visibleCount < 2) return;
 	direction = "prev";
 	activeIndex = (activeIndex - 1 + visibleCount) % visibleCount;
+}
+
+function selectImage(index: number) {
+	if (index === activeIndex || visibleCount < 2) return;
+	const forwardDistance = (index - activeIndex + visibleCount) % visibleCount;
+	direction = forwardDistance <= visibleCount / 2 ? "next" : "prev";
+	activeIndex = index;
 }
 
 function selectGallery(index: number) {
@@ -110,7 +80,6 @@ function selectGallery(index: number) {
 
 	<div
 		class="orbit-stage"
-		data-density={visibleCount > standardSlots.length ? "dense" : "standard"}
 		data-direction={direction}
 	>
 		{#each visibleImages as image, imageIndex (image.id)}
@@ -123,12 +92,17 @@ function selectGallery(index: number) {
 				style="
 					--slot-x: {slot.x}%;
 					--slot-y: {slot.y}%;
-					--slot-width: {getSlotWidth(slot)}%;
+					--slot-mobile-x: {slot.mobileX}%;
+					--slot-mobile-y: {slot.mobileY}%;
+					--slot-width: {slot.width}%;
+					--slot-mobile-width: {slot.mobileWidth}%;
 					--slot-rotate: {slot.rotate}deg;
 					--slot-z: {slot.z};
+					--slot-opacity: {slot.opacity};
 				"
 				aria-label={image.id === activeImage?.id ? `${image.alt}, featured` : `Feature ${image.alt}`}
-				onclick={slot.name === "hero" ? undefined : next}
+				aria-pressed={image.id === activeImage?.id}
+				onclick={() => selectImage(imageIndex)}
 			>
 				<span class="photo-float">
 					<img
@@ -255,6 +229,7 @@ function selectGallery(index: number) {
 			transform 980ms cubic-bezier(0.2, 0.85, 0.18, 1),
 			filter 980ms ease,
 			opacity 420ms ease;
+		opacity: var(--slot-opacity);
 	}
 
 	.orbit-photo:focus-visible {
@@ -371,17 +346,13 @@ function selectGallery(index: number) {
 		.orbit-photo {
 			width: calc(var(--slot-width) * 1.55);
 		}
-
-		.orbit-stage[data-density="dense"] .orbit-photo {
-			width: calc(var(--slot-width) * 1.28);
-		}
 	}
 
 	@media (max-width: 640px) {
 		.orbit-shell {
-			min-height: auto;
+			min-height: 100svh;
 			padding: 0;
-			overflow: visible;
+			overflow: hidden;
 		}
 
 		.copy {
@@ -424,44 +395,18 @@ function selectGallery(index: number) {
 		}
 
 		.orbit-stage {
-			position: relative;
-			inset: auto;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			gap: 8rem;
-			min-height: 100svh;
-			padding: 28vh 1rem 7rem;
+			position: absolute;
+			inset: 8.5rem 0.25rem 6rem;
 		}
 
-		.orbit-photo,
-		.orbit-stage[data-density="dense"] .orbit-photo {
-			position: relative;
-			top: auto;
-			left: auto;
-			width: clamp(205px, 70vw, 310px);
-			flex-shrink: 0;
-			transform: rotate(var(--slot-rotate));
-			transition:
-				transform 400ms ease,
-				filter 400ms ease;
+		.orbit-photo {
+			top: var(--slot-mobile-y);
+			left: var(--slot-mobile-x);
+			width: var(--slot-mobile-width);
 		}
 
-		.orbit-photo.is-hero,
-		.orbit-stage[data-density="dense"] .orbit-photo.is-hero {
-			width: clamp(220px, 74vw, 330px);
-			transform: rotate(var(--slot-rotate)) scale(1.04);
+		.orbit-photo.is-hero {
 			filter: drop-shadow(0 8px 24px rgba(var(--ink-rgb), 0.34));
-		}
-
-		.orbit-photo:nth-child(odd) {
-			align-self: flex-start;
-			margin-left: 8vw;
-		}
-
-		.orbit-photo:nth-child(even) {
-			align-self: flex-end;
-			margin-right: 8vw;
 		}
 
 		.orbit-controls {
