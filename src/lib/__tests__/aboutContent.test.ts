@@ -27,8 +27,14 @@ describe("normalizeAboutContent", () => {
 		});
 
 		expect(result.heading).toBe("custom about");
-		expect(result.portrait).toBe("https://cdn.sanity.io/portrait.jpg");
-		expect(result.bio).toBe("Maggie\n\nPhotographer and director.");
+		expect(result.displayName).toBe("Maggie");
+		expect(result.introduction).toBe("Photographer and director.");
+		expect(result.biography).toBe("");
+		expect(result.portraits[0]).toMatchObject({
+			src: "https://cdn.sanity.io/portrait.jpg",
+			altText: "Maggie",
+			decorative: false,
+		});
 		expect(result.sections).toEqual([{ title: "valid", items: ["one"] }]);
 		expect(result.highlights).toEqual([{ label: "based in", value: "chicago" }]);
 		expect(result.seo.description).toBe("Custom SEO");

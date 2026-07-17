@@ -3,7 +3,8 @@
 
 import { fetchSanityOrFallback, hasSanityConfig, sanityClient } from "$lib/server/sanityClient";
 
-export { type AboutContent, fetchAboutContent } from "$lib/server/content/about";
+export type { AboutContent } from "$lib/server/content/about";
+export { fetchAboutContent } from "$lib/server/content/aboutPageProvider";
 export type { HomepageContent } from "$lib/server/content/homepage";
 export { fetchHomepageContent } from "$lib/server/content/homepageQuoteProvider";
 export {
