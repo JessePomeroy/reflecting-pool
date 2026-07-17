@@ -14,6 +14,39 @@ let {
 } = $props();
 
 let booking = $derived(settings.contact.booking);
+let portraitIndex = $state(0);
+let touchStartX: number | null = null;
+let currentPortrait = $derived(about.portraits[portraitIndex] ?? about.portraits[0]);
+
+function previousPortrait() {
+	if (about.portraits.length < 2) return;
+	portraitIndex = (portraitIndex - 1 + about.portraits.length) % about.portraits.length;
+}
+
+function nextPortrait() {
+	if (about.portraits.length < 2) return;
+	portraitIndex = (portraitIndex + 1) % about.portraits.length;
+}
+
+function handlePortraitKeydown(event: KeyboardEvent) {
+	if (event.key === "ArrowLeft") {
+		event.preventDefault();
+		previousPortrait();
+	} else if (event.key === "ArrowRight") {
+		event.preventDefault();
+		nextPortrait();
+	}
+}
+
+function handleTouchEnd(event: TouchEvent) {
+	const endX = event.changedTouches[0]?.clientX;
+	if (touchStartX === null || endX === undefined) return;
+	const distance = endX - touchStartX;
+	if (Math.abs(distance) >= 45) {
+		if (distance > 0) previousPortrait(); else nextPortrait();
+	}
+	touchStartX = null;
+}
 
 onMount(() => {
 	if (booking.enabled && booking.calLink) initializeCalEmbed();
@@ -28,9 +61,31 @@ onMount(() => {
 
 	<div class="about-grid">
 		<aside class="portrait-col">
-			<div class="portrait-wrapper">
-				<img src={about.portrait} alt="margaret helena" class="portrait-img" loading="eager" />
-			</div>
+			{#if currentPortrait}
+				<!-- svelte-ignore a11y_no_noninteractive_element_interactions (touch swipe supplements accessible buttons) -->
+				<div class="portrait-sequence" role="group" aria-label="Portrait sequence" ontouchstart={(event) => (touchStartX = event.touches[0]?.clientX ?? null)} ontouchend={handleTouchEnd}>
+					<div class="portrait-wrapper">
+						<img
+							src={currentPortrait.src}
+							srcset={currentPortrait.srcset}
+							sizes="(max-width: 700px) 100vw, (max-width: 1000px) 40vw, 360px"
+							width={currentPortrait.width}
+							height={currentPortrait.height}
+							alt={currentPortrait.decorative ? "" : currentPortrait.altText}
+							class="portrait-img"
+							style={`object-position: ${currentPortrait.focalPoint.x * 100}% ${currentPortrait.focalPoint.y * 100}%`}
+							loading="eager"
+						/>
+					</div>
+					{#if about.portraits.length > 1}
+						<div class="portrait-controls">
+							<button type="button" onclick={previousPortrait} onkeydown={handlePortraitKeydown} aria-label="Previous portrait">←</button>
+							<span aria-live="polite">{portraitIndex + 1} / {about.portraits.length}</span>
+							<button type="button" onclick={nextPortrait} onkeydown={handlePortraitKeydown} aria-label="Next portrait">→</button>
+						</div>
+					{/if}
+				</div>
+			{/if}
 
 			<div class="social-links">
 				{#each settings.site.socialLinks as link}
@@ -42,11 +97,12 @@ onMount(() => {
 		</aside>
 
 		<main class="bio-col">
-			<h2 class="artist-name">margaret helena / maggie mac / zippymiggy</h2>
+			<h2 class="artist-name">{about.displayName}</h2>
+			{#if about.role}<p class="artist-role">{about.role}</p>{/if}
 
-			{#if about.bio.trim()}
+			{#if about.introduction.trim() || about.biography.trim()}
 				<div class="bio-text">
-					{#each about.bio.split('\n\n').filter(Boolean) as paragraph}
+					{#each [about.introduction, about.biography].filter(Boolean).flatMap((value) => value.split('\n\n')).filter(Boolean) as paragraph}
 						<p>{paragraph}</p>
 					{/each}
 				</div>
@@ -165,6 +221,7 @@ onMount(() => {
 	}
 
 	.portrait-wrapper { position: sticky; top: 2rem; }
+	.portrait-sequence { outline: none; }
 
 	.portrait-img {
 		width: 100%;
@@ -174,6 +231,31 @@ onMount(() => {
 		display: block;
 		filter: saturate(0.9) contrast(1.05);
 	}
+
+	.portrait-controls {
+		display: grid;
+		grid-template-columns: 44px 1fr 44px;
+		gap: 0.5rem;
+		align-items: center;
+		margin-top: 0.75rem;
+		color: var(--about-muted);
+		font-family: var(--font-serif);
+		font-size: 0.75rem;
+		letter-spacing: 0.1em;
+		text-align: center;
+	}
+
+	.portrait-controls button {
+		min-width: 44px;
+		min-height: 44px;
+		border: 1px solid var(--about-faint);
+		background: transparent;
+		color: var(--about-text);
+		font: inherit;
+		cursor: pointer;
+	}
+
+	.portrait-controls button:focus-visible { outline: 2px solid var(--about-text); outline-offset: 2px; }
 
 	.social-links { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
 
@@ -199,6 +281,15 @@ onMount(() => {
 		letter-spacing: 0.12em;
 		text-transform: lowercase;
 		margin-bottom: 1.5rem;
+	}
+
+	.artist-role {
+		margin: -0.9rem 0 1.5rem;
+		color: var(--about-muted);
+		font-family: var(--font-serif);
+		font-size: 0.85rem;
+		letter-spacing: 0.1em;
+		text-transform: lowercase;
 	}
 
 	.bio-text { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2.5rem; }

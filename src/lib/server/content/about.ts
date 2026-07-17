@@ -2,9 +2,11 @@ import { fetchSanityOrFallback } from "$lib/server/sanityClient";
 
 export interface AboutContent {
 	heading: string;
-	portrait: string;
-	bio: string;
-	artistStatement: string;
+	displayName: string;
+	role?: string;
+	introduction: string;
+	biography: string;
+	portraits: AboutPortraitContent[];
 	sections: { title: string; items: string[] }[];
 	highlights: { label: string; value: string }[];
 	socialLinks: { platform: string; url: string }[];
@@ -12,6 +14,17 @@ export interface AboutContent {
 		description: string;
 		ogImage: string;
 	};
+}
+
+export interface AboutPortraitContent {
+	key: string;
+	src: string;
+	srcset?: string;
+	width?: number;
+	height?: number;
+	altText: string;
+	decorative: boolean;
+	focalPoint: { x: number; y: number };
 }
 
 export interface AboutSanityResult {
@@ -66,7 +79,7 @@ const ABOUT_QUERY = `
 }
 `;
 
-export async function fetchAboutContent(): Promise<AboutContent> {
+export async function fetchLegacyAboutContent(): Promise<AboutContent> {
 	const result = await fetchSanityOrFallback<AboutSanityResult>(ABOUT_QUERY, {});
 	return normalizeAboutContent(result);
 }
@@ -83,12 +96,21 @@ export function normalizeAboutContent(result: AboutSanityResult): AboutContent {
 
 	return {
 		heading: about?.heading || fallback.heading,
-		portrait: about?.portrait || fallback.portrait,
-		bio:
-			about?.plainBio ||
-			[about?.name, about?.shortBio].filter(Boolean).join("\n\n") ||
-			fallback.bio,
-		artistStatement: fallback.artistStatement,
+		displayName: about?.name || fallback.displayName,
+		role: about?.title || fallback.role,
+		introduction: about?.shortBio || fallback.introduction,
+		biography: about?.plainBio || fallback.biography,
+		portraits: about?.portrait
+			? [
+					{
+						key: "sanity-portrait",
+						src: about.portrait,
+						altText: about.name || fallback.displayName,
+						decorative: false,
+						focalPoint: { x: 0.5, y: 0.5 },
+					},
+				]
+			: fallback.portraits,
 		sections: normalizeSections(about?.sections) ?? fallback.sections,
 		highlights: normalizeHighlights(about?.highlights) ?? fallback.highlights,
 		socialLinks: socialLinks.length
@@ -106,10 +128,18 @@ export function normalizeAboutContent(result: AboutSanityResult): AboutContent {
 export function getFallbackAboutContent(): AboutContent {
 	return {
 		heading: "about",
-		portrait: "/images/flower-01.jpg",
-		bio: "",
-		artistStatement:
-			"Building In Between — a space for artists to gather where image, sound, and memory meet.",
+		displayName: "margaret helena / maggie mac / zippymiggy",
+		introduction: "",
+		biography: "",
+		portraits: [
+			{
+				key: "fallback-portrait",
+				src: "/images/flower-01.jpg",
+				altText: "",
+				decorative: true,
+				focalPoint: { x: 0.5, y: 0.5 },
+			},
+		],
 		sections: [
 			{
 				title: "background",

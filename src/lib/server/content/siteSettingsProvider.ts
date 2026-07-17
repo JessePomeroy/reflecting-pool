@@ -183,7 +183,9 @@ export async function resolveSiteSettings(
 	return cmsResult;
 }
 
-export async function fetchSiteSettings(): Promise<SiteSettingsResult> {
+export async function fetchSiteSettings(
+	log?: (entry: CmsReadTelemetry | ContactPageReadTelemetry) => void,
+): Promise<SiteSettingsResult> {
 	const entries: Array<CmsReadTelemetry | ContactPageReadTelemetry> = [];
 	const parsed = parseSiteSettingsProviderMode(env.SITE_SETTINGS_PROVIDER);
 	if (parsed.invalid) {
@@ -205,8 +207,12 @@ export async function fetchSiteSettings(): Promise<SiteSettingsResult> {
 			log: (entry) => entries.push(entry),
 		});
 	} finally {
-		// Vercel may retain only one application log per request. Emit the two
-		// independent provider events in one content-free structured record.
-		console.info("[cms]", entries);
+		if (log) {
+			for (const entry of entries) log(entry);
+		} else {
+			// Vercel may retain only one application log per request. Emit the two
+			// independent provider events in one content-free structured record.
+			console.info("[cms]", entries);
+		}
 	}
 }

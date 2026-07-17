@@ -9,7 +9,7 @@ import {
 	type ContactPagePreviewGrant,
 	verifyContactPagePreviewGrant,
 } from "$lib/server/contactPagePreviewGrant";
-import { fetchAboutContent } from "$lib/server/content/about";
+import { fetchLegacyAboutContent } from "$lib/server/content/about";
 import { composeContactPageResult } from "$lib/server/content/contactPageProvider";
 import { fetchSiteSettings } from "$lib/server/content/siteSettingsProvider";
 import "$lib/server/adminHandler";
@@ -47,7 +47,7 @@ export const load: PageServerLoad = async ({ request, cookies, setHeaders }) => 
 	if (state?.draft?.revisionId !== grant.draftRevisionId) {
 		throw error(409, "This draft changed after the preview was created. Open a new preview.");
 	}
-	const [about, settings] = await Promise.all([fetchAboutContent(), fetchSiteSettings()]);
+	const [about, settings] = await Promise.all([fetchLegacyAboutContent(), fetchSiteSettings()]);
 	return {
 		about,
 		settings: composeContactPageResult(settings, state.draft.payload),
