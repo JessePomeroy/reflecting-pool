@@ -4,7 +4,11 @@ import { fetchSanityOrFallback } from "$lib/server/sanityClient";
 export interface ModelingImage {
 	id: string;
 	src: string;
+	srcset?: string;
+	width?: number;
+	height?: number;
 	alt: string;
+	decorative?: boolean;
 }
 
 export interface ModelingGallery {
@@ -45,7 +49,7 @@ const MODELING_PAGE_QUERY = `
 }
 `;
 
-export async function fetchModelingPageContent(): Promise<ModelingPageContent> {
+export async function fetchLegacyModelingPageContent(): Promise<ModelingPageContent> {
 	const content = await fetchSanityOrFallback<Partial<ModelingPageContent>>(
 		MODELING_PAGE_QUERY,
 		getFallbackModelingPageContent(),

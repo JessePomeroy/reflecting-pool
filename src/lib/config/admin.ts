@@ -88,6 +88,7 @@ export const adminConfig: AdminConfig = {
 			initialPayload: modelingPageSeed,
 			mediaBaseUrl: "https://media.angelsrest.online",
 			uploadEndpoint: "/api/admin/media",
+			previewEndpoint: "/api/admin/preview/modeling",
 		},
 		portfolio: {
 			mediaBaseUrl: "https://media.angelsrest.online",

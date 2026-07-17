@@ -131,7 +131,15 @@ function selectGallery(index: number) {
 				onclick={slot.name === "hero" ? undefined : next}
 			>
 				<span class="photo-float">
-					<img src={image.src} alt={image.alt} loading={slot.name === "hero" ? "eager" : "lazy"} />
+					<img
+						src={image.src}
+						srcset={image.srcset}
+						sizes={slot.name === "hero" ? "(max-width: 900px) 44vw, 23vw" : "(max-width: 900px) 28vw, 11vw"}
+						width={image.width}
+						height={image.height}
+						alt={image.alt}
+						loading={slot.name === "hero" ? "eager" : "lazy"}
+					/>
 				</span>
 			</button>
 		{/each}
@@ -139,7 +147,7 @@ function selectGallery(index: number) {
 
 	<div class="orbit-controls" aria-label="Headshot gallery controls">
 		<button type="button" onclick={previous} disabled={visibleCount < 2}>previous</button>
-		<span>{activeIndex + 1} / {visibleCount}</span>
+		<span>{visibleCount ? activeIndex + 1 : 0} / {visibleCount}</span>
 		<button type="button" onclick={next} disabled={visibleCount < 2}>next</button>
 	</div>
 </section>

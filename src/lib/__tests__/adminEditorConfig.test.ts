@@ -131,6 +131,7 @@ describe("admin Editor configuration", () => {
 				},
 				mediaBaseUrl: "https://media.angelsrest.online",
 				uploadEndpoint: "/api/admin/media",
+				previewEndpoint: "/api/admin/preview/modeling",
 			},
 			portfolio: {
 				mediaBaseUrl: "https://media.angelsrest.online",
