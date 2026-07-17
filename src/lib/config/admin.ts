@@ -3,6 +3,7 @@ import { api } from "$convex/api";
 import { aboutPageSeed } from "$lib/content/aboutPageSeed";
 import { contactPageSeed } from "$lib/content/contactPageSeed";
 import { homepageQuoteSeed } from "$lib/content/homepageQuoteSeed";
+import { modelingPageSeed } from "$lib/content/modelingPageSeed";
 
 // Map Convex `galleries` namespace to the admin package's `galleryDelivery` key.
 // Map Convex `content` namespace to the admin package's `siteEditor` key.
@@ -82,6 +83,11 @@ export const adminConfig: AdminConfig = {
 			mediaBaseUrl: "https://media.angelsrest.online",
 			uploadEndpoint: "/api/admin/media",
 			previewEndpoint: "/api/admin/preview/about",
+		},
+		modelingPage: {
+			initialPayload: modelingPageSeed,
+			mediaBaseUrl: "https://media.angelsrest.online",
+			uploadEndpoint: "/api/admin/media",
 		},
 		portfolio: {
 			mediaBaseUrl: "https://media.angelsrest.online",

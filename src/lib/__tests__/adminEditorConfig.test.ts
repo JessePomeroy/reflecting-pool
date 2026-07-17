@@ -19,6 +19,10 @@ const { contentApi, portfolioApi, mediaApi } = vi.hoisted(() => ({
 		saveAboutPageDraft: "content.saveAboutPageDraft",
 		publishAboutPage: "content.publishAboutPage",
 		discardAboutPageDraft: "content.discardAboutPageDraft",
+		getModelingPageEditorState: "content.getModelingPageEditorState",
+		saveModelingPageDraft: "content.saveModelingPageDraft",
+		publishModelingPage: "content.publishModelingPage",
+		discardModelingPageDraft: "content.discardModelingPageDraft",
 	},
 	portfolioApi: {
 		listForEditor: "portfolioGalleries.listForEditor",
@@ -53,6 +57,9 @@ describe("admin Editor configuration", () => {
 		);
 		expect(adminConfig.api.siteEditor?.getAboutPageEditorState).toBe(
 			contentApi.getAboutPageEditorState,
+		);
+		expect(adminConfig.api.siteEditor?.getModelingPageEditorState).toBe(
+			contentApi.getModelingPageEditorState,
 		);
 		expect(adminConfig.api.siteEditor?.listMediaAssets).toBe(mediaApi.listForEditor);
 		expect(adminConfig.api.siteEditor?.getPlacedMediaAssets).toBe(mediaApi.getManyForEditor);
@@ -105,6 +112,25 @@ describe("admin Editor configuration", () => {
 				mediaBaseUrl: "https://media.angelsrest.online",
 				uploadEndpoint: "/api/admin/media",
 				previewEndpoint: "/api/admin/preview/about",
+			},
+			modelingPage: {
+				initialPayload: {
+					heading: "digital headshots",
+					intro: "placeholder selects for maggie's modeling, acting, and portrait work.",
+					galleries: [
+						expect.objectContaining({
+							key: "fashion-editorial",
+							title: "Fashion Editorial",
+							isVisible: false,
+							images: [],
+						}),
+						expect.objectContaining({ key: "comp-card-digitals" }),
+						expect.objectContaining({ key: "commercial" }),
+					],
+					seoDescription: expect.stringMatching(/modeling portfolio/i),
+				},
+				mediaBaseUrl: "https://media.angelsrest.online",
+				uploadEndpoint: "/api/admin/media",
 			},
 			portfolio: {
 				mediaBaseUrl: "https://media.angelsrest.online",
