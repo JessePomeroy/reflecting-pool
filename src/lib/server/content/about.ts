@@ -24,7 +24,6 @@ export interface AboutPortraitContent {
 	height?: number;
 	altText: string;
 	decorative: boolean;
-	focalPoint: { x: number; y: number };
 }
 
 export interface AboutSanityResult {
@@ -107,7 +106,6 @@ export function normalizeAboutContent(result: AboutSanityResult): AboutContent {
 						src: about.portrait,
 						altText: about.name || fallback.displayName,
 						decorative: false,
-						focalPoint: { x: 0.5, y: 0.5 },
 					},
 				]
 			: fallback.portraits,
@@ -137,7 +135,6 @@ export function getFallbackAboutContent(): AboutContent {
 				src: "/images/flower-01.jpg",
 				altText: "",
 				decorative: true,
-				focalPoint: { x: 0.5, y: 0.5 },
 			},
 		],
 		sections: [

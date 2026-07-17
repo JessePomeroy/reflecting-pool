@@ -73,7 +73,6 @@ onMount(() => {
 							height={currentPortrait.height}
 							alt={currentPortrait.decorative ? "" : currentPortrait.altText}
 							class="portrait-img"
-							style={`object-position: ${currentPortrait.focalPoint.x * 100}% ${currentPortrait.focalPoint.y * 100}%`}
 							loading="eager"
 						/>
 					</div>
