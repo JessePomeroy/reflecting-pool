@@ -18,8 +18,8 @@ describe("portfolio draft preview projection", () => {
 			title: "Selected work",
 			slug: "selected-work",
 			placements: [
-				{ key: "second", assetId: "media-2", altText: null, decorative: true },
-				{ key: "first", assetId: "media-1", altText: "A portrait", decorative: false },
+				{ key: "second", assetId: "media-2", altText: null },
+				{ key: "first", assetId: "media-1", altText: "A portrait" },
 			],
 			assets: [
 				{
@@ -53,7 +53,7 @@ describe("portfolio draft preview projection", () => {
 				galleryId: "gallery-1",
 				title: "Selected work",
 				slug: "selected-work",
-				placements: [{ key: "missing", assetId: "media-missing", decorative: true }],
+				placements: [{ key: "missing", assetId: "media-missing" }],
 				assets: [],
 			}),
 		).toThrow(/unavailable/);

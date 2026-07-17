@@ -36,8 +36,7 @@ export interface ModelingEditorMediaAsset extends ResolvedModelingAsset {
 interface ResolvedModelingImage {
 	key: string;
 	order: number;
-	altText?: string;
-	decorative: boolean;
+	altText: string;
 	asset: ResolvedModelingAsset;
 }
 
@@ -56,7 +55,6 @@ export interface PublishedModelingPageState {
 			images: ResolvedModelingImage[];
 		}>;
 		seoDescription: string;
-		seoImage?: ResolvedModelingAsset;
 	};
 }
 
@@ -114,7 +112,6 @@ function assetUrl(key: string) {
 function imageFromAsset(input: {
 	key: string;
 	altText?: string;
-	decorative: boolean;
 	asset: ResolvedModelingAsset;
 }): ModelingImage {
 	const derivatives = input.asset.derivatives;
@@ -128,8 +125,7 @@ function imageFromAsset(input: {
 		].join(", "),
 		width: derivatives.display1280.width,
 		height: derivatives.display1280.height,
-		alt: input.decorative ? "" : (input.altText ?? ""),
-		decorative: input.decorative,
+		alt: input.altText ?? "",
 	};
 }
 
@@ -152,9 +148,7 @@ export function composePublishedModelingPageResult(
 			})),
 		seo: {
 			description: payload.seoDescription,
-			ogImage: payload.seoImage
-				? assetUrl(payload.seoImage.derivatives.display2048.key)
-				: legacy.seo.ogImage,
+			ogImage: legacy.seo.ogImage,
 		},
 	};
 }
@@ -165,7 +159,6 @@ export function composeModelingPageDraftResult(
 	assets: ModelingEditorMediaAsset[],
 ): ModelingPageContent {
 	const assetMap = new Map(assets.map((asset) => [asset._id, asset]));
-	const seoAsset = payload.seoImageAssetId ? assetMap.get(payload.seoImageAssetId) : undefined;
 	return {
 		heading: payload.heading?.trim() ?? "",
 		intro: payload.intro?.trim() || undefined,
@@ -182,7 +175,7 @@ export function composeModelingPageDraftResult(
 			})),
 		seo: {
 			description: payload.seoDescription?.trim() ?? "",
-			ogImage: seoAsset ? assetUrl(seoAsset.derivatives.display2048.key) : legacy.seo.ogImage,
+			ogImage: legacy.seo.ogImage,
 		},
 	};
 }
@@ -197,7 +190,6 @@ function migratedFields(content: ModelingPageContent) {
 			description: gallery.description,
 			images: gallery.images.map((image) => ({
 				alt: image.alt,
-				decorative: image.decorative ?? false,
 			})),
 		})),
 		seoDescription: content.seo.description,

@@ -41,20 +41,18 @@ const published: PublishedAboutPageState = {
 				key: "second",
 				order: 1,
 				altText: "Second portrait",
-				decorative: false,
 				asset: asset("asset-second"),
 			},
 			{
 				key: "first",
 				order: 0,
-				decorative: true,
+				altText: "",
 				asset: asset("asset-first"),
 			},
 		],
 		sections: [{ key: "practice", title: "practice", items: ["Photography"] }],
 		highlights: [{ key: "based", label: "based in", value: "chicago" }],
 		seoDescription: "CMS SEO",
-		seoImage: asset("asset-seo"),
 	},
 };
 
@@ -80,7 +78,7 @@ describe("About page provider", () => {
 		expect(deps.fetchPublishedCms).not.toHaveBeenCalled();
 	});
 
-	it("maps deliberate portrait order, responsive derivatives, and SEO image", async () => {
+	it("maps deliberate portrait order, responsive derivatives, and the host SEO image", async () => {
 		const result = await resolveAboutContent("convex", legacy, dependencies());
 		expect(result).toMatchObject({
 			heading: "story",
@@ -94,13 +92,12 @@ describe("About page provider", () => {
 		});
 		expect(result.portraits.map((portrait) => portrait.key)).toEqual(["first", "second"]);
 		expect(result.portraits[0]).toMatchObject({
-			decorative: true,
 			altText: "",
 			width: 1280,
 			height: 1920,
 		});
 		expect(result.portraits[1].srcset).toContain("display-2560.webp 2560w");
-		expect(result.seo.ogImage).toContain("asset-seo/display-2048.webp");
+		expect(result.seo.ogImage).toBe(legacy.seo.ogImage);
 		expect(result.socialLinks).toBe(legacy.socialLinks);
 	});
 
@@ -136,15 +133,13 @@ describe("About page provider", () => {
 						key: "portrait",
 						assetId: "convex-media-id",
 						altText: "Maggie near the water",
-						decorative: false,
 					},
 				],
-				seoImageAssetId: "convex-media-id",
 			},
 			[editorAsset],
 		);
 		expect(result.portraits[0].src).toContain("public-asset-id/display-1280.webp");
-		expect(result.seo.ogImage).toContain("public-asset-id/display-2048.webp");
+		expect(result.seo.ogImage).toBe(legacy.seo.ogImage);
 		expect(JSON.stringify(result)).not.toContain("convex-media-id");
 	});
 });

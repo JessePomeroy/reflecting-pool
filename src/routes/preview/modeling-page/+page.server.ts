@@ -55,7 +55,6 @@ export const load: PageServerLoad = async ({ request, cookies, setHeaders }) => 
 			...(state.draft.payload.galleries ?? []).flatMap((gallery) =>
 				(gallery.images ?? []).map((image) => image.assetId),
 			),
-			...(state.draft.payload.seoImageAssetId ? [state.draft.payload.seoImageAssetId] : []),
 		]),
 	] as Id<"mediaAssets">[];
 	const [assets, legacy] = await Promise.all([

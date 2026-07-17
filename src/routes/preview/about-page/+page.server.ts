@@ -52,10 +52,7 @@ export const load: PageServerLoad = async ({ request, cookies, setHeaders }) => 
 		throw error(409, "This draft changed after the preview was created. Open a new preview.");
 	}
 	const assetIds = [
-		...new Set([
-			...(state.draft.payload.portraits ?? []).map((portrait) => portrait.assetId),
-			...(state.draft.payload.seoImageAssetId ? [state.draft.payload.seoImageAssetId] : []),
-		]),
+		...new Set([...(state.draft.payload.portraits ?? []).map((portrait) => portrait.assetId)]),
 	] as Id<"mediaAssets">[];
 	const [assets, legacy, settings] = await Promise.all([
 		client.query(api.mediaAssets.getManyForEditor, {

@@ -23,7 +23,6 @@ export interface AboutPortraitContent {
 	width?: number;
 	height?: number;
 	altText: string;
-	decorative: boolean;
 }
 
 export interface AboutSanityResult {
@@ -105,7 +104,6 @@ export function normalizeAboutContent(result: AboutSanityResult): AboutContent {
 						key: "sanity-portrait",
 						src: about.portrait,
 						altText: about.name || fallback.displayName,
-						decorative: false,
 					},
 				]
 			: fallback.portraits,
@@ -134,7 +132,6 @@ export function getFallbackAboutContent(): AboutContent {
 				key: "fallback-portrait",
 				src: "/images/flower-01.jpg",
 				altText: "",
-				decorative: true,
 			},
 		],
 		sections: [

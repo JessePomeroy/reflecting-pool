@@ -44,7 +44,6 @@ const published: PublishedModelingPageState = {
 						key: "commercial-first",
 						order: 0,
 						altText: "Commercial portrait",
-						decorative: false,
 						asset: asset("commercial"),
 					},
 				],
@@ -58,14 +57,13 @@ const published: PublishedModelingPageState = {
 					{
 						key: "editorial-first",
 						order: 0,
-						decorative: true,
+						altText: "",
 						asset: asset("editorial"),
 					},
 				],
 			},
 		],
 		seoDescription: "Modeling portfolio",
-		seoImage: asset("sharing"),
 	},
 };
 
@@ -100,12 +98,11 @@ describe("Modeling page provider", () => {
 		expect(result.galleries[0].images[0]).toMatchObject({
 			id: "editorial-first",
 			alt: "",
-			decorative: true,
 			width: 1280,
 			height: 1600,
 		});
 		expect(result.galleries[0].images[0].srcset).toContain("display-2560.webp 2560w");
-		expect(result.seo.ogImage).toContain("sharing/display-2048.webp");
+		expect(result.seo.ogImage).toBe(legacy.seo.ogImage);
 	});
 
 	it("keeps fallback public in shadow mode and fails closed in Convex mode", async () => {
@@ -136,14 +133,12 @@ describe("Modeling page provider", () => {
 								key: "image",
 								assetId: "convex-media-id",
 								altText: "Portrait",
-								decorative: false,
 							},
 						],
 					},
 					{ key: "hidden", title: "Hidden", slug: "hidden", isVisible: false },
 				],
 				seoDescription: "Draft SEO",
-				seoImageAssetId: "convex-media-id",
 			},
 			[editorAsset],
 		);
