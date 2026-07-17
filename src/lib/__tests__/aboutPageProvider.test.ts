@@ -42,14 +42,12 @@ const published: PublishedAboutPageState = {
 				order: 1,
 				altText: "Second portrait",
 				decorative: false,
-				focalPoint: { x: 0.7, y: 0.4 },
 				asset: asset("asset-second"),
 			},
 			{
 				key: "first",
 				order: 0,
 				decorative: true,
-				focalPoint: null,
 				asset: asset("asset-first"),
 			},
 		],
@@ -82,7 +80,7 @@ describe("About page provider", () => {
 		expect(deps.fetchPublishedCms).not.toHaveBeenCalled();
 	});
 
-	it("maps deliberate portrait order, responsive derivatives, focal points, and SEO image", async () => {
+	it("maps deliberate portrait order, responsive derivatives, and SEO image", async () => {
 		const result = await resolveAboutContent("convex", legacy, dependencies());
 		expect(result).toMatchObject({
 			heading: "story",
@@ -98,7 +96,6 @@ describe("About page provider", () => {
 		expect(result.portraits[0]).toMatchObject({
 			decorative: true,
 			altText: "",
-			focalPoint: { x: 0.5, y: 0.5 },
 			width: 1280,
 			height: 1920,
 		});

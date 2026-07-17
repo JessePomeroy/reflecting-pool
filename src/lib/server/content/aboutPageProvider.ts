@@ -47,7 +47,6 @@ export interface PublishedAboutPageState {
 			order: number;
 			altText?: string;
 			decorative: boolean;
-			focalPoint: { x: number; y: number } | null;
 			asset: ResolvedAboutAsset;
 		}>;
 		sections: Array<{ key: string; title: string; items: string[] }>;
@@ -112,7 +111,6 @@ function portraitFromAsset(input: {
 	key: string;
 	altText?: string;
 	decorative: boolean;
-	focalPoint?: { x: number; y: number } | null;
 	asset: ResolvedAboutAsset;
 }): AboutPortraitContent {
 	const derivatives = input.asset.derivatives;
@@ -128,7 +126,6 @@ function portraitFromAsset(input: {
 		height: derivatives.display1280.height,
 		altText: input.decorative ? "" : (input.altText ?? ""),
 		decorative: input.decorative,
-		focalPoint: input.focalPoint ?? { x: 0.5, y: 0.5 },
 	};
 }
 
@@ -204,7 +201,6 @@ function migratedFields(content: AboutContent) {
 		portraits: content.portraits.map((portrait) => ({
 			altText: portrait.altText,
 			decorative: portrait.decorative,
-			focalPoint: portrait.focalPoint,
 		})),
 	};
 }
