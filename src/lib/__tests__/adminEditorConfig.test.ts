@@ -48,6 +48,7 @@ vi.mock("$convex/api", () => ({
 
 describe("admin Editor configuration", () => {
 	it("keeps site content and public Portfolio contracts distinct", () => {
+		expect(adminConfig.api.mediaAssets?.getManyForEditor).toBe(mediaApi.getManyForEditor);
 		expect(adminConfig.api.siteEditor).not.toBe(contentApi);
 		expect(adminConfig.api.siteEditor?.getHomepageQuoteEditorState).toBe(
 			contentApi.getHomepageQuoteEditorState,
