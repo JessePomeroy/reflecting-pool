@@ -95,5 +95,10 @@ export const adminConfig: AdminConfig = {
 			uploadEndpoint: "/api/admin/media",
 			previewEndpoint: "/api/admin/preview/portfolio",
 		},
+		products: {
+			enabledKinds: ["print", "print_set", "postcard"],
+			mediaBaseUrl: "https://media.angelsrest.online",
+			uploadEndpoint: "/api/admin/media",
+		},
 	},
 };
