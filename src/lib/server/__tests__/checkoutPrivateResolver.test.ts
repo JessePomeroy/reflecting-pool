@@ -1,3 +1,4 @@
+import { gzipSync } from "node:zlib";
 import { describe, expect, it, vi } from "vitest";
 import { resolvePrivateCheckout } from "$lib/server/checkoutPrivateResolver";
 
@@ -46,10 +47,47 @@ describe("checkout private resolver client", () => {
 		timeout.mockRestore();
 	});
 
+	it("accepts a transparently decoded compressed response", async () => {
+		const value = { version: 1, padding: "x".repeat(1_000) };
+		const body = JSON.stringify(value);
+		const encodedLength = gzipSync(body).byteLength;
+		const fetcher = vi.fn(
+			async () =>
+				new Response(body, {
+					headers: {
+						"content-type": "application/json",
+						"content-encoding": "gzip",
+						"content-length": String(encodedLength),
+					},
+				}),
+		);
+
+		expect(encodedLength).not.toBe(Buffer.byteLength(body));
+		await expect(resolvePrivateCheckout(item, { endpoint, credential, fetcher })).resolves.toEqual(
+			value,
+		);
+	});
+
+	it("accepts a trimmed punctuation-bearing server credential", async () => {
+		const punctuationCredential = `${"c".repeat(30)}=:`;
+		const fetcher = vi.fn(async (_input: URL | RequestInfo, _init?: RequestInit) =>
+			json({ version: 1 }),
+		);
+
+		await expect(
+			resolvePrivateCheckout(item, { endpoint, credential: punctuationCredential, fetcher }),
+		).resolves.toEqual({ version: 1 });
+		const [, init] = fetcher.mock.calls[0] ?? [];
+		expect((init?.headers as Record<string, string>).authorization).toBe(
+			`Bearer ${punctuationCredential}`,
+		);
+	});
+
 	it.each([
 		["missing endpoint", { credential }],
 		["missing credential", { endpoint }],
 		["malformed credential", { endpoint, credential: "short" }],
+		["untrimmed credential", { endpoint, credential: ` ${credential} ` }],
 		["HTTP endpoint", { endpoint: endpoint.replace("https:", "http:"), credential }],
 		["wrong path", { endpoint: "https://catalog.test/other", credential }],
 		["query string", { endpoint: `${endpoint}?private=id`, credential }],

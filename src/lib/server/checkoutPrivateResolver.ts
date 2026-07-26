@@ -36,7 +36,6 @@ async function boundedJson(response: Response) {
 		}
 		chunks.push(chunk.value);
 	}
-	if (length !== null && Number(length) !== total) failed();
 	try {
 		const text = new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks, total));
 		return JSON.parse(text) as unknown;
@@ -51,12 +50,14 @@ export async function resolvePrivateCheckout(
 		credential: env.CATALOG_COMMERCE_CHECKOUT_RESOLVER_CREDENTIAL,
 	},
 ) {
-	if (!config.credential || !/^[A-Za-z0-9._~+/-]{32,512}$/.test(config.credential)) failed();
+	const credential = config.credential;
+	if (!credential || credential.length < 32 || credential.length > 512) failed();
+	if (credential !== credential.trim()) failed();
 	const body = JSON.stringify({ version: 1, item });
 	if (new TextEncoder().encode(body).byteLength > 4096) failed();
 	const response = await (config.fetcher ?? fetch)(endpoint(config.endpoint), {
 		method: "POST",
-		headers: { authorization: `Bearer ${config.credential}`, "content-type": "application/json" },
+		headers: { authorization: `Bearer ${credential}`, "content-type": "application/json" },
 		body,
 		signal: AbortSignal.timeout(5_000),
 	}).catch(() => failed());
