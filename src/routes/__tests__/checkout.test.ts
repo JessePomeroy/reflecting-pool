@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { env } from "$env/dynamic/private";
+import { checkoutSnapshotMode, validateCheckoutAttempt } from "$lib/server/checkoutIntake";
 
-const { mockCreateHubPrintCheckoutSession } = vi.hoisted(() => ({
+const { mockCreateHubPrintCheckoutSession, mockResolveCatalog } = vi.hoisted(() => ({
+	mockResolveCatalog: vi.fn(),
 	mockCreateHubPrintCheckoutSession: vi.fn().mockResolvedValue({
 		sessionId: "cs_test_session",
 		url: "https://checkout.stripe.com/pay/cs_test_session",
@@ -11,14 +14,17 @@ const { mockCreateHubPrintCheckoutSession } = vi.hoisted(() => ({
 vi.mock("$lib/server/checkoutBridge", () => ({
 	createHubPrintCheckoutSession: mockCreateHubPrintCheckoutSession,
 }));
+vi.mock("$lib/server/checkoutCatalogResolver", () => ({
+	resolveAuthoritativePrintSelection: mockResolveCatalog,
+}));
 
 const checkoutUrl = "https://checkout.stripe.com/pay/cs_test_session";
 
 // Helper to create a mock SvelteKit RequestEvent
-function makeRequest(body: unknown) {
+function makeRequest(body: unknown, ip = "127.0.0.1") {
 	return {
 		request: {
-			json: () => Promise.resolve(body),
+			json: vi.fn(() => Promise.resolve(body)),
 			text: () => Promise.resolve(JSON.stringify(body)),
 			headers: { get: () => null },
 		},
@@ -26,7 +32,7 @@ function makeRequest(body: unknown) {
 		url: new URL("http://localhost/api/checkout"),
 		route: { id: "/api/checkout" },
 		fetch: vi.fn(),
-		getClientAddress: () => "127.0.0.1",
+		getClientAddress: () => ip,
 		locals: {},
 		platform: undefined,
 		setHeaders: vi.fn(),
@@ -37,10 +43,29 @@ function makeRequest(body: unknown) {
 }
 
 describe("POST /api/checkout", () => {
+	it("enables handle mode only for the exact value and rejects stale attempts", () => {
+		expect([undefined, "", "HANDLE-V2", "legacy"].map(checkoutSnapshotMode)).toEqual([
+			"legacy",
+			"legacy",
+			"legacy",
+			"legacy",
+		]);
+		expect(() =>
+			validateCheckoutAttempt(
+				{
+					attempt: "123e4567-e89b-42d3-a456-426614174000",
+					attemptStartedAt: 1,
+				},
+				100_000_000,
+			),
+		).toThrow("Checkout attempt rejected");
+	});
+
 	let POST: (event: ReturnType<typeof makeRequest>) => Promise<Response>;
 
 	beforeEach(async () => {
 		vi.clearAllMocks();
+		delete (env as Record<string, string | undefined>).CHECKOUT_SNAPSHOT_MODE;
 		mockCreateHubPrintCheckoutSession.mockResolvedValue({
 			sessionId: "cs_test_session",
 			url: checkoutUrl,
@@ -154,6 +179,7 @@ describe("POST /api/checkout", () => {
 
 		await POST(req as never);
 
+		expect(mockResolveCatalog).not.toHaveBeenCalled();
 		expect(mockCreateHubPrintCheckoutSession).toHaveBeenCalledWith(
 			expect.objectContaining({
 				siteUrl: "zippymiggy.com",
@@ -166,5 +192,38 @@ describe("POST /api/checkout", () => {
 				}),
 			}),
 		);
+	});
+
+	it("challenges the exact legacy intent before catalog or bridge effects in strict handle mode", async () => {
+		(env as Record<string, string | undefined>).CHECKOUT_SNAPSHOT_MODE = "handle-v2";
+		const request = makeRequest(
+			{ productSlug: "spring", imageUrl: "https://legacy.test/image" },
+			"handle-challenge",
+		);
+		const response = await POST(request as never);
+		expect(response.status).toBe(428);
+		await expect(response.json()).resolves.toMatchObject({
+			code: "CHECKOUT_ATTEMPT_REQUIRED",
+			details: {
+				attempt: expect.stringMatching(
+					/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+				),
+				attemptStartedAt: expect.any(Number),
+			},
+		});
+		expect(mockResolveCatalog).not.toHaveBeenCalled();
+		expect(mockCreateHubPrintCheckoutSession).not.toHaveBeenCalled();
+	});
+
+	it("rate-limits the eleventh request before body parse, catalog query, or bridge", async () => {
+		(env as Record<string, string | undefined>).CHECKOUT_SNAPSHOT_MODE = "handle-v2";
+		for (let count = 0; count < 10; count += 1) {
+			expect((await POST(makeRequest({}, "rate-handle") as never)).status).toBe(428);
+		}
+		const eleventh = makeRequest({}, "rate-handle");
+		await expect(POST(eleventh as never)).rejects.toMatchObject({ status: 429 });
+		expect(eleventh.request.json).not.toHaveBeenCalled();
+		expect(mockResolveCatalog).not.toHaveBeenCalled();
+		expect(mockCreateHubPrintCheckoutSession).not.toHaveBeenCalled();
 	});
 });

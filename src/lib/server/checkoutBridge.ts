@@ -1,5 +1,6 @@
 import { createHmac } from "node:crypto";
 import { env } from "$env/dynamic/private";
+import type { AuthoritativePrintSelection } from "$lib/server/checkoutCatalogResolver";
 import type { CheckoutMetadata } from "$lib/shop/types";
 
 const DEFAULT_CHECKOUT_BRIDGE_PATH = "/api/tenant-checkout/print";
@@ -13,6 +14,9 @@ interface HubPrintCheckoutParams {
 	metadata: CheckoutMetadata;
 	successUrl: string;
 	cancelUrl: string;
+	attempt?: string;
+	attemptStartedAt?: number;
+	checkoutSnapshot?: AuthoritativePrintSelection["checkoutSnapshot"];
 	fetcher?: typeof fetch;
 	now?: number;
 }
@@ -42,11 +46,14 @@ export async function createHubPrintCheckoutSession({
 	metadata,
 	successUrl,
 	cancelUrl,
+	attempt,
+	attemptStartedAt,
+	checkoutSnapshot,
 	fetcher = fetch,
 	now = Date.now(),
 }: HubPrintCheckoutParams): Promise<HubPrintCheckoutResult> {
 	const secret = getCheckoutBridgeSecret();
-	const bodyText = JSON.stringify({
+	const legacyBody = {
 		siteUrl,
 		amountCents,
 		productName,
@@ -55,7 +62,10 @@ export async function createHubPrintCheckoutSession({
 		metadata,
 		successUrl,
 		cancelUrl,
-	});
+	};
+	const bodyText = JSON.stringify(
+		checkoutSnapshot ? { ...legacyBody, attempt, attemptStartedAt, checkoutSnapshot } : legacyBody,
+	);
 	const timestamp = now;
 	const signature = signCheckoutBridgeBody({ bodyText, secret, timestamp });
 

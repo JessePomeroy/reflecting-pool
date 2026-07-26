@@ -1,4 +1,8 @@
 <script lang="ts">
+import {
+	CheckoutAttemptTracker,
+	postCheckoutWithChallenge,
+} from "$lib/client/checkoutAttempt";
 import { formatPrice, getRetailPrice } from "$lib/shop/pricing";
 import { shopCollectionPath } from "$lib/shop/urls";
 import type { PageData } from "./$types";
@@ -31,10 +35,14 @@ let isSubmitting = $state(false);
 // an isSubmitting = false with no visible feedback — the button silently
 // became clickable again.
 let checkoutError = $state<string | null>(null);
+const attemptTracker = new CheckoutAttemptTracker();
+
+function getSelectedPaper() {
+	return data.paperOptions.find((paper) => paper.name === selectedPaper);
+}
 
 function getSelectedSubcategoryId(): number {
-	const paper = data.paperOptions.find((p) => p.name === selectedPaper);
-	return paper?.subcategoryId ?? 0;
+	return getSelectedPaper()?.subcategoryId ?? 0;
 }
 
 async function handleCheckout() {
@@ -43,30 +51,31 @@ async function handleCheckout() {
 	checkoutError = null;
 
 	try {
-		const res = await fetch("/api/checkout", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				productSlug: data.product.slug,
-				imageUrl: data.product.imageUrl,
-				imageTitle: data.product.title,
-				paperName: selectedPaper,
-				paperSubcategoryId: getSelectedSubcategoryId(),
-				paperWidth: selectedSize.width,
-				paperHeight: selectedSize.height,
-				paperSizeLabel: selectedSize.label,
-				priceInDollars: currentPrice,
-			}),
+		const legacyBodyText = JSON.stringify({
+			productSlug: data.product.slug,
+			imageUrl: data.product.imageUrl,
+			imageTitle: data.product.title,
+			paperName: selectedPaper,
+			paperSubcategoryId: getSelectedSubcategoryId(),
+			paperWidth: selectedSize.width,
+			paperHeight: selectedSize.height,
+			paperSizeLabel: selectedSize.label,
+			priceInDollars: currentPrice,
 		});
-
-		if (!res.ok) {
-			const text = await res.text().catch(() => "");
-			throw new Error(text || `checkout failed (${res.status})`);
-		}
-
-		const { url } = await res.json();
-		if (url) {
-			window.location.href = url;
+		const selectedPaperOption = getSelectedPaper();
+		if (!selectedPaperOption) throw new Error("selected paper is unavailable.");
+		const { response, result, text } = await postCheckoutWithChallenge(
+			legacyBodyText,
+			{
+				productSlug: data.product.slug,
+				materialSlug: selectedPaperOption.slug,
+				sizeSlug: selectedSize.slug,
+			},
+			attemptTracker,
+		);
+		if (!response.ok) throw new Error(text || `checkout failed (${response.status})`);
+		if (typeof result?.url === "string") {
+			window.location.href = result.url;
 			return;
 		}
 		throw new Error("checkout session did not return a url.");
