@@ -9,6 +9,8 @@ import { CheckoutValidationError } from "./checkoutError";
 
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const IDENTIFIER = /^[A-Za-z0-9_-]{1,128}$/;
+const STABLE_KEY = /^[A-Za-z0-9]+(?:[._:-][A-Za-z0-9]+)*$/;
+const VARIANT_KEY_MAX_LENGTH = 120;
 type PublishedProduct = FunctionReturnType<typeof api.catalogProductGraphs.getPublishedBySlug>;
 type CatalogQuery = (args: { siteUrl: string; slug: string }) => Promise<PublishedProduct>;
 
@@ -42,6 +44,17 @@ function invalid(message = "Selected print is unavailable"): never {
 
 function identifier(value: unknown) {
 	if (typeof value !== "string" || !IDENTIFIER.test(value)) invalid();
+	return value;
+}
+
+function variantKey(value: unknown) {
+	if (
+		typeof value !== "string" ||
+		value.length > VARIANT_KEY_MAX_LENGTH ||
+		!STABLE_KEY.test(value)
+	) {
+		invalid();
+	}
 	return value;
 }
 
@@ -90,7 +103,7 @@ export async function resolveAuthoritativePrintSelection(
 	if (!variant?.materialOption || !variant.sizeOption) invalid();
 	const productId = identifier(product.productId);
 	const revisionId = identifier(product.revisionId);
-	const variantId = identifier(variant.key);
+	const variantId = variantKey(variant.key);
 	const title = bounded(product.title, 500);
 	const amountCents = positiveSafeInteger(variant.retailPriceCents);
 	const paper = getPaper(materialSlug);

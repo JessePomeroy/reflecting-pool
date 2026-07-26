@@ -98,6 +98,15 @@ describe("authoritative Convex print checkout projection", () => {
 		expect(JSON.stringify(result)).not.toContain("evil.test");
 	});
 
+	it("accepts the CRM stable-key alphabet for published variants", async () => {
+		const published = graph();
+		published.variants[0].key = "print.variant:8x10";
+
+		const result = await resolveAuthoritativePrintSelection(selectors, query(published));
+
+		expect(result.checkoutSnapshot.items[0].variantKey).toBe("print.variant:8x10");
+	});
+
 	it.each([
 		["missing or unpublished", () => null],
 		["wrong schema", () => ({ ...graph(), schemaVersion: 1 })],
@@ -108,6 +117,10 @@ describe("authoritative Convex print checkout projection", () => {
 			() => ({ ...graph(), variants: [...graph().variants, ...graph().variants] }),
 		],
 		["malformed product ID", () => ({ ...graph(), productId: "bad id" })],
+		[
+			"malformed variant key",
+			() => ({ ...graph(), variants: [{ ...graph().variants[0], key: "bad key" }] }),
+		],
 		[
 			"non-positive cents",
 			() => ({ ...graph(), variants: [{ ...graph().variants[0], retailPriceCents: 0 }] }),
