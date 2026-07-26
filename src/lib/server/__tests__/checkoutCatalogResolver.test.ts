@@ -2,6 +2,21 @@ import { describe, expect, it, vi } from "vitest";
 import { resolveAuthoritativePrintSelection } from "$lib/server/checkoutCatalogResolver";
 
 const ASSET = "123e4567-e89b-42d3-a456-426614174000";
+const selectors = {
+	productSlug: "spring-meadow",
+	materialSlug: "archival-matte",
+	sizeSlug: "8x10",
+};
+const snapshotItem = {
+	productKey: "product_123",
+	revisionId: "revision_123",
+	productKind: "print" as const,
+	variantKey: "variant_123",
+	materialOptionKey: "archival-matte",
+	sizeOptionKey: "8x10",
+	borderOptionKey: null,
+	frameOptionKey: null,
+};
 
 function graph() {
 	return {
@@ -9,19 +24,19 @@ function graph() {
 		productId: "product_123",
 		revisionId: "revision_123",
 		productKind: "print",
-		title: "Spring Meadow",
+		title: "Untrusted public title",
 		slug: "spring-meadow",
 		description: null,
 		seoDescription: null,
 		currency: "usd",
-		saleAvailability: "available",
+		saleAvailability: "unavailable",
 		variants: [
 			{
 				key: "variant_123",
 				order: 0,
-				materialOption: { slug: "archival-matte", label: "Archival Matte" },
-				sizeOption: { slug: "8x10", label: "8×10", widthInches: 8, heightInches: 10 },
-				retailPriceCents: 3500,
+				materialOption: { slug: "archival-matte", label: "Public paper" },
+				sizeOption: { slug: "8x10", label: "Public size", widthInches: 99, heightInches: 99 },
+				retailPriceCents: 1,
 			},
 		],
 		shopPlacement: { featured: false, orderRank: null },
@@ -30,21 +45,45 @@ function graph() {
 			frameOptionsEnabled: false,
 			framePriceMultiplierBasisPoints: 20_000,
 		},
+		media: [],
+	};
+}
+
+function privateAuthority() {
+	return {
+		version: 1,
+		purpose: "checkout",
+		item: { ...snapshotItem },
+		identity: {
+			productId: "product_123",
+			revisionId: "revision_123",
+			productKind: "print",
+			title: "Private Spring",
+			slug: "spring-meadow",
+			variantKey: "variant_123",
+		},
+		commerce: {
+			currency: "usd",
+			amountCents: 3500,
+			finish: {
+				materialKey: "archival-matte",
+				sizeKey: "8x10",
+				borderKey: null,
+				frameKey: null,
+				paper: { name: "Archival Matte", subcategoryId: 103001 },
+				size: { label: "8×10", width: 8, height: 10 },
+				border: { inches: 0 },
+				frame: { subcategoryId: 0 },
+				canvas: null,
+			},
+		},
 		media: [
 			{
-				key: "primary",
 				role: "primary",
-				order: 0,
-				altText: "Spring meadow",
 				asset: {
 					assetId: ASSET,
-					source: { width: 3000, height: 2400 },
 					derivatives: {
-						thumb: { contentType: "image/webp", width: 320, height: 256 },
-						card: { contentType: "image/webp", width: 768, height: 614 },
 						display1280: { contentType: "image/webp", width: 1280, height: 1024 },
-						display2048: { contentType: "image/webp", width: 2048, height: 1638 },
-						display2560: { contentType: "image/webp", width: 2560, height: 2048 },
 					},
 				},
 			},
@@ -52,92 +91,106 @@ function graph() {
 	};
 }
 
-const selectors = {
-	productSlug: "spring-meadow",
-	materialSlug: "archival-matte",
-	sizeSlug: "8x10",
-};
-
-function query(value: unknown) {
-	return vi.fn(async () => value) as never;
+function dependencies(response: unknown = privateAuthority()) {
+	return {
+		query: vi.fn(async () => graph()) as never,
+		resolve: vi.fn(async () => response),
+	};
 }
 
-describe("authoritative Convex print checkout projection", () => {
-	it("maps one published selection and approved primary media to the handle snapshot", async () => {
-		const read = query(graph());
+describe("private checkout catalog authority", () => {
+	it("uses public discovery only for current identity and builds exact private display facts", async () => {
+		const deps = dependencies();
 		const result = await resolveAuthoritativePrintSelection(
-			{ ...selectors, imageUrl: "https://evil.test/forged", retailPriceCents: 1 } as never,
-			read,
+			{
+				...selectors,
+				priceInDollars: 1,
+				imageTitle: "Forged browser title",
+				imageUrl: "https://forged.test/private-marker",
+				productId: "forged-browser-id",
+				availability: "available",
+			} as never,
+			deps,
 		);
-		expect(read).toHaveBeenCalledWith({ siteUrl: "zippymiggy.com", slug: "spring-meadow" });
-		expect(result).toMatchObject({
+		expect(deps.query).toHaveBeenCalledWith({
+			siteUrl: "zippymiggy.com",
+			slug: selectors.productSlug,
+		});
+		expect(deps.resolve).toHaveBeenCalledWith(snapshotItem);
+		expect(result).toEqual({
 			amountCents: 3500,
-			productName: "Spring Meadow — 8×10",
+			productName: "Private Spring — 8×10",
+			productDescription: "Archival Matte print, 8×10 inches",
 			imageUrl:
 				"https://media.angelsrest.online/sites/zippymiggy.com/web/123e4567-e89b-42d3-a456-426614174000/display-1280.webp",
 			metadata: {
-				imageTitle: "Spring Meadow",
+				imageUrl:
+					"https://media.angelsrest.online/sites/zippymiggy.com/web/123e4567-e89b-42d3-a456-426614174000/display-1280.webp",
+				imageTitle: "Private Spring",
 				paperSubcategoryId: "103001",
 				paperWidth: "8",
 				paperHeight: "10",
+				paperName: "Archival Matte",
+				paperSizeLabel: "8×10",
+				productSlug: "spring-meadow",
 			},
 			checkoutSnapshot: {
 				schemaVersion: 1,
 				catalogProvider: "convex",
-				items: [
-					{
-						productKey: "product_123",
-						revisionId: "revision_123",
-						variantKey: "variant_123",
-						materialOptionKey: "archival-matte",
-						sizeOptionKey: "8x10",
-					},
-				],
+				items: [snapshotItem],
 			},
 		});
-		expect(JSON.stringify(result)).not.toContain("evil.test");
-	});
-
-	it("accepts the CRM stable-key alphabet for published variants", async () => {
-		const published = graph();
-		published.variants[0].key = "print.variant:8x10";
-
-		const result = await resolveAuthoritativePrintSelection(selectors, query(published));
-
-		expect(result.checkoutSnapshot.items[0].variantKey).toBe("print.variant:8x10");
+		expect(JSON.stringify(result)).not.toMatch(/Forged|Untrusted|forged\.test/);
 	});
 
 	it.each([
-		["missing or unpublished", () => null],
-		["wrong schema", () => ({ ...graph(), schemaVersion: 1 })],
-		["wrong kind", () => ({ ...graph(), productKind: "postcard" })],
-		["unavailable", () => ({ ...graph(), saleAvailability: "unavailable" })],
 		[
-			"duplicate matching variant",
-			() => ({ ...graph(), variants: [...graph().variants, ...graph().variants] }),
-		],
-		["malformed product ID", () => ({ ...graph(), productId: "bad id" })],
-		[
-			"malformed variant key",
-			() => ({ ...graph(), variants: [{ ...graph().variants[0], key: "bad key" }] }),
-		],
-		[
-			"non-positive cents",
-			() => ({ ...graph(), variants: [{ ...graph().variants[0], retailPriceCents: 0 }] }),
-		],
-		["missing primary media", () => ({ ...graph(), media: [] })],
-		[
-			"malformed media identity",
+			"identity mismatch",
 			() => ({
-				...graph(),
-				media: [{ ...graph().media[0], asset: { ...graph().media[0].asset, assetId: "forged" } }],
+				...privateAuthority(),
+				identity: { ...privateAuthority().identity, productId: "other" },
 			}),
 		],
-	])("fails closed before bridge for %s", async (_label, value) => {
+		[
+			"echo mismatch",
+			() => ({ ...privateAuthority(), item: { ...snapshotItem, variantKey: "other" } }),
+		],
+		[
+			"invalid cents",
+			() => ({
+				...privateAuthority(),
+				commerce: { ...privateAuthority().commerce, amountCents: 0 },
+			}),
+		],
+		[
+			"selector mismatch",
+			() => ({
+				...privateAuthority(),
+				commerce: {
+					...privateAuthority().commerce,
+					finish: { ...privateAuthority().commerce.finish, materialKey: "other" },
+				},
+			}),
+		],
+		["unavailable authority", () => null],
+		["malformed contract", () => ({ ...privateAuthority(), purpose: "paid_fulfillment" })],
+	])("fails closed before bridge for %s", async (_label, response) => {
 		await expect(
-			resolveAuthoritativePrintSelection(selectors, query(value()) as never),
+			resolveAuthoritativePrintSelection(selectors, dependencies(response())),
 		).rejects.toMatchObject({
 			status: expect.any(Number),
+			message: "Selected print is unavailable",
 		});
+	});
+
+	it("never falls back after private resolution fails", async () => {
+		const deps = dependencies();
+		deps.resolve.mockRejectedValueOnce(new Error("private response material"));
+		await expect(resolveAuthoritativePrintSelection(selectors, deps)).rejects.toMatchObject({
+			status: 503,
+			message: "Selected print is unavailable",
+		});
+		expect(deps.query).toHaveBeenCalledOnce();
+		expect(deps.resolve).toHaveBeenCalledOnce();
 	});
 });

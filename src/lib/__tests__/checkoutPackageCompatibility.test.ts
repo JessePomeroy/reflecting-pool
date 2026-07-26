@@ -8,8 +8,8 @@ function version(packageName: string) {
 }
 
 describe("CMS-5.6d package compatibility", () => {
-	it("uses the published CRM 2.31 and print-catalog 0.3 contracts", () => {
-		expect(version("@jessepomeroy/crm-api")).toMatch(/^2\.31\./);
+	it("uses the published CRM 2.32 and print-catalog 0.3 contracts", () => {
+		expect(version("@jessepomeroy/crm-api")).toBe("2.32.0");
 		expect(version("@jessepomeroy/print-catalog")).toMatch(/^0\.3\./);
 		expect(api.catalogProductGraphs.getPublishedBySlug).toBeTruthy();
 		expect(getPaper("archival-matte")?.subcategoryId).toBe(103001);

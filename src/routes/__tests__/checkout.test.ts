@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { env } from "$env/dynamic/private";
-import { checkoutSnapshotMode, validateCheckoutAttempt } from "$lib/server/checkoutIntake";
+import {
+	CheckoutValidationError,
+	checkoutSnapshotMode,
+	validateCheckoutAttempt,
+} from "$lib/server/checkoutIntake";
 
 const { mockCreateHubPrintCheckoutSession, mockResolveCatalog } = vi.hoisted(() => ({
 	mockResolveCatalog: vi.fn(),
@@ -158,13 +162,15 @@ describe("POST /api/checkout", () => {
 		expect(data.url).toContain("checkout.stripe.com");
 	});
 
-	it("passes validated print metadata to the hub checkout bridge", async () => {
-		mockCreateHubPrintCheckoutSession.mockResolvedValue({
-			sessionId: "cs_test_meta",
-			url: "https://checkout.stripe.com/pay/cs_test_meta",
-			platformFeeAmount: 90,
-		});
-
+	it.each([
+		undefined,
+		"",
+		"HANDLE-V2",
+		"handle-v2 ",
+		"legacy",
+	])("retains the exact legacy bridge payload and performs no catalog work for mode %s", async (mode) => {
+		if (mode !== undefined)
+			(env as Record<string, string | undefined>).CHECKOUT_SNAPSHOT_MODE = mode;
 		const req = makeRequest({
 			productSlug: "garden-portraits--img-08",
 			imageUrl: "https://cdn.sanity.io/images/peony.jpg",
@@ -180,18 +186,25 @@ describe("POST /api/checkout", () => {
 		await POST(req as never);
 
 		expect(mockResolveCatalog).not.toHaveBeenCalled();
-		expect(mockCreateHubPrintCheckoutSession).toHaveBeenCalledWith(
-			expect.objectContaining({
-				siteUrl: "zippymiggy.com",
-				amountCents: 1800,
-				productName: "Peony Blush — 4×6",
-				metadata: expect.objectContaining({
-					productSlug: "garden-portraits--img-08",
-					paperName: "Glossy",
-					paperSizeLabel: "4×6",
-				}),
-			}),
-		);
+		expect(mockCreateHubPrintCheckoutSession).toHaveBeenCalledWith({
+			siteUrl: "zippymiggy.com",
+			amountCents: 1800,
+			productName: "Peony Blush — 4×6",
+			productDescription: "Glossy print, 4×6 inches",
+			imageUrl: "https://cdn.sanity.io/images/peony.jpg",
+			metadata: {
+				imageUrl: "https://cdn.sanity.io/images/peony.jpg",
+				imageTitle: "Peony Blush",
+				paperSubcategoryId: "103007",
+				paperWidth: "4",
+				paperHeight: "6",
+				paperName: "Glossy",
+				paperSizeLabel: "4×6",
+				productSlug: "garden-portraits--img-08",
+			},
+			successUrl: "https://margarethelena.com/shop/success?session_id={CHECKOUT_SESSION_ID}",
+			cancelUrl: "https://margarethelena.com/shop/cancelled",
+		});
 	});
 
 	it("challenges the exact legacy intent before catalog or bridge effects in strict handle mode", async () => {
@@ -212,6 +225,25 @@ describe("POST /api/checkout", () => {
 			},
 		});
 		expect(mockResolveCatalog).not.toHaveBeenCalled();
+		expect(mockCreateHubPrintCheckoutSession).not.toHaveBeenCalled();
+	});
+
+	it("fails a private authority mismatch before the tenant bridge", async () => {
+		(env as Record<string, string | undefined>).CHECKOUT_SNAPSHOT_MODE = "handle-v2";
+		mockResolveCatalog.mockRejectedValueOnce(
+			new CheckoutValidationError(400, "Selected print is unavailable"),
+		);
+		await expect(
+			POST(
+				makeRequest({
+					attempt: "123e4567-e89b-42d3-a456-426614174000",
+					attemptStartedAt: Date.now(),
+					productSlug: "spring",
+					materialSlug: "paper",
+					sizeSlug: "8x10",
+				}) as never,
+			),
+		).rejects.toMatchObject({ status: 400 });
 		expect(mockCreateHubPrintCheckoutSession).not.toHaveBeenCalled();
 	});
 
