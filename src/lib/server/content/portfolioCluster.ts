@@ -37,8 +37,13 @@ function seedFor(value: string) {
 	return seed;
 }
 
-function mediaUrl(key: string) {
+export function publicCmsMediaUrl(key: string) {
 	return `https://media.angelsrest.online/${key.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+/** Uses the reviewed CMS-media derivative key contract enforced by the installed admin host. */
+export function publicCmsDisplayImageUrl(siteUrl: string, assetId: string) {
+	return publicCmsMediaUrl(`sites/${siteUrl}/web/${assetId}/display-1280.webp`);
 }
 
 function responsiveSources(asset: PortfolioClusterAsset) {
@@ -49,7 +54,7 @@ function responsiveSources(asset: PortfolioClusterAsset) {
 			derivative.width > 0 &&
 			!byWidth.has(derivative.width)
 		) {
-			byWidth.set(derivative.width, mediaUrl(derivative.key));
+			byWidth.set(derivative.width, publicCmsMediaUrl(derivative.key));
 		}
 	}
 	return [...byWidth.entries()]
@@ -72,7 +77,7 @@ export function portfolioCluster(input: {
 			const random = seededRandom(seedFor(`${placement.key}:${placement.asset.assetId}`));
 			const display = placement.asset.derivatives.display1280;
 			return {
-				src: mediaUrl(display.key),
+				src: publicCmsMediaUrl(display.key),
 				srcset: responsiveSources(placement.asset),
 				alt: placement.altText?.trim() ?? "",
 				width: display.width,

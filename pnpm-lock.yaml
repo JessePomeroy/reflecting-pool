@@ -28,14 +28,14 @@ importers:
         specifier: ^3.29.0
         version: 3.29.0(@sveltejs/kit@2.69.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.56.4(@typescript-eslint/types@8.58.0))(vite@7.3.6(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.56.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.6(@types/node@25.5.2)(yaml@2.8.3)))(convex-svelte@0.14.0(@sveltejs/kit@2.69.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.56.4(@typescript-eslint/types@8.58.0))(vite@7.3.6(@types/node@25.5.2)(yaml@2.8.3)))(svelte@5.56.4(@typescript-eslint/types@8.58.0))(typescript@5.9.3)(vite@7.3.6(@types/node@25.5.2)(yaml@2.8.3)))(convex@1.42.1(react@19.2.7))(svelte@5.56.4(@typescript-eslint/types@8.58.0))(zod@4.4.3))(convex@1.42.1(react@19.2.7))(resend@6.12.2(@react-email/render@2.0.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7)))(svelte-dnd-action@0.9.69(svelte@5.56.4(@typescript-eslint/types@8.58.0)))(svelte@5.56.4(@typescript-eslint/types@8.58.0))
       '@jessepomeroy/crm-api':
-        specifier: ^2.22.0
-        version: 2.22.0(@types/node@25.5.2)(convex@1.42.1(react@19.2.7))
+        specifier: ^2.31.0
+        version: 2.31.0(@types/node@25.5.2)(convex@1.42.1(react@19.2.7))
       '@jessepomeroy/gallery-delivery':
         specifier: ^0.1.0
         version: 0.1.0
       '@jessepomeroy/print-catalog':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       '@mmailaender/convex-better-auth-svelte':
         specifier: ^0.8.0
         version: 0.8.0(7076a5b564a4069da08ef87c55f32dc6)
@@ -873,16 +873,16 @@ packages:
       svelte: ^5.0.0
       svelte-dnd-action: ^0.9.0
 
-  '@jessepomeroy/crm-api@2.22.0':
-    resolution: {integrity: sha512-jq7VI9F1oB77RBcqmrqCI7xWv2xMEIZMFDx/SR9MrUn4aWLhPkjNMRc9Ophb8iqUMk/6vVsTHkrJBWfg8g/nBg==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/crm-api/2.22.0/3bd6fe9a400f2f3364a5e01cb25ed7602f4eab48}
+  '@jessepomeroy/crm-api@2.31.0':
+    resolution: {integrity: sha512-wgyyrTFhJkx/Ak32olBSZmUaVg7t9znNdBcbNNcwK+xSGjlM6cMf3DbTu5p3XY+0CSPj0QT3gR1obnYSJxntwQ==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/crm-api/2.31.0/baca101d053b040d7954fb06577416560b3ed8b7}
     peerDependencies:
       convex: ^1.30.0
 
   '@jessepomeroy/gallery-delivery@0.1.0':
     resolution: {integrity: sha512-wFT5u+CtG0ObbCnTMgEliuRRYQHpshsRjcOicEzHxQkMmIS8v8UCgWpqNG8Pmwq0LIEuPU0NzzZm/UyglgnjNw==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/gallery-delivery/0.1.0/7d1b8cdbcd06e7244d260f0a89f9b8c8ca28ce5f}
 
-  '@jessepomeroy/print-catalog@0.2.0':
-    resolution: {integrity: sha512-s8lwY4L1kQLQT+1YzZoXl1R+Vvhno8oFN7PpYAzX/QYcWMWcJI8qZAE4VgtUug8BvOZTwqPTULHBlOWa955EWA==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/print-catalog/0.2.0/b4e56fd5f4f62e2be99753e349031b134e291f82}
+  '@jessepomeroy/print-catalog@0.3.0':
+    resolution: {integrity: sha512-miIyCzvUv6aqLbjWzQZUR67LbpBRqPskx33vMO9Yh5bd4JR173G2KydQ6tLWYzMumlsCs9KgzMyF3uFJr/zoVA==, tarball: https://npm.pkg.github.com/download/@jessepomeroy/print-catalog/0.3.0/f50077e90ce99a36df3d6c86b92bf26b116bfd74}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -3305,8 +3305,9 @@ snapshots:
       svelte: 5.56.4(@typescript-eslint/types@8.58.0)
       svelte-dnd-action: 0.9.69(svelte@5.56.4(@typescript-eslint/types@8.58.0))
 
-  '@jessepomeroy/crm-api@2.22.0(@types/node@25.5.2)(convex@1.42.1(react@19.2.7))':
+  '@jessepomeroy/crm-api@2.31.0(@types/node@25.5.2)(convex@1.42.1(react@19.2.7))':
     dependencies:
+      '@jessepomeroy/print-catalog': 0.3.0
       convex: 1.42.1(react@19.2.7)
       stripe: 20.4.1(@types/node@25.5.2)
     transitivePeerDependencies:
@@ -3314,7 +3315,7 @@ snapshots:
 
   '@jessepomeroy/gallery-delivery@0.1.0': {}
 
-  '@jessepomeroy/print-catalog@0.2.0': {}
+  '@jessepomeroy/print-catalog@0.3.0': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
