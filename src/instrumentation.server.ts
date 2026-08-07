@@ -32,8 +32,8 @@ init({
 	// Error capture only for now. Performance, replays, profiling all off
 	// to keep us comfortably under the 5K events/month free-tier ceiling.
 	tracesSampleRate: 0,
-	// Don't capture PII by default — order webhooks contain customer
-	// emails and addresses. We'll attach scrubbed context manually via
-	// the structured logger when needed.
+	// Don't capture PII by default — contact and admin requests can contain
+	// customer details. We'll attach scrubbed context manually via the
+	// structured logger when needed.
 	sendDefaultPii: false,
 });

@@ -1,13 +1,10 @@
 /**
- * Singleton `ConvexHttpClient` for server-side webhook/action code.
+ * Singleton `ConvexHttpClient` for public server-side content and catalog queries.
  *
- * Used by the Stripe + LumaPrints webhooks (which need to write to Convex
- * without a browser socket). Matches the `getConvex()` helper in angelsrest —
- * when admin mutations were ported over, we kept a separate per-request
- * client in `src/routes/api/admin/mutation/+server.ts` because `setAuth`
- * mutates client state and a shared singleton would leak tokens between
- * concurrent requests. The webhook path doesn't call `setAuth` (it passes
- * `webhookSecret` in the mutation args instead), so the singleton is safe.
+ * These reads do not call `setAuth`, so sharing this client cannot leak tokens
+ * between requests. Admin mutations use a separate per-request authenticated
+ * client in `src/routes/api/admin/mutation/+server.ts`. Shipment processing and
+ * webhook-secret authority belong to the Angels Rest hub, not this spoke.
  */
 
 import { ConvexHttpClient } from "convex/browser";

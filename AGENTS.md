@@ -17,8 +17,7 @@ Canonical rules for this client-spoke repository.
 - **Shared Convex owns operations:** orders, CRM, board, invoices, quotes,
   contracts, messages, platform tenancy, and private delivery galleries.
 - **This SvelteKit app owns composition:** public routes, admin host routes,
-  validated checkout requests, the LumaPrints shipment webhook, and per-client
-  presentation.
+  validated checkout requests, and per-client presentation.
 - **The hub owns commerce execution:** connected-account Checkout creation,
   Stripe commerce webhook intake, shared Convex order writes, fulfillment,
   refunds, and order notifications belong in `../angelsrest`.
