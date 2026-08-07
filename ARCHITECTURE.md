@@ -120,10 +120,12 @@ account and the hub's Stripe Connect destination receives connected-account
 
 ### Shipment webhook
 
-The LumaPrints webhook validates its configured authentication, looks up the
-shared Convex order, atomically claims the shipment-email side effect, sends the
-client-branded email, and records delivery status. Retryable claim failures must
-propagate so the upstream can retry.
+The hub-owned LumaPrints webhook validates its configured authentication and
+looks up the shared Convex order by its provider-global order number. It claims
+a tokenized shipment-email lease, sends with a stable provider-order idempotency
+key, and records delivery status. Active leases and failed work remain retryable.
+The deprecated site-scoped shipment APIs require an authenticated site admin and
+reject webhook-secret-only callers.
 
 ## Admin request flow
 

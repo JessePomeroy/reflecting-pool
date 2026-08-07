@@ -28,12 +28,14 @@ delivery to the hub first.
 
 LumaPrints sends its authenticated `shipping` event to the Angels Rest hub at
 `/api/webhooks/lumaprints`. The hub resolves the globally unique LumaPrints
-order number through shared Convex, claims the one-time shipment email, resolves
-the stored tenant notification profile, sends through Resend, and records
-whether delivery was sent, failed, or skipped.
+order number through shared Convex, claims a tokenized shipment-email lease,
+resolves the stored tenant notification profile, sends through Resend with a
+stable provider-order idempotency key, and records the delivery outcome.
 
-Keep claim and delivery recording separate: Convex provides the atomic claim;
-Resend remains an external side effect whose outcome must be observable.
+Convex fences each send with a lease, while Resend remains an external side
+effect whose outcome the hub must checkpoint. The package's deprecated
+site-scoped shipment APIs require an authenticated site admin and reject
+webhook-secret-only callers. The hub uses the provider-global V2 lease APIs.
 
 ## Ownership
 

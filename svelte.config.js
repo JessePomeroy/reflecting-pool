@@ -29,8 +29,8 @@ const config = {
 			directives: contentSecurityPolicy,
 		},
 		// Pin runtime + maxDuration explicitly so Vercel defaults cannot change
-		// webhook behavior. Node 22 matches package/CI requirements; the longer
-		// request budget covers Stripe and LumaPrints round trips.
+		// server-route behavior. The longer request budget covers checkout-bridge
+		// and content-provider round trips.
 		adapter: adapter({
 			runtime: "nodejs22.x",
 			maxDuration: 30,
