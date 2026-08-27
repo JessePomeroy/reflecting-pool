@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import {
 	getPaper,
 	getSize,
@@ -8,7 +7,8 @@ import {
 	LUMA_WHOLESALE_COSTS,
 	V2_PAPERS,
 	V2_SIZES,
-} from "../shop/printCatalog";
+} from "@jessepomeroy/print-catalog";
+import { describe, expect, it } from "vitest";
 
 describe("V2_PAPERS", () => {
 	it("has at least one paper entry", () => {

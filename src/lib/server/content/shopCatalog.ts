@@ -1,4 +1,4 @@
-import { V2_SIZES } from "$lib/shop/printCatalog";
+import { V2_SIZES } from "@jessepomeroy/print-catalog";
 import type { PrintCollection, PrintProduct } from "$lib/shop/types";
 
 const _PRINTABLE_IMAGES_QUERY = `
