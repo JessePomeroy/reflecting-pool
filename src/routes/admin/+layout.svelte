@@ -5,15 +5,13 @@ import {
 	isTenantAdminServerAuthorized,
 	LoadingState,
 	setAdminConfig,
+	shouldHoldAdminShellForServerSession,
+	shouldRefreshAdminServerSession,
 } from "@jessepomeroy/admin";
 import { setupAuth, setupConvex } from "convex-svelte";
 import { browser } from "$app/environment";
 import { invalidateAll } from "$app/navigation";
 import { PUBLIC_CONVEX_URL } from "$env/static/public";
-import {
-	shouldHoldAdminShellForServerSession,
-	shouldRefreshAdminServerSession,
-} from "$lib/adminServerSessionRecovery";
 import { authClient } from "$lib/auth/client";
 import { adminConfig } from "$lib/config/admin";
 
