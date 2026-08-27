@@ -7,9 +7,13 @@ import {
 	type ModelingImage,
 	type ModelingPageContent,
 } from "$lib/server/content/modeling";
+import {
+	type ContentProviderMode,
+	parseContentProviderMode,
+} from "$lib/server/content/providerMode";
 import { getConvex } from "$lib/server/convexClient";
 
-export type ModelingPageProviderMode = "fallback" | "shadow" | "convex";
+export type ModelingPageProviderMode = ContentProviderMode;
 
 interface ImageDerivative {
 	key: string;
@@ -93,16 +97,6 @@ const defaultDependencies: ModelingPageProviderDependencies = {
 	now: () => Date.now(),
 	siteUrl: adminConfig.siteUrl,
 };
-
-export function parseModelingPageProviderMode(value: string | undefined): {
-	mode: ModelingPageProviderMode;
-	invalid: boolean;
-} {
-	if (value === "fallback" || value === "shadow" || value === "convex") {
-		return { mode: value, invalid: false };
-	}
-	return { mode: "fallback", invalid: Boolean(value?.trim()) };
-}
 
 function assetUrl(key: string) {
 	const encodedKey = key.split("/").map(encodeURIComponent).join("/");
@@ -272,7 +266,7 @@ export async function fetchModelingPageContent(
 	dependencies: Partial<ModelingPageProviderDependencies> = {},
 ): Promise<ModelingPageContent> {
 	const deps = { ...defaultDependencies, ...dependencies };
-	const parsed = parseModelingPageProviderMode(env.MODELING_PAGE_PROVIDER);
+	const parsed = parseContentProviderMode(env.MODELING_PAGE_PROVIDER);
 	if (parsed.invalid) {
 		deps.log({
 			event: "cms.provider_config_invalid",

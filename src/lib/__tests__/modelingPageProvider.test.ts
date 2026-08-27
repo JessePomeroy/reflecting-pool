@@ -3,7 +3,6 @@ import { getFallbackModelingPageContent } from "$lib/server/content/modeling";
 import {
 	composeModelingPageDraftResult,
 	type PublishedModelingPageState,
-	parseModelingPageProviderMode,
 	resolveModelingPageContent,
 } from "$lib/server/content/modelingPageProvider";
 
@@ -78,14 +77,6 @@ function dependencies(overrides: Record<string, unknown> = {}) {
 }
 
 describe("Modeling page provider", () => {
-	it("defaults unset and unsupported modes to fallback", () => {
-		expect(parseModelingPageProviderMode(undefined)).toEqual({ mode: "fallback", invalid: false });
-		expect(parseModelingPageProviderMode("unsupported")).toEqual({
-			mode: "fallback",
-			invalid: true,
-		});
-	});
-
 	it("does not query Convex in fallback mode", async () => {
 		const deps = dependencies();
 		await expect(resolveModelingPageContent("fallback", legacy, deps)).resolves.toBe(legacy);

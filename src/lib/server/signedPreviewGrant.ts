@@ -6,6 +6,29 @@ export interface SignedPreviewGrantClaims {
 	[key: string]: unknown;
 }
 
+interface PreviewGrantCoreClaims {
+	scope: string;
+	siteUrl: string;
+	iat: number;
+	exp: number;
+}
+
+type PreviewGrantInput<Claims extends PreviewGrantCoreClaims> = Omit<
+	Claims,
+	"scope" | "iat" | "exp"
+>;
+
+type PreviewGrantFeatureField<Claims extends PreviewGrantCoreClaims> = Exclude<
+	Extract<keyof Claims, string>,
+	keyof PreviewGrantCoreClaims
+>;
+
+interface SignedPreviewGrantFeatureDefinition<Claims extends PreviewGrantCoreClaims> {
+	scope: Claims["scope"];
+	ttlSeconds: number;
+	requiredStringFields: readonly PreviewGrantFeatureField<Claims>[];
+}
+
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
@@ -101,4 +124,60 @@ export async function verifySignedPreviewGrant(
 	)
 		return null;
 	return claims;
+}
+
+function hasRequiredStringFields<Claims extends PreviewGrantCoreClaims>(
+	claims: SignedPreviewGrantClaims,
+	fields: readonly PreviewGrantFeatureField<Claims>[],
+): claims is SignedPreviewGrantClaims & Claims {
+	for (const field of fields) {
+		const value = claims[field];
+		if (typeof value !== "string" || value.length === 0) return false;
+	}
+	return true;
+}
+
+export function defineSignedPreviewGrantFeature<Claims extends PreviewGrantCoreClaims>(
+	definition: SignedPreviewGrantFeatureDefinition<Claims>,
+): readonly [
+	(secret: string, input: PreviewGrantInput<Claims>, now?: number) => Promise<string>,
+	(
+		secret: string,
+		token: string | undefined,
+		expectedSiteUrl: string,
+		now?: number,
+	) => Promise<Claims | null>,
+] {
+	async function create(secret: string, input: PreviewGrantInput<Claims>, now = Date.now()) {
+		return await createSignedPreviewGrant(
+			secret,
+			{ scope: definition.scope, ...input },
+			definition.ttlSeconds,
+			now,
+		);
+	}
+
+	async function verify(
+		secret: string,
+		token: string | undefined,
+		expectedSiteUrl: string,
+		now = Date.now(),
+	): Promise<Claims | null> {
+		const claims = await verifySignedPreviewGrant(
+			secret,
+			token,
+			{
+				scope: definition.scope,
+				siteUrl: expectedSiteUrl,
+				ttlSeconds: definition.ttlSeconds,
+			},
+			now,
+		);
+		if (!claims || !hasRequiredStringFields<Claims>(claims, definition.requiredStringFields)) {
+			return null;
+		}
+		return claims;
+	}
+
+	return [create, verify];
 }

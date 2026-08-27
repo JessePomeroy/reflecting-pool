@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
 	type PublishedPortfolioGallery,
-	parsePortfolioProviderMode,
 	publishedPortfolioClusters,
 	resolvePortfolio,
 } from "$lib/server/content/portfolioProvider";
@@ -85,14 +84,6 @@ function dependencies(overrides: Record<string, unknown> = {}) {
 }
 
 describe("Portfolio provider", () => {
-	it("defaults unset and unsupported modes to fallback", () => {
-		expect(parsePortfolioProviderMode(undefined)).toEqual({ mode: "fallback", invalid: false });
-		expect(parsePortfolioProviderMode("unsupported")).toEqual({
-			mode: "fallback",
-			invalid: true,
-		});
-	});
-
 	it("returns fallback without querying Convex in fallback mode", async () => {
 		const deps = dependencies();
 

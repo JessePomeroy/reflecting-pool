@@ -3,10 +3,14 @@ import { env } from "$env/dynamic/private";
 import { adminConfig } from "$lib/config/admin";
 import { clusters as fallbackClusters } from "$lib/data/galleries";
 import { type PortfolioClusterAsset, portfolioCluster } from "$lib/server/content/portfolioCluster";
+import {
+	type ContentProviderMode,
+	parseContentProviderMode,
+} from "$lib/server/content/providerMode";
 import { getConvex } from "$lib/server/convexClient";
 import type { GalleryCluster } from "$lib/types/gallery";
 
-export type PortfolioProviderMode = "fallback" | "shadow" | "convex";
+export type PortfolioProviderMode = ContentProviderMode;
 
 interface PublishedPortfolioPlacement {
 	key: string;
@@ -68,16 +72,6 @@ const defaultDependencies: PortfolioProviderDependencies = {
 	now: () => Date.now(),
 	siteUrl: adminConfig.siteUrl,
 };
-
-export function parsePortfolioProviderMode(value: string | undefined): {
-	mode: PortfolioProviderMode;
-	invalid: boolean;
-} {
-	if (value === "shadow" || value === "convex" || value === "fallback") {
-		return { mode: value, invalid: false };
-	}
-	return { mode: "fallback", invalid: Boolean(value?.trim()) };
-}
 
 export function publishedPortfolioClusters(
 	publishedGalleries: PublishedPortfolioGallery[],
@@ -196,7 +190,7 @@ export async function resolvePortfolio(
 }
 
 export async function fetchPortfolioClusters() {
-	const parsed = parsePortfolioProviderMode(env.PORTFOLIO_PROVIDER);
+	const parsed = parseContentProviderMode(env.PORTFOLIO_PROVIDER);
 	if (parsed.invalid) {
 		defaultDependencies.log({
 			event: "cms.provider_config_invalid",
