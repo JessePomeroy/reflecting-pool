@@ -119,14 +119,6 @@ export function removeRipple(ripples: Ripple[], id: number): Ripple[] {
 	return ripples.filter((ripple) => ripple.id !== id);
 }
 
-export function pruneExpiredRipples(
-	ripples: Ripple[],
-	now: number,
-	lifetimeMs = RIPPLE_LIFETIME_MS,
-): Ripple[] {
-	return ripples.filter((ripple) => now - ripple.startTime < lifetimeMs);
-}
-
 function normalizePointerAxis(value: number, size: number) {
 	if (size <= 0) return 0;
 	return (value / size - 0.5) * 2;

@@ -1,14 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-	clamp,
-	distance,
-	easeInCubic,
-	easeInOutCubic,
-	easeOutCubic,
-	lerp,
-	normalize,
-	randomRange,
-} from "../utils/math";
+import { clamp, distance, lerp, normalize, randomRange } from "../utils/math";
 
 describe("lerp", () => {
 	it("returns a at t=0", () => {
@@ -99,48 +90,6 @@ describe("normalize", () => {
 
 	it("maps correctly with non-zero outMin", () => {
 		expect(normalize(5, 0, 10, 10, 20)).toBe(15);
-	});
-});
-
-describe("easeOutCubic", () => {
-	it("returns 0 at t=0", () => {
-		expect(easeOutCubic(0)).toBe(0);
-	});
-
-	it("returns 1 at t=1", () => {
-		expect(easeOutCubic(1)).toBe(1);
-	});
-
-	it("returns > 0.5 at t=0.5 (decelerating)", () => {
-		expect(easeOutCubic(0.5)).toBeGreaterThan(0.5);
-	});
-});
-
-describe("easeInCubic", () => {
-	it("returns 0 at t=0", () => {
-		expect(easeInCubic(0)).toBe(0);
-	});
-
-	it("returns 1 at t=1", () => {
-		expect(easeInCubic(1)).toBe(1);
-	});
-
-	it("returns < 0.5 at t=0.5 (accelerating)", () => {
-		expect(easeInCubic(0.5)).toBeLessThan(0.5);
-	});
-});
-
-describe("easeInOutCubic", () => {
-	it("returns 0 at t=0", () => {
-		expect(easeInOutCubic(0)).toBe(0);
-	});
-
-	it("returns 1 at t=1", () => {
-		expect(easeInOutCubic(1)).toBe(1);
-	});
-
-	it("returns 0.5 at t=0.5 (symmetric)", () => {
-		expect(easeInOutCubic(0.5)).toBeCloseTo(0.5);
 	});
 });
 
