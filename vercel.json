@@ -1,6 +1,11 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
 	"installCommand": "pnpm config set //npm.pkg.github.com/:_authToken \"$GH_PACKAGES_TOKEN\" && pnpm install --frozen-lockfile",
+	"git": {
+		"deploymentEnabled": {
+			"main": false
+		}
+	},
 	"headers": [
 		{
 			"source": "/(.*)",
