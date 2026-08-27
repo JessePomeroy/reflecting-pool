@@ -1,12 +1,6 @@
+import { getWholesaleCost } from "@jessepomeroy/print-catalog";
 import { describe, expect, it } from "vitest";
-import {
-	getAllPrices,
-	getCost,
-	getMargin,
-	getRetailPrice,
-	getStartingPrice,
-	getStartingPriceForPaper,
-} from "../shop/pricing";
+import { getRetailPrice, getStartingPrice } from "../shop/pricing";
 import type { PrintDimensions } from "../shop/types";
 
 const size = (w: number, h: number): PrintDimensions => ({
@@ -57,47 +51,29 @@ describe("getRetailPrice", () => {
 	});
 });
 
-describe("getCost", () => {
-	it("returns LumaPrints cost for Archival Matte 8x10", () => {
-		expect(getCost("Archival Matte", size(8, 10))).toBe(3.19);
-	});
-
-	it("returns LumaPrints cost for Glossy 16x20", () => {
-		expect(getCost("Glossy", size(16, 20))).toBe(12.99);
-	});
-
-	it("returns null for unknown combination", () => {
-		expect(getCost("Archival Matte", size(99, 99))).toBeNull();
-	});
-});
-
-describe("getMargin", () => {
-	it("returns correct margin for Archival Matte 4x6", () => {
-		const margin = getMargin("Archival Matte", size(4, 6));
-		expect(margin).toBeCloseTo(15 - 1.71, 5);
-	});
-
-	it("returns correct margin for Glossy 16x20", () => {
-		const margin = getMargin("Glossy", size(16, 20));
-		expect(margin).toBeCloseTo(95 - 12.99, 5);
-	});
-
+describe("pricing profitability", () => {
 	it("all margins are positive (healthy pricing)", () => {
-		const papers = ["Archival Matte", "Glossy"] as const;
-		const sizes = [size(4, 6), size(8, 10), size(11, 14), size(16, 20)];
+		const papers = [
+			{ name: "Archival Matte", slug: "archival-matte" },
+			{ name: "Glossy", slug: "glossy" },
+		] as const;
+		const dimensions = [
+			[4, 6],
+			[8, 10],
+			[11, 14],
+			[16, 20],
+		] as const;
 		for (const paper of papers) {
-			for (const s of sizes) {
-				const margin = getMargin(paper, s);
-				if (margin === null) {
-					throw new Error(`Missing margin for ${paper} ${s.label}`);
+			for (const [width, height] of dimensions) {
+				const printSize = size(width, height);
+				const retail = getRetailPrice(paper.name, printSize);
+				const wholesale = getWholesaleCost(paper.slug, `${width}x${height}`);
+				if (retail === null || wholesale === null) {
+					throw new Error(`Missing price for ${paper.name} ${printSize.label}`);
 				}
-				expect(margin).toBeGreaterThan(0);
+				expect(retail - wholesale).toBeGreaterThan(0);
 			}
 		}
-	});
-
-	it("returns null for unknown combination", () => {
-		expect(getMargin("Archival Matte", size(5, 7))).toBeNull();
 	});
 });
 
@@ -105,32 +81,5 @@ describe("getStartingPrice", () => {
 	it("returns the lowest price across all paper/size combos", () => {
 		const starting = getStartingPrice();
 		expect(starting).toBe(15); // Archival Matte 4x6
-	});
-});
-
-describe("getStartingPriceForPaper", () => {
-	it("returns the lowest Archival Matte price", () => {
-		expect(getStartingPriceForPaper("Archival Matte")).toBe(15);
-	});
-
-	it("returns the lowest Glossy price", () => {
-		expect(getStartingPriceForPaper("Glossy")).toBe(18);
-	});
-});
-
-describe("getAllPrices", () => {
-	it("returns correct number of entries (2 papers × 4 sizes)", () => {
-		expect(getAllPrices()).toHaveLength(8);
-	});
-
-	it("each entry has required fields", () => {
-		for (const entry of getAllPrices()) {
-			expect(entry).toHaveProperty("paper");
-			expect(entry).toHaveProperty("width");
-			expect(entry).toHaveProperty("height");
-			expect(entry).toHaveProperty("sizeLabel");
-			expect(entry).toHaveProperty("retail");
-			expect(entry).toHaveProperty("cost");
-		}
 	});
 });
