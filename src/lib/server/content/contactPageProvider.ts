@@ -254,10 +254,6 @@ export async function resolveContactPageSettings(
 	return cms;
 }
 
-export async function applyContactPageProvider(legacy: SiteSettingsResult) {
-	return await applyContactPageProviderWithDependencies(legacy);
-}
-
 export async function applyContactPageProviderWithDependencies(
 	legacy: SiteSettingsResult,
 	dependencies: Partial<ContactPageProviderDependencies> = {},

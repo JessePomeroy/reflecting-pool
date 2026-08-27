@@ -23,14 +23,6 @@ export interface GalleryCluster {
 	images: ClusterImage[];
 }
 
-export interface GalleryPosition {
-	x: number; // percentage from left
-	y: number; // percentage from top
-	depth: number;
-	rotation: number;
-	scale: number;
-}
-
 export interface Ripple {
 	id: number;
 	x: number; // px

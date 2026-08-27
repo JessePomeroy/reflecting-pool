@@ -17,11 +17,3 @@ export function detectDevice() {
 
 	return { isTouch, isMobile, isLowEnd, hasFinePointer };
 }
-
-export function getBreakpoint(): "mobile" | "tablet" | "desktop" {
-	if (!browser) return "desktop";
-	const w = window.innerWidth;
-	if (w < 768) return "mobile";
-	if (w < 1024) return "tablet";
-	return "desktop";
-}
