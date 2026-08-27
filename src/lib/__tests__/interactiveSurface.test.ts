@@ -7,7 +7,6 @@ import {
 	createSurfaceInput,
 	createSurfaceOutput,
 	createSurfaceRippleState,
-	pruneExpiredRipples,
 	removeRipple,
 	shouldEnableLiquidCursor,
 	shouldTrackPointer,
@@ -95,13 +94,5 @@ describe("interactive surface", () => {
 
 		expect(ripples).toEqual([first, second]);
 		expect(removeRipple(ripples, first.id)).toEqual([second]);
-	});
-
-	it("prunes expired ripples by timestamp", () => {
-		const state = createSurfaceRippleState();
-		const oldRipple = createRipple(state, 10, 20, 100);
-		const activeRipple = createRipple(state, 30, 40, 1000);
-
-		expect(pruneExpiredRipples([oldRipple, activeRipple], 1400, 1200)).toEqual([activeRipple]);
 	});
 });

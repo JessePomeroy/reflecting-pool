@@ -22,21 +22,6 @@ export function normalize(
 	return outMin + (outMax - outMin) * clamp(t, 0, 1);
 }
 
-/** Ease-out cubic: decelerating to zero velocity */
-export function easeOutCubic(t: number): number {
-	return 1 - (1 - t) ** 3;
-}
-
-/** Ease-in cubic: accelerating from zero velocity */
-export function easeInCubic(t: number): number {
-	return t * t * t;
-}
-
-/** Ease-in-out cubic */
-export function easeInOutCubic(t: number): number {
-	return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
-}
-
 /** Distance between two points */
 export function distance(x1: number, y1: number, x2: number, y2: number): number {
 	return Math.hypot(x2 - x1, y2 - y1);
@@ -45,11 +30,6 @@ export function distance(x1: number, y1: number, x2: number, y2: number): number
 /** Random float between min and max */
 export function randomRange(min: number, max: number): number {
 	return min + Math.random() * (max - min);
-}
-
-/** Random integer between min and max (inclusive) */
-export function randomInt(min: number, max: number): number {
-	return Math.floor(randomRange(min, max + 1));
 }
 
 /**
