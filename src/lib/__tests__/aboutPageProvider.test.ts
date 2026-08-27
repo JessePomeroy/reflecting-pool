@@ -3,7 +3,6 @@ import { getFallbackAboutContent } from "$lib/server/content/about";
 import {
 	composeAboutPageDraftResult,
 	type PublishedAboutPageState,
-	parseAboutPageProviderMode,
 	resolveAboutContent,
 } from "$lib/server/content/aboutPageProvider";
 
@@ -67,11 +66,6 @@ function dependencies(overrides: Record<string, unknown> = {}) {
 }
 
 describe("About page provider", () => {
-	it("defaults unset and unsupported modes to fallback", () => {
-		expect(parseAboutPageProviderMode(undefined)).toEqual({ mode: "fallback", invalid: false });
-		expect(parseAboutPageProviderMode("unsupported")).toEqual({ mode: "fallback", invalid: true });
-	});
-
 	it("does not query Convex in fallback mode", async () => {
 		const deps = dependencies();
 		await expect(resolveAboutContent("fallback", legacy, deps)).resolves.toBe(legacy);

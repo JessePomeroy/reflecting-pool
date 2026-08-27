@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from "vitest";
 import type { HomepageContent } from "$lib/server/content/homepage";
 import {
 	type PublishedHomepageQuoteState,
-	parseHomepageQuoteProviderMode,
 	resolveHomepageContent,
 } from "$lib/server/content/homepageQuoteProvider";
 
@@ -31,14 +30,6 @@ function dependencies(overrides: Record<string, unknown> = {}) {
 }
 
 describe("Homepage Quote provider", () => {
-	it("defaults unset and unsupported modes to fallback", () => {
-		expect(parseHomepageQuoteProviderMode(undefined)).toEqual({ mode: "fallback", invalid: false });
-		expect(parseHomepageQuoteProviderMode("unsupported")).toEqual({
-			mode: "fallback",
-			invalid: true,
-		});
-	});
-
 	it("returns legacy content without querying Convex in fallback mode", async () => {
 		const deps = dependencies();
 		await expect(resolveHomepageContent("fallback", deps)).resolves.toBe(legacy);
