@@ -8,7 +8,7 @@ function version(packageName: string) {
 }
 
 describe("package compatibility", () => {
-	it("uses the published admin 3.37 prerelease, CRM 3.1, and print-catalog 0.3 contracts", () => {
+	it("uses the published admin 3.37 release, CRM 3.1, and print-catalog 0.3 contracts", () => {
 		expect(version("@jessepomeroy/admin")).toBe("3.37.0");
 		expect(version("@jessepomeroy/crm-api")).toBe("3.1.0");
 		expect(version("@jessepomeroy/print-catalog")).toMatch(/^0\.3\./);
