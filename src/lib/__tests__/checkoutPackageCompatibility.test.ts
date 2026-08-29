@@ -8,8 +8,8 @@ function version(packageName: string) {
 }
 
 describe("package compatibility", () => {
-	it("uses the published admin 3.38 R8 preview, CRM 3.1, and print-catalog 0.3 contracts", () => {
-		expect(version("@jessepomeroy/admin")).toBe("3.38.0-r8.0");
+	it("uses the published admin 3.38 release, CRM 3.1, and print-catalog 0.3 contracts", () => {
+		expect(version("@jessepomeroy/admin")).toBe("3.38.0");
 		expect(version("@jessepomeroy/crm-api")).toBe("3.1.0");
 		expect(version("@jessepomeroy/print-catalog")).toMatch(/^0\.3\./);
 		expect(api.catalogProductGraphs.getPublishedBySlug).toBeTruthy();
