@@ -2,9 +2,13 @@ import { api } from "$convex/api";
 import { env } from "$env/dynamic/private";
 import { adminConfig } from "$lib/config/admin";
 import { fetchLegacyHomepageContent, type HomepageContent } from "$lib/server/content/homepage";
+import {
+	type ContentProviderMode,
+	parseContentProviderMode,
+} from "$lib/server/content/providerMode";
 import { getConvex } from "$lib/server/convexClient";
 
-export type HomepageQuoteProviderMode = "fallback" | "shadow" | "convex";
+export type HomepageQuoteProviderMode = ContentProviderMode;
 
 export interface PublishedHomepageQuoteState {
 	revisionId: string;
@@ -50,16 +54,6 @@ const defaultDependencies: HomepageQuoteProviderDependencies = {
 	now: () => Date.now(),
 	siteUrl: adminConfig.siteUrl,
 };
-
-export function parseHomepageQuoteProviderMode(value: string | undefined): {
-	mode: HomepageQuoteProviderMode;
-	invalid: boolean;
-} {
-	if (value === "shadow" || value === "convex" || value === "fallback") {
-		return { mode: value, invalid: false };
-	}
-	return { mode: "fallback", invalid: Boolean(value?.trim()) };
-}
 
 function withPublishedQuote(
 	legacy: HomepageContent,
@@ -149,7 +143,7 @@ export async function resolveHomepageContent(
 }
 
 export async function fetchHomepageContent(): Promise<HomepageContent> {
-	const parsed = parseHomepageQuoteProviderMode(env.HOMEPAGE_QUOTE_PROVIDER);
+	const parsed = parseContentProviderMode(env.HOMEPAGE_QUOTE_PROVIDER);
 	if (parsed.invalid) {
 		defaultDependencies.log({
 			event: "cms.provider_config_invalid",

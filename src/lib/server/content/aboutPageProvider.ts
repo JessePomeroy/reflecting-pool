@@ -7,9 +7,13 @@ import {
 	type AboutPortraitContent,
 	fetchLegacyAboutContent,
 } from "$lib/server/content/about";
+import {
+	type ContentProviderMode,
+	parseContentProviderMode,
+} from "$lib/server/content/providerMode";
 import { getConvex } from "$lib/server/convexClient";
 
-export type AboutPageProviderMode = "fallback" | "shadow" | "convex";
+export type AboutPageProviderMode = ContentProviderMode;
 
 interface ImageDerivative {
 	key: string;
@@ -89,16 +93,6 @@ const defaultDependencies: AboutPageProviderDependencies = {
 	now: () => Date.now(),
 	siteUrl: adminConfig.siteUrl,
 };
-
-export function parseAboutPageProviderMode(value: string | undefined): {
-	mode: AboutPageProviderMode;
-	invalid: boolean;
-} {
-	if (value === "fallback" || value === "shadow" || value === "convex") {
-		return { mode: value, invalid: false };
-	}
-	return { mode: "fallback", invalid: Boolean(value?.trim()) };
-}
 
 function assetUrl(key: string) {
 	const encodedKey = key.split("/").map(encodeURIComponent).join("/");
@@ -273,7 +267,7 @@ export async function fetchAboutContent(
 	dependencies: Partial<AboutPageProviderDependencies> = {},
 ): Promise<AboutContent> {
 	const deps = { ...defaultDependencies, ...dependencies };
-	const parsed = parseAboutPageProviderMode(env.ABOUT_PAGE_PROVIDER);
+	const parsed = parseContentProviderMode(env.ABOUT_PAGE_PROVIDER);
 	if (parsed.invalid) {
 		deps.log({
 			event: "cms.provider_config_invalid",

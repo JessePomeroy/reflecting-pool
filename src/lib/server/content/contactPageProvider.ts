@@ -2,10 +2,14 @@ import type { ContactPageDraftPayload } from "@jessepomeroy/admin";
 import { api } from "$convex/api";
 import { env } from "$env/dynamic/private";
 import { adminConfig } from "$lib/config/admin";
+import {
+	type ContentProviderMode,
+	parseContentProviderMode,
+} from "$lib/server/content/providerMode";
 import type { ContactSettingsContent, SiteSettingsResult } from "$lib/server/content/siteSettings";
 import { getConvex } from "$lib/server/convexClient";
 
-export type ContactPageProviderMode = "fallback" | "shadow" | "convex";
+export type ContactPageProviderMode = ContentProviderMode;
 
 export interface PublishedContactPageState {
 	revisionId: string;
@@ -63,16 +67,6 @@ const defaultDependencies: ContactPageProviderDependencies = {
 	now: () => Date.now(),
 	siteUrl: adminConfig.siteUrl,
 };
-
-export function parseContactPageProviderMode(value: string | undefined): {
-	mode: ContactPageProviderMode;
-	invalid: boolean;
-} {
-	if (value === "shadow" || value === "convex" || value === "fallback") {
-		return { mode: value, invalid: false };
-	}
-	return { mode: "fallback", invalid: Boolean(value?.trim()) };
-}
 
 function optionalText(value: string | undefined) {
 	const normalized = value?.trim();
@@ -269,7 +263,7 @@ export async function applyContactPageProviderWithDependencies(
 	dependencies: Partial<ContactPageProviderDependencies> = {},
 ) {
 	const deps = { ...defaultDependencies, ...dependencies };
-	const parsed = parseContactPageProviderMode(env.CONTACT_PAGE_PROVIDER);
+	const parsed = parseContentProviderMode(env.CONTACT_PAGE_PROVIDER);
 	if (parsed.invalid) {
 		deps.log({
 			event: "cms.provider_config_invalid",

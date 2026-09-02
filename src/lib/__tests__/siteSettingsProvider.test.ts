@@ -3,7 +3,6 @@ import type { SiteSettingsResult } from "$lib/server/content/siteSettings";
 import {
 	type PublishedCmsSiteSettings,
 	type PublishedCmsSiteSettingsState,
-	parseSiteSettingsProviderMode,
 	resolveSiteSettings,
 } from "$lib/server/content/siteSettingsProvider";
 
@@ -59,14 +58,6 @@ function dependencies(overrides: Record<string, unknown> = {}) {
 }
 
 describe("Site settings provider", () => {
-	it("defaults unset and unsupported modes to fallback", () => {
-		expect(parseSiteSettingsProviderMode(undefined)).toEqual({ mode: "fallback", invalid: false });
-		expect(parseSiteSettingsProviderMode("unsupported")).toEqual({
-			mode: "fallback",
-			invalid: true,
-		});
-	});
-
 	it("returns the legacy provider without querying Convex in fallback mode", async () => {
 		const deps = dependencies();
 

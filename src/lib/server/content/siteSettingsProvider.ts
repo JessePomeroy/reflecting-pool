@@ -6,13 +6,17 @@ import {
 	type ContactPageReadTelemetry,
 } from "$lib/server/content/contactPageProvider";
 import {
+	type ContentProviderMode,
+	parseContentProviderMode,
+} from "$lib/server/content/providerMode";
+import {
 	fetchLegacySiteSettings,
 	type SiteSettingsContent,
 	type SiteSettingsResult,
 } from "$lib/server/content/siteSettings";
 import { getConvex } from "$lib/server/convexClient";
 
-export type SiteSettingsProviderMode = "fallback" | "shadow" | "convex";
+export type SiteSettingsProviderMode = ContentProviderMode;
 
 export interface PublishedCmsSiteSettings {
 	artistName: string;
@@ -63,16 +67,6 @@ const defaultDependencies: SiteSettingsProviderDependencies = {
 	now: () => Date.now(),
 	siteUrl: adminConfig.siteUrl,
 };
-
-export function parseSiteSettingsProviderMode(value: string | undefined): {
-	mode: SiteSettingsProviderMode;
-	invalid: boolean;
-} {
-	if (value === "shadow" || value === "convex" || value === "fallback") {
-		return { mode: value, invalid: false };
-	}
-	return { mode: "fallback", invalid: Boolean(value?.trim()) };
-}
 
 function migratedFields(site: SiteSettingsContent) {
 	return {
@@ -187,7 +181,7 @@ export async function fetchSiteSettings(
 	log?: (entry: CmsReadTelemetry | ContactPageReadTelemetry) => void,
 ): Promise<SiteSettingsResult> {
 	const entries: Array<CmsReadTelemetry | ContactPageReadTelemetry> = [];
-	const parsed = parseSiteSettingsProviderMode(env.SITE_SETTINGS_PROVIDER);
+	const parsed = parseContentProviderMode(env.SITE_SETTINGS_PROVIDER);
 	if (parsed.invalid) {
 		entries.push({
 			event: "cms.provider_config_invalid",

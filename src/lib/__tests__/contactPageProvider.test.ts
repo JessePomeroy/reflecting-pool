@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
 	type PublishedContactPageState,
-	parseContactPageProviderMode,
 	resolveContactPageSettings,
 } from "$lib/server/content/contactPageProvider";
 import type { SiteSettingsResult } from "$lib/server/content/siteSettings";
@@ -61,14 +60,6 @@ function dependencies(overrides: Record<string, unknown> = {}) {
 }
 
 describe("Contact page provider", () => {
-	it("defaults unset and unsupported modes to fallback", () => {
-		expect(parseContactPageProviderMode(undefined)).toEqual({ mode: "fallback", invalid: false });
-		expect(parseContactPageProviderMode("unsupported")).toEqual({
-			mode: "fallback",
-			invalid: true,
-		});
-	});
-
 	it("returns legacy content without querying Convex in fallback mode", async () => {
 		const deps = dependencies();
 		await expect(resolveContactPageSettings("fallback", legacy, deps)).resolves.toBe(legacy);
