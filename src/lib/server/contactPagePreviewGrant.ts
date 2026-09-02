@@ -1,4 +1,4 @@
-import { createSignedPreviewGrant, verifySignedPreviewGrant } from "$lib/server/signedPreviewGrant";
+import { defineSignedPreviewGrantFeature } from "$lib/server/signedPreviewGrant";
 
 export const CONTACT_PAGE_PREVIEW_COOKIE = "cms_contact_page_preview";
 export const CONTACT_PAGE_PREVIEW_PATH = "/preview/about";
@@ -13,40 +13,9 @@ export interface ContactPagePreviewGrant {
 	exp: number;
 }
 
-export async function createContactPagePreviewGrant(
-	secret: string,
-	input: Pick<ContactPagePreviewGrant, "siteUrl" | "draftRevisionId">,
-	now = Date.now(),
-) {
-	return await createSignedPreviewGrant(
-		secret,
-		{
-			scope: CONTACT_PAGE_PREVIEW_SCOPE,
-			...input,
-		},
-		CONTACT_PAGE_PREVIEW_TTL_SECONDS,
-		now,
-	);
-}
-
-export async function verifyContactPagePreviewGrant(
-	secret: string,
-	token: string | undefined,
-	expectedSiteUrl: string,
-	now = Date.now(),
-): Promise<ContactPagePreviewGrant | null> {
-	const payload = await verifySignedPreviewGrant(
-		secret,
-		token,
-		{
-			scope: CONTACT_PAGE_PREVIEW_SCOPE,
-			siteUrl: expectedSiteUrl,
-			ttlSeconds: CONTACT_PAGE_PREVIEW_TTL_SECONDS,
-		},
-		now,
-	);
-	if (!payload || typeof payload.draftRevisionId !== "string" || !payload.draftRevisionId) {
-		return null;
-	}
-	return payload as unknown as ContactPagePreviewGrant;
-}
+export const [createContactPagePreviewGrant, verifyContactPagePreviewGrant] =
+	defineSignedPreviewGrantFeature<ContactPagePreviewGrant>({
+		scope: CONTACT_PAGE_PREVIEW_SCOPE,
+		ttlSeconds: CONTACT_PAGE_PREVIEW_TTL_SECONDS,
+		requiredStringFields: ["draftRevisionId"],
+	});
