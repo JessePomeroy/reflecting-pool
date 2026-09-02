@@ -1,8 +1,15 @@
 import { ConvexHttpClient } from "convex/browser";
+import { makeFunctionReference } from "convex/server";
 import { api } from "$convex/api";
 import { env as publicEnv } from "$env/dynamic/public";
 import { adminConfig } from "$lib/config/admin";
 import { adminAuth } from "$lib/server/adminAuth";
+
+const claimAdminAccess = makeFunctionReference<
+	"mutation",
+	{ siteUrl: string },
+	{ claimed: boolean; authorized: true; tier: "basic" | "full" }
+>("adminAuth:claimAdminAccess");
 
 function createAuthenticatedClient(token: string): ConvexHttpClient | null {
 	const convexUrl = publicEnv.PUBLIC_CONVEX_URL;
@@ -14,6 +21,7 @@ function createAuthenticatedClient(token: string): ConvexHttpClient | null {
 }
 
 async function querySiteAdminAccess(client: ConvexHttpClient, email: string) {
+	await client.mutation(claimAdminAccess, { siteUrl: adminConfig.siteUrl });
 	return await client.query(api.adminAuth.checkAdminAccess, {
 		email,
 		siteUrl: adminConfig.siteUrl,
