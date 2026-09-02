@@ -60,12 +60,13 @@
 			"undici": "7.29.0",
 			"vite>esbuild": "0.28.1",
 			"@opentelemetry/core@<2.8.0": "2.8.0",
-			"@babel/core@<=7.29.0": "7.29.6"
+			"@babel/core@<=7.29.0": "7.29.6",
+			"browserslist@<=4.28.6": "4.28.7"
 		}
 	},
 	"dependencies": {
 		"@convex-dev/better-auth": "^0.12.5",
-		"@jessepomeroy/admin": "3.41.5",
+		"@jessepomeroy/admin": "3.41.6",
 		"@jessepomeroy/crm-api": "3.1.0",
 		"@jessepomeroy/gallery-delivery": "^0.1.0",
 		"@jessepomeroy/print-catalog": "^0.3.0",

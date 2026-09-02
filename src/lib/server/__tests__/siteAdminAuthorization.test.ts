@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getSiteAdminAccess, verifySiteAdminRequest } from "$lib/server/siteAdminAuthorization";
 
-const { mockGetTokenFromRequest, mockCreateClient, mockSetAuth, mockQuery } = vi.hoisted(() => ({
-	mockGetTokenFromRequest: vi.fn(),
-	mockCreateClient: vi.fn(),
-	mockSetAuth: vi.fn(),
-	mockQuery: vi.fn(),
-}));
+const { mockGetTokenFromRequest, mockCreateClient, mockSetAuth, mockMutation, mockQuery } =
+	vi.hoisted(() => ({
+		mockGetTokenFromRequest: vi.fn(),
+		mockCreateClient: vi.fn(),
+		mockSetAuth: vi.fn(),
+		mockMutation: vi.fn(),
+		mockQuery: vi.fn(),
+	}));
 
 vi.mock("convex/browser", () => ({
 	ConvexHttpClient: class MockConvexHttpClient {
@@ -15,6 +17,7 @@ vi.mock("convex/browser", () => ({
 		}
 
 		setAuth = mockSetAuth;
+		mutation = mockMutation;
 		query = mockQuery;
 	},
 }));
@@ -55,6 +58,9 @@ describe("site admin authorization", () => {
 
 		expect(mockCreateClient).toHaveBeenCalledWith("https://convex.test");
 		expect(mockSetAuth).toHaveBeenCalledWith("session-token");
+		expect(mockMutation).toHaveBeenCalledWith(expect.anything(), {
+			siteUrl: "zippymiggy.com",
+		});
 		expect(mockQuery).toHaveBeenCalledWith("adminAuth.checkAdminAccess", {
 			email: "client@example.com",
 			siteUrl: "zippymiggy.com",
@@ -76,6 +82,9 @@ describe("site admin authorization", () => {
 
 		await expect(verifySiteAdminRequest(new Request("https://example.test"))).resolves.toBe(true);
 		expect(mockQuery).toHaveBeenNthCalledWith(1, "adminAuth.whoami", {});
+		expect(mockMutation).toHaveBeenCalledWith(expect.anything(), {
+			siteUrl: "zippymiggy.com",
+		});
 		expect(mockQuery).toHaveBeenNthCalledWith(2, "adminAuth.checkAdminAccess", {
 			email: "client@example.com",
 			siteUrl: "zippymiggy.com",
